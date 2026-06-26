@@ -494,7 +494,32 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
       </div>
     </div>
 
-    <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()" disabled style="opacity:0.4;cursor:not-allowed;">Copy Full Note (All Sections)</button>
+    <!-- NOTE QUALITY REVIEW PANEL -->
+    <div id="reviewPanel" style="display:none;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04);margin-bottom:12px;">
+      <div style="background:#2d2d4e;padding:11px 18px;display:flex;align-items:center;justify-content:space-between;">
+        <h3 style="font-size:11px;font-weight:800;color:#fff;letter-spacing:0.8px;text-transform:uppercase;">&#9733; Note Quality Review</h3>
+        <button onclick="runNoteReview()" id="reviewBtn" style="padding:5px 14px;border-radius:5px;border:1.5px solid rgba(255,255,255,0.4);background:transparent;font-size:11px;font-weight:700;cursor:pointer;color:#fff;">Run Review</button>
+      </div>
+      <div style="padding:16px 20px;">
+        <p style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.5;">Before copying, run an automated quality check against CARF, ODBH, and peer support documentation standards. Fix any flagged issues then copy.</p>
+        <div id="reviewLoading" style="display:none;text-align:center;padding:20px;">
+          <div style="width:28px;height:28px;border:3px solid #e4e7f4;border-top-color:#4B5EA6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px;"></div>
+          <p style="font-size:12px;color:#888;">Reviewing note...</p>
+        </div>
+        <div id="reviewResults" style="display:none;">
+          <div id="reviewScoreBar" style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px 16px;border-radius:8px;background:#f7f8fc;border:1.5px solid #dde0f0;">
+            <div id="reviewScoreCircle" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;"></div>
+            <div>
+              <div id="reviewScoreLabel" style="font-size:14px;font-weight:700;color:#2d2d4e;margin-bottom:2px;"></div>
+              <div id="reviewScoreSub" style="font-size:12px;color:#888;"></div>
+            </div>
+          </div>
+          <div id="reviewItems" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+        <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()" disabled style="opacity:0.4;cursor:not-allowed;">Copy Full Note (All Sections)</button>
     <button class="reset-btn" onclick="resetForm()">Start New Note</button>
   </div>
 
@@ -749,6 +774,13 @@ function loadKickback() {
   document.getElementById('assessmentOutput').innerText = assessment;
   document.getElementById('planOutput').innerText = plan;
 
+  // Show review panel and reset it
+  var rp = document.getElementById('reviewPanel');
+  if (rp) { rp.style.display = 'block'; }
+  document.getElementById('reviewResults').style.display = 'none';
+  document.getElementById('reviewLoading').style.display = 'none';
+  document.getElementById('reviewBtn').textContent = 'Run Review';
+
   // Reset review attestation — staff must re-attest after edits
   var reviewAttest = document.getElementById('reviewAttestation');
   if (reviewAttest) {
@@ -806,6 +838,88 @@ function copyAll() {
     var btn = document.querySelector('.copy-all-btn');
     btn.textContent = 'Full Note Copied!';
     setTimeout(function(){ btn.textContent = 'Copy Full Note (All Sections)'; }, 2500);
+  });
+}
+
+function runNoteReview() {
+  var d = document.getElementById('dataOutput') ? document.getElementById('dataOutput').innerText.trim() : '';
+  var a = document.getElementById('assessmentOutput') ? document.getElementById('assessmentOutput').innerText.trim() : '';
+  var p = document.getElementById('planOutput') ? document.getElementById('planOutput').innerText.trim() : '';
+
+  if (!d && !a && !p) { alert('Generate a note first before running the review.'); return; }
+
+  var fullNote = 'DESCRIPTION:\n' + d + '\n\nASSESSMENT OF PROGRESS:\n' + a + '\n\nPLANS TO FOLLOW UP:\n' + p;
+
+  document.getElementById('reviewLoading').style.display = 'block';
+  document.getElementById('reviewResults').style.display = 'none';
+  document.getElementById('reviewBtn').textContent = 'Reviewing...';
+  document.getElementById('reviewBtn').disabled = true;
+
+  var reviewSystemPrompt = 'You are a clinical documentation quality reviewer for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency. Review DAP progress notes written by Peer Recovery Supporters (PRS) against the following rubric. Return ONLY valid JSON, no markdown, no preamble.\n\nRUBRIC — score each item as pass, warn, or fail:\n\n1. data_objective: DESCRIPTION section uses objective, behavioral, observable language. No interpretations, diagnoses, or clinical judgments. No prohibited phrases like "client appears to," "this writer," "the worker," "seemed." Uses "the individual" or "Peer."\n2. data_specific: DESCRIPTION contains specific observable details about how Peer presented, what was discussed, and what occurred — not vague summaries like "session went well."\n3. assessment_connection: ASSESSMENT connects Peer\'s presentation to their recovery goals and treatment plan. Does not just restate Description.\n4. assessment_progress: ASSESSMENT speaks to Peer\'s progress, barriers, strengths, or stage of change in a meaningful clinical way.\n5. plan_actionable: PLANS TO FOLLOW UP includes specific, actionable next steps — not just "continue to provide peer support."\n6. plan_timeline: PLANS include at least one time-bound or milestone-based next step.\n7. no_phi: Note contains no proper names, dates of birth, addresses, SSNs, or other PHI. Client referenced by ID or "the individual" or "Peer" only.\n8. no_prohibited_language: Note avoids prohibited phrases: "this writer," "the worker," "noncompliant," "refused," "manipulative," "client" (instead of Peer/individual), "resistant."\n9. peer_scope: Interventions described are within PRS scope — lived experience sharing, skill-building, resource linkage, advocacy, accompaniment. No clinical treatment, diagnosis, or therapy language.\n10. length_appropriate: Note is substantive enough to justify the session — not a one-liner, not padded filler.\n\nReturn this exact JSON structure:\n{\n  "score": <integer 0-100>,\n  "grade": "<Excellent|Good|Needs Revision|Incomplete>",\n  "summary": "<1-2 sentence overall assessment>",\n  "items": [\n    {"id": "data_objective", "label": "Objective Language (Description)", "status": "<pass|warn|fail>", "note": "<specific feedback or empty string if pass>"},\n    {"id": "data_specific", "label": "Specificity of Description", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "assessment_connection", "label": "Assessment Connects to Goals", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "assessment_progress", "label": "Assessment Addresses Progress", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "plan_actionable", "label": "Plan is Actionable", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "plan_timeline", "label": "Plan Includes Timeline/Milestones", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "no_phi", "label": "No PHI Present", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "no_prohibited_language", "label": "No Prohibited Language", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "peer_scope", "label": "Within PRS Scope of Practice", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "length_appropriate", "label": "Appropriate Length & Substance", "status": "<pass|warn|fail>", "note": ""}\n  ]\n}';
+
+  fetch('/functions/claude', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      system: reviewSystemPrompt,
+      messages: [{role: 'user', content: 'Review this DAP progress note:\n\n' + fullNote}]
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    document.getElementById('reviewLoading').style.display = 'none';
+    document.getElementById('reviewBtn').textContent = 'Re-run Review';
+    document.getElementById('reviewBtn').disabled = false;
+
+    var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+    // Strip any markdown fences
+    text = text.replace(/```json|```/g, '').trim();
+
+    var result;
+    try { result = JSON.parse(text); } catch(e) {
+      document.getElementById('reviewResults').style.display = 'block';
+      document.getElementById('reviewItems').innerHTML = '<p style="color:#E8417A;font-size:12px;">Could not parse review results. Try again.</p>';
+      return;
+    }
+
+    // Score circle color
+    var score = result.score || 0;
+    var circleColor = score >= 85 ? '#1A7A3A' : score >= 65 ? '#7A5200' : '#8B1A1A';
+    var circleBg = score >= 85 ? '#E8F5EC' : score >= 65 ? '#FFF8E6' : '#FDECEA';
+
+    document.getElementById('reviewScoreCircle').style.background = circleBg;
+    document.getElementById('reviewScoreCircle').style.color = circleColor;
+    document.getElementById('reviewScoreCircle').textContent = score;
+    document.getElementById('reviewScoreLabel').textContent = result.grade || '';
+    document.getElementById('reviewScoreSub').textContent = result.summary || '';
+
+    // Render items
+    var html = '';
+    var statusIcon = {pass: '✅', warn: '⚠️', fail: '❌'};
+    var statusColor = {pass: '#1A7A3A', warn: '#7A5200', fail: '#8B1A1A'};
+    var statusBg = {pass: '#E8F5EC', warn: '#FFF8E6', fail: '#FDECEA'};
+    var statusBorder = {pass: '#b8e0c4', warn: '#f0c040', fail: '#f5c6c6'};
+
+    (result.items || []).forEach(function(item) {
+      var st = item.status || 'warn';
+      html += '<div style="background:' + statusBg[st] + ';border:1px solid ' + statusBorder[st] + ';border-radius:7px;padding:10px 14px;">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:' + (item.note ? '6px' : '0') + ';">'
+        + '<span style="font-size:14px;">' + (statusIcon[st]||'⚠️') + '</span>'
+        + '<span style="font-size:12px;font-weight:700;color:' + statusColor[st] + ';">' + item.label + '</span>'
+        + '</div>'
+        + (item.note ? '<p style="font-size:12px;color:#555;margin:0;line-height:1.5;padding-left:22px;">' + item.note + '</p>' : '')
+        + '</div>';
+    });
+
+    document.getElementById('reviewItems').innerHTML = html;
+    document.getElementById('reviewResults').style.display = 'block';
+  })
+  .catch(function(err){
+    document.getElementById('reviewLoading').style.display = 'none';
+    document.getElementById('reviewBtn').textContent = 'Re-run Review';
+    document.getElementById('reviewBtn').disabled = false;
+    document.getElementById('reviewResults').style.display = 'block';
+    document.getElementById('reviewItems').innerHTML = '<p style="color:#E8417A;font-size:12px;">Review failed: ' + err.message + '</p>';
   });
 }
 
@@ -935,7 +1049,7 @@ async function runGenerateNote() {
   var userContent = 'Generate a DAP progress note using the following session data:\n\n'
     + 'PROGRAM: ' + program + '\n'
     + 'SESSION TYPE: ' + sessionType + locationLine + '\n'
-    + 'SESSION LENGTH: ' + sessionLength + '\n\n'
+    + 'SESSION LENGTH (use only to calibrate note depth and detail — do NOT mention the session length in the note output): ' + sessionLength + '\n\n'
     + 'TREATMENT PLAN GOALS ADDRESSED THIS SESSION:\n' + goals + '\n\n'
     + 'HOW PEER PRESENTED:\n'
     + (chips.length > 0 ? 'Observed descriptors: ' + chips.join(', ') + '\n' : '')
