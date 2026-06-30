@@ -5,140 +5,89 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Treatment Plan Builder — Thrive Peer Recovery Services</title>
 <style>
-/* ── RESET & BASE ── */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f7;color:#1a1a2e;min-height:100vh;font-size:14px;line-height:1.5;}
-
-/* ── HEADER ── */
-.header{background:#fff;border-bottom:3px solid #4B5EA6;padding:14px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,0.08);}
-.header img{height:48px;width:auto;}
-.header-text h1{font-size:17px;font-weight:700;color:#2d2d4e;letter-spacing:-0.2px;}
-.header-text p{font-size:11px;color:#888;margin-top:2px;letter-spacing:0.3px;text-transform:uppercase;}
-
-/* ── PHI BANNER ── */
-.phi-banner{background:#fffbea;border-left:4px solid #f0c040;padding:12px 32px;display:flex;align-items:center;gap:12px;}
-.phi-icon{font-size:18px;flex-shrink:0;}
-.phi-banner p{font-size:12px;color:#5a4000;line-height:1.5;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a1a2e;min-height:100vh;}
+.header{background:#fff;border-bottom:4px solid #4B5EA6;padding:16px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.header img{height:56px;width:auto;}
+.header-text h1{font-size:18px;font-weight:700;color:#4B5EA6;}
+.header-text p{font-size:12px;color:#888;margin-top:2px;}
+.phi-banner{background:#FFF3CD;border-left:5px solid #F5C518;padding:14px 32px;display:flex;align-items:center;gap:12px;}
+.phi-icon{font-size:20px;flex-shrink:0;}
+.phi-banner p{font-size:13px;color:#5a4200;line-height:1.5;}
 .phi-banner strong{color:#3a2800;}
-
-/* ── LAYOUT ── */
-.main{max-width:860px;margin:28px auto;padding:0 20px 60px;}
-
-/* ── SECTION CARDS ── */
-.section-card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04);margin-bottom:16px;overflow:hidden;}
-.section-header{background:#2d2d4e;padding:12px 20px;display:flex;align-items:center;gap:10px;}
-.section-header .step{background:#4B5EA6;color:#fff;font-size:10px;font-weight:800;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:0;}
-.section-header h2{font-size:13px;font-weight:700;color:#fff;letter-spacing:0.3px;text-transform:uppercase;}
-.section-body{padding:20px 24px;}
-
-/* ── FORM FIELDS ── */
-.field{margin-bottom:18px;}
+.main{max-width:900px;margin:32px auto;padding:0 20px 60px;}
+.section-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:20px;overflow:hidden;}
+.section-header{background:#4B5EA6;padding:14px 24px;display:flex;align-items:center;gap:10px;}
+.section-header .step{background:#fff;color:#4B5EA6;font-size:11px;font-weight:700;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.section-header h2{font-size:15px;font-weight:700;color:#fff;}
+.section-body{padding:24px;}
+.field{margin-bottom:20px;}
 .field:last-child{margin-bottom:0;}
-label.field-label{display:block;font-size:12px;font-weight:700;color:#2d2d4e;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;}
-.field-hint{font-size:11px;color:#999;margin-bottom:6px;line-height:1.4;}
-select,textarea,input[type=text],input[type=date],input[type=number]{width:100%;border:1.5px solid #dde0f0;border-radius:6px;padding:9px 12px;font-size:13px;color:#1a1a2e;font-family:inherit;background:#fafbff;transition:border-color 0.15s,box-shadow 0.15s;}
-select:focus,textarea:focus,input:focus{outline:none;border-color:#4B5EA6;box-shadow:0 0 0 3px rgba(75,94,166,0.1);}
-textarea{resize:vertical;min-height:76px;line-height:1.55;}
+label.field-label{display:block;font-size:13px;font-weight:600;color:#2d2d4e;margin-bottom:6px;}
+.field-hint{font-size:11px;color:#888;margin-bottom:6px;line-height:1.4;}
+select,textarea,input[type=text],input[type=date],input[type=number]{width:100%;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;color:#1a1a2e;font-family:inherit;background:#fafbff;transition:border-color 0.2s;}
+select:focus,textarea:focus,input:focus{outline:none;border-color:#4B5EA6;background:#fff;}
+textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 @media(max-width:600px){.two-col{grid-template-columns:1fr;}}
-.required-star{color:#E8417A;margin-left:2px;}
-
-/* ── CHIPS ── */
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
-.chip{padding:7px 14px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #dde0f0;background:#f4f5f7;color:#666;user-select:none;transition:all 0.12s;letter-spacing:0.1px;}
-.chip:hover{border-color:#4B5EA6;color:#4B5EA6;background:#eef0fb;}
-.chip.selected{background:#4B5EA6;border-color:#4B5EA6;color:#fff;box-shadow:0 1px 4px rgba(75,94,166,0.25);}
-
-/* ── NEED DETAIL BLOCKS ── */
-.need-detail-block{background:#f7f8fc;border:1.5px solid #dde0f0;border-radius:8px;padding:18px 20px;margin-top:12px;}
-.need-detail-title{font-size:11px;font-weight:800;color:#4B5EA6;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.8px;}
-.sub-need-preview{background:#fff;border:1.5px solid #e4e7f4;border-radius:6px;padding:10px 14px;margin-top:8px;display:none;}
-.sub-need-preview.visible{display:block;}
-.sub-need-preview-label{font-size:10px;font-weight:800;color:#aaa;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;}
-.sub-need-preview-text{font-size:11px;color:#666;line-height:1.55;max-height:72px;overflow:hidden;position:relative;}
-.sub-need-preview-text::after{content:'';position:absolute;bottom:0;left:0;right:0;height:20px;background:linear-gradient(transparent,#fff);}
-
-/* ── SLI CARDS ── */
-.sli-card{background:#f7f8fc;border:1.5px solid #dde0f0;border-radius:8px;padding:16px 18px;margin-bottom:14px;}
-.sli-card h3{font-size:11px;font-weight:800;color:#4B5EA6;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.7px;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #dde0f0;background:#f4f5f7;color:#555;user-select:none;transition:all 0.15s;}
+.chip:hover{border-color:#4B5EA6;color:#4B5EA6;}
+.chip.selected{background:#4B5EA6;border-color:#4B5EA6;color:#fff;}
+.sli-card{background:#f0f2fa;border:1.5px solid #c8cfe8;border-radius:10px;padding:18px;margin-bottom:16px;}
+.sli-card h3{font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;}
 .score-input-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 @media(max-width:600px){.score-input-row{grid-template-columns:1fr 1fr;}}
-.score-field label{font-size:11px;font-weight:700;color:#2d2d4e;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px;}
-.score-field input{padding:8px 10px;font-size:13px;}
-
-/* ── SLI RESULT ── */
-.sli-result{background:#fff;border:2px solid #4B5EA6;border-radius:10px;padding:18px;margin-top:14px;display:none;}
+.score-field label{font-size:12px;font-weight:600;color:#2d2d4e;display:block;margin-bottom:4px;}
+.score-field input{padding:8px 10px;font-size:14px;}
+.sli-result{background:#fff;border:2px solid #4B5EA6;border-radius:10px;padding:16px;margin-top:16px;display:none;}
 .sli-result.visible{display:block;}
-.sli-result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
-.sli-result-item{text-align:center;padding:12px 8px;background:#f4f5f7;border-radius:7px;}
-.sli-result-item .val{font-size:26px;font-weight:800;color:#4B5EA6;line-height:1;}
-.sli-result-item .lbl{font-size:10px;color:#999;margin-top:5px;text-transform:uppercase;letter-spacing:0.4px;}
-.level-badge{display:inline-block;padding:6px 20px;border-radius:20px;font-size:13px;font-weight:700;letter-spacing:0.2px;}
+.sli-result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.sli-result-item{text-align:center;padding:12px;background:#f4f5f7;border-radius:8px;}
+.sli-result-item .val{font-size:22px;font-weight:700;color:#4B5EA6;}
+.sli-result-item .lbl{font-size:11px;color:#888;margin-top:4px;}
+.level-badge{display:inline-block;padding:6px 18px;border-radius:20px;font-size:13px;font-weight:700;}
 .level-standard{background:#E8F5EC;color:#1A7A3A;}
 .level-enhanced{background:#FFF8E6;color:#7A5200;}
 .level-intensive{background:#FDECEA;color:#8B1A1A;}
-
-/* ── ATTESTATION ── */
-.attestation-card{background:#EEF1FB;border:2px solid #4B5EA6;border-radius:10px;padding:18px 22px;margin-bottom:18px;}
-.attestation-card h3{font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:10px;}
-.attestation-row{display:flex;align-items:flex-start;gap:10px;}
-.attestation-row input[type=checkbox]{width:17px;height:17px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;}
-.attestation-row label{font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;}
-
-/* ── BUTTONS ── */
-.generate-btn{width:100%;padding:15px;background:#4B5EA6;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s;letter-spacing:0.2px;}
+.need-detail-block{background:#f0f2fa;border:1.5px solid #c8cfe8;border-radius:10px;padding:20px;margin-top:16px;}
+.need-detail-title{font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;}
+.sub-need-preview{background:#fff;border:1.5px solid #dde0f0;border-radius:8px;padding:12px;margin-top:10px;display:none;}
+.sub-need-preview.visible{display:block;}
+.sub-need-preview-label{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.sub-need-preview-text{font-size:12px;color:#555;line-height:1.5;max-height:80px;overflow:hidden;position:relative;}
+.sub-need-preview-text::after{content:'';position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,#fff);}
+.attestation-card{background:#EEF1FB;border:2px solid #4B5EA6;border-radius:12px;padding:20px 24px;margin-bottom:20px;}
+.attestation-card h3{font-size:14px;font-weight:700;color:#4B5EA6;margin-bottom:12px;}
+.attestation-row{display:flex;align-items:flex-start;gap:12px;}
+.attestation-row input[type=checkbox]{width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;}
+.attestation-row label{font-size:13px;color:#2d2d4e;line-height:1.5;cursor:pointer;}
+.generate-btn{width:100%;padding:16px;background:#4B5EA6;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.2s;}
 .generate-btn:hover:not(:disabled){background:#3a4d8f;}
-.generate-btn:disabled{background:#b8c0db;cursor:not-allowed;}
-.copy-all-btn{width:100%;padding:12px;background:#fff;color:#4B5EA6;border:2px solid #4B5EA6;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;margin-bottom:8px;letter-spacing:0.1px;}
-.copy-all-btn:hover{background:#4B5EA6;color:#fff;}
-.reset-btn{width:100%;padding:10px;background:transparent;color:#aaa;border:1.5px solid #e4e7f4;border-radius:8px;font-size:12px;cursor:pointer;transition:all 0.15s;}
-.reset-btn:hover{border-color:#4B5EA6;color:#4B5EA6;}
-
-/* ── LOADING & ERROR ── */
+.generate-btn:disabled{background:#b0b8d8;cursor:not-allowed;}
 .loading{display:none;text-align:center;padding:40px;}
 .loading.visible{display:block;}
-.spinner{width:36px;height:36px;border:3px solid #e4e7f4;border-top-color:#4B5EA6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
+.spinner{width:40px;height:40px;border:4px solid #dde0f0;border-top-color:#4B5EA6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.error-msg{background:#FDECEA;border:1.5px solid #f5c6c6;border-radius:7px;padding:12px 16px;color:#8B1A1A;font-size:12px;display:none;margin-top:10px;line-height:1.5;}
+.error-msg{background:#FDECEA;border:1.5px solid #f5c6c6;border-radius:8px;padding:14px;color:#8B1A1A;font-size:13px;display:none;margin-top:12px;}
 .error-msg.visible{display:block;}
-
-/* ── OUTPUT SECTION ── */
-.output-section{display:none;margin-top:20px;}
+.output-section{display:none;margin-top:24px;}
 .output-section.visible{display:block;}
-.review-banner{margin-bottom:14px;padding:12px 16px;background:#fffbea;border:1.5px solid #f0c040;border-radius:7px;font-size:12px;color:#5a4000;line-height:1.5;}
-
-/* ── OUTPUT CARDS ── */
-.output-card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04);overflow:hidden;margin-bottom:12px;}
-.output-header{background:#2d2d4e;padding:11px 18px;display:flex;align-items:center;justify-content:space-between;}
-.output-header h3{font-size:11px;font-weight:800;color:#fff;letter-spacing:0.8px;text-transform:uppercase;}
-.output-body{padding:18px 20px;font-size:13px;line-height:1.75;color:#2d2d2d;white-space:pre-wrap;}
-
-/* ── NEED BLOCK OUTPUT ── */
-.need-section-label{font-size:10px;font-weight:800;color:#4B5EA6;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:5px;margin-top:16px;padding-top:14px;border-top:1px solid #eee;}
-.need-section-label:first-child{margin-top:0;padding-top:0;border-top:none;}
-.need-section-content{font-size:13px;color:#2d2d2d;line-height:1.75;white-space:pre-wrap;}
-
-/* ── COPY BUTTONS ── */
-.copy-btn{padding:5px 12px;border-radius:5px;border:1.5px solid rgba(255,255,255,0.4);background:transparent;font-size:11px;font-weight:700;cursor:pointer;color:#fff;transition:all 0.12s;letter-spacing:0.2px;}
-.copy-btn:hover{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.7);}
-
-/* ── SIGN-OFF SECTION ── */
-.signoff-card{background:#f7f8fc;border:1.5px solid #dde0f0;border-radius:10px;padding:20px 24px;margin-top:4px;}
-.signoff-card h3{font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-.radio-group{display:flex;gap:16px;flex-wrap:wrap;}
-.radio-group label{display:flex;align-items:center;gap:6px;font-size:12px;color:#2d2d4e;cursor:pointer;}
-.radio-group input[type=radio]{accent-color:#4B5EA6;width:15px;height:15px;}
-.checkbox-group{display:flex;flex-wrap:wrap;gap:12px;}
-.checkbox-group label{display:flex;align-items:center;gap:6px;font-size:12px;color:#2d2d4e;cursor:pointer;}
-.checkbox-group input[type=checkbox]{accent-color:#4B5EA6;width:15px;height:15px;}
-
-/* ── 90-DAY REVIEW ── */
-.review-banner{background:#fffbea;border:1.5px solid #f0c040;border-radius:7px;padding:12px 16px;font-size:12px;color:#5a4000;line-height:1.5;}
-
-/* ── MISC ── */
-.field-divider{border:none;border-top:1px solid #eee;margin:20px 0;}
+.output-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.07);overflow:hidden;margin-bottom:16px;}
+.output-header{background:#4B5EA6;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+.output-header h3{font-size:14px;font-weight:700;color:#fff;}
+.output-body{padding:20px;font-size:14px;line-height:1.8;color:#2d2d2d;white-space:pre-wrap;}
+.need-section-label{font-size:11px;font-weight:700;color:#4B5EA6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;margin-top:14px;}
+.need-section-label:first-child{margin-top:0;}
+.copy-btn{padding:6px 14px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.6);background:transparent;font-size:12px;font-weight:600;cursor:pointer;color:#fff;transition:all 0.15s;}
+.copy-btn:hover{background:rgba(255,255,255,0.15);}
+.copy-all-btn{width:100%;padding:12px;background:#fff;color:#4B5EA6;border:2px solid #4B5EA6;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-bottom:8px;}
+.copy-all-btn:hover{background:#4B5EA6;color:#fff;}
+.reset-btn{width:100%;padding:10px;background:transparent;color:#888;border:1.5px solid #dde0f0;border-radius:10px;font-size:13px;cursor:pointer;}
+.reset-btn:hover{border-color:#4B5EA6;color:#4B5EA6;}
+.required-star{color:#E8417A;margin-left:2px;}
+.review-banner{margin-bottom:16px;padding:14px;background:#fffbea;border:1.5px solid #F5C518;border-radius:8px;font-size:13px;color:#5a4200;line-height:1.5;}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -319,22 +268,13 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
         <label class="field-label">Select need areas to address in this plan <span class="required-star">*</span></label>
         <div class="field-hint">After selecting a need area, choose the specific focus for this Peer below.</div>
         <div class="chips" id="needChips">
-          <div class="chip" onclick="toggleNeed(this)" data-need="Recovery">Recovery</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Mental Health Services">Mental Health Services</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Basic Needs">Basic Needs</div>
+          <div class="chip" onclick="toggleNeed(this)" data-need="Substance Use / Recovery">Substance Use / Recovery</div>
+          <div class="chip" onclick="toggleNeed(this)" data-need="Mental Health">Mental Health</div>
+          <div class="chip" onclick="toggleNeed(this)" data-need="Housing">Housing</div>
+          <div class="chip" onclick="toggleNeed(this)" data-need="Employment / Education">Employment / Education</div>
+          <div class="chip" onclick="toggleNeed(this)" data-need="Social Support">Social Support</div>
           <div class="chip" onclick="toggleNeed(this)" data-need="Physical Health">Physical Health</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Primary Care Provider">Primary Care Provider</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Employment">Employment</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Education">Education</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Family and Relationships">Family and Relationships</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Engagement & Recovery Assessment">Engagement &amp; Recovery Assessment</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Court/Probation">Court/Probation</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Transportation">Transportation</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Finances/Budgeting">Finances/Budgeting</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Recovery: Relapse Prevention">Recovery: Relapse Prevention</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Graduation">Graduation</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Case Management">Case Management</div>
-          <div class="chip" onclick="toggleNeed(this)" data-need="Additional Goals and Interventions">Additional Goals and Interventions</div>
+          <div class="chip" onclick="toggleNeed(this)" data-need="Legal">Legal</div>
         </div>
       </div>
       <div id="needDetailFields"></div>
@@ -377,27 +317,46 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
   </div>
 
   <div class="output-section" id="outputSection">
-    <div class="review-banner"><strong>Review before using.</strong> Confirm the AI output accurately reflects this client's individualized plan. Edit directly in the box below before copying to Pimsy.</div>
-
+    <div class="review-banner"><strong>Review before using.</strong> Confirm the AI output accurately reflects this client's individualized plan. Edit directly in the boxes below before copying to Pimsy.</div>
     <div class="output-card">
-      <div class="output-header">
-        <h3>TREATMENT PLAN — CLIENT ID: <span id="outputClientId"></span></h3>
-        <button class="copy-btn" onclick="copyFullDoc(this)">Copy Full Plan</button>
-      </div>
-      <div class="output-body" id="unifiedPlanOutput" contenteditable="true"></div>
+      <div class="output-header"><h3>PLAN SUMMARY</h3><button class="copy-btn" onclick="copyEl('planSummaryOutput',this)">Copy</button></div>
+      <div class="output-body" id="planSummaryOutput" contenteditable="true"></div>
     </div>
-
-    <!-- SIGN-OFF -->
-    <div style="background:#fff;border:1.5px solid #dde0f0;border-radius:10px;overflow:hidden;margin-bottom:12px;">
-      <div style="background:#2d2d4e;padding:12px 20px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:14px;">&#9998;</span>
-        <h2 style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.5px;">Plan Sign-Off &amp; Consent Documentation</h2>
+    <div id="needBlocksOutput"></div>
+    <div class="output-card">
+      <div class="output-header"><h3>INDIVIDUAL GOAL STATEMENT</h3><button class="copy-btn" onclick="copyEl('clientGoalOutput',this)">Copy</button></div>
+      <div class="output-body" id="clientGoalOutput" contenteditable="true"></div>
+    </div>
+    <div class="output-card">
+      <div class="output-header"><h3>SLI 2.0 SUMMARY &amp; CLINICAL JUSTIFICATION</h3><button class="copy-btn" onclick="copyEl('justificationOutput',this)">Copy</button></div>
+      <div class="output-body" id="justificationOutput" contenteditable="true"></div>
+    </div>
+    <!-- CARF/ODBH COMPLIANCE QUALITY CHECK -->
+    <div id="qaPanel" style="background:#fff;border:2px solid #4B5EA6;border-radius:12px;overflow:hidden;margin-bottom:16px;">
+      <div style="background:#4B5EA6;padding:14px 24px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:16px;">&#9989;</span>
+        <h2 style="font-size:15px;font-weight:700;color:#fff;">Compliance Quality Check</h2>
       </div>
-      <div style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;">
-        <p style="font-size:12px;color:#888;line-height:1.6;">Complete all fields below before copying. Dual sign-off (clinician + supervisor) is completed in Pimsy after pasting.</p>
+      <div style="padding:18px 24px;">
+        <p style="font-size:12px;color:#666;margin-bottom:14px;line-height:1.5;">Automated check against CARF person-centered planning standards, ODBH/OhioMHAS documentation requirements, and Ohio Medicaid medical necessity standards. Items marked &#9888; need attention before this plan can be copied.</p>
+        <div id="tpQaResults" style="display:flex;flex-direction:column;gap:6px;"></div>
+        <div id="tpQaSummary" style="margin-top:14px;padding:12px 14px;border-radius:8px;font-size:13px;font-weight:600;"></div>
+        <button onclick="rerunPlanQAChecks()" style="margin-top:12px;width:100%;padding:10px;background:#fff;color:#4B5EA6;border:1.5px solid #4B5EA6;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">&#8635; Re-Check After Edits</button>
+      </div>
+    </div>
+    <!-- CLINICIAN REVIEW & CONSENT SIGN-OFF -->
+    <div style="background:#fff;border:2px solid #4B5EA6;border-radius:12px;overflow:hidden;margin-bottom:16px;">
+      <div style="background:#4B5EA6;padding:14px 24px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:16px;">&#9998;</span>
+        <h2 style="font-size:15px;font-weight:700;color:#fff;">Plan Sign-Off &amp; Consent Documentation</h2>
+      </div>
+      <div style="padding:22px;display:flex;flex-direction:column;gap:18px;">
 
+        <p style="font-size:12px;color:#666;line-height:1.6;">Complete all fields below before copying. These responses will be included at the bottom of the copied plan and serve as the consent record. Dual sign-off (clinician + supervisor) is completed in Pimsy after pasting.</p>
+
+        <!-- Client Participation -->
         <div>
-          <label style="display:block;font-size:12px;font-weight:700;color:#2d2d4e;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">Client participated in development and approved all goals <span style="color:#E8417A;">*</span></label>
+          <label style="display:block;font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:8px;">Client participated in development and/or review of treatment plan and has approved all goals and objectives <span style="color:#E8417A;">*</span></label>
           <div style="display:flex;gap:12px;">
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="clientParticipation" value="Yes" onchange="updateSignOff()" style="accent-color:#4B5EA6;cursor:pointer;"> Yes</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="clientParticipation" value="No" onchange="updateSignOff()" style="accent-color:#4B5EA6;cursor:pointer;"> No</label>
@@ -405,8 +364,9 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
           </div>
         </div>
 
+        <!-- Client Verbal Consent -->
         <div>
-          <label style="display:block;font-size:12px;font-weight:700;color:#2d2d4e;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">Client provided verbal consent for implementation <span style="color:#E8417A;">*</span></label>
+          <label style="display:block;font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:8px;">Client provided verbal consent for implementation of treatment plan <span style="color:#E8417A;">*</span></label>
           <div style="display:flex;gap:12px;">
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="clientConsent" value="Yes" onchange="updateSignOff()" style="accent-color:#4B5EA6;cursor:pointer;"> Yes</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="clientConsent" value="No" onchange="updateSignOff()" style="accent-color:#4B5EA6;cursor:pointer;"> No</label>
@@ -414,8 +374,9 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
           </div>
         </div>
 
+        <!-- Guardian Verbal Consent -->
         <div>
-          <label style="display:block;font-size:12px;font-weight:700;color:#2d2d4e;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">Guardian provided verbal consent</label>
+          <label style="display:block;font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:8px;">Guardian provided verbal consent for implementation of treatment plan</label>
           <div style="display:flex;gap:12px;">
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="guardianConsent" value="Yes" onchange="updateSignOff()" style="accent-color:#4B5EA6;cursor:pointer;"> Yes</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="guardianConsent" value="No" onchange="updateSignOff()" style="accent-color:#4B5EA6;cursor:pointer;"> No</label>
@@ -423,8 +384,9 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
           </div>
         </div>
 
+        <!-- Who Participated -->
         <div>
-          <label style="display:block;font-size:12px;font-weight:700;color:#2d2d4e;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">Who participated in plan development?</label>
+          <label style="display:block;font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:8px;">Who participated in the development of the treatment plan? (select all that apply)</label>
           <div style="display:flex;flex-wrap:wrap;gap:10px;">
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="partClinician" onchange="updateSignOff()" style="accent-color:#4B5EA6;"> Clinician</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="partCareCoord" onchange="updateSignOff()" style="accent-color:#4B5EA6;"> Care Coordinator</label>
@@ -434,69 +396,41 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
           </div>
         </div>
 
+        <!-- Remarks -->
         <div>
-          <label style="display:block;font-size:12px;font-weight:700;color:#2d2d4e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">Remarks</label>
-          <textarea id="signOffRemarks" rows="2" oninput="updateSignOff()" style="width:100%;border:1.5px solid #dde0f0;border-radius:6px;padding:9px 12px;font-size:13px;font-family:inherit;background:#fafbff;resize:vertical;" placeholder="e.g. Individual reviewed plan via telehealth and verbally agreed to all goals..."></textarea>
+          <label style="display:block;font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:6px;">Remarks</label>
+          <div style="font-size:11px;color:#888;margin-bottom:6px;">Note any relevant context about participation, consent, or plan development.</div>
+          <textarea id="signOffRemarks" rows="2" oninput="updateSignOff()" style="width:100%;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;font-family:inherit;background:#fafbff;resize:vertical;" placeholder="e.g. Individual reviewed plan via telehealth session and verbally agreed to all goals and objectives..."></textarea>
         </div>
 
-        <!-- CLINICIAN SIGNATURE BLOCK -->
-        <div style="background:#f7f8fc;border:1.5px solid #dde0f0;border-radius:8px;padding:18px 20px;">
-          <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:#2d2d4e;margin-bottom:14px;">Clinician / Care Coordinator Signature</div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-            <div>
-              <label style="display:block;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;">Full Name <span style="color:#E8417A;">*</span></label>
-              <input type="text" id="clinicianName" placeholder="Type your full name" oninput="updateSigPreview();updateSignOff();" style="width:100%;border:1.5px solid #dde0f0;border-radius:6px;padding:9px 12px;font-size:13px;font-family:inherit;background:#fff;"/>
-            </div>
-            <div>
-              <label style="display:block;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;">Credential <span style="color:#E8417A;">*</span></label>
-              <select id="clinicianCredential" onchange="updateSigPreview();updateSignOff();" style="width:100%;border:1.5px solid #dde0f0;border-radius:6px;padding:9px 12px;font-size:13px;font-family:inherit;background:#fff;">
-                <option value="">Select credential...</option>
-                <option value="CDCA">CDCA</option>
-                <option value="LCDC II">LCDC II</option>
-                <option value="LCDC III">LCDC III</option>
-                <option value="LPC">LPC</option>
-                <option value="LPCC">LPCC</option>
-                <option value="LPCC-S">LPCC-S</option>
-                <option value="SWA">SWA</option>
-                <option value="LSW">LSW</option>
-                <option value="LISW">LISW</option>
-                <option value="LISW-S">LISW-S</option>
-              </select>
-            </div>
+        <!-- Clinician Attestation -->
+        <div style="background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:14px 16px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <input type="checkbox" id="clinicianAttestation" onchange="updateSignOff()" disabled style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;"/>
+            <label for="clinicianAttestation" style="font-size:13px;color:#2d2d4e;line-height:1.6;cursor:pointer;"><strong>Clinician / Care Coordinator Attestation:</strong> I confirm that I have reviewed this AI-generated treatment plan, verified that it accurately reflects this individual's presenting needs, strengths, and goals, and made any necessary corrections. I understand that as the clinician/care coordinator of record, I am responsible for the accuracy and completeness of this documentation regardless of how it was drafted. Supervisor co-signature will be completed in Pimsy.</label>
           </div>
-
-          <!-- Signature preview -->
-          <div style="margin-bottom:10px;">
-            <label style="display:block;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">Signature Preview</label>
-            <div style="background:#fff;border:1.5px solid #dde0f0;border-radius:6px;padding:14px 18px;min-height:56px;display:flex;align-items:center;">
-              <span id="sigPreview" style="font-family:'Dancing Script','Brush Script MT',cursive;font-size:26px;color:#2d2d4e;line-height:1.2;letter-spacing:0.5px;"></span>
-            </div>
-            <div style="font-size:10px;color:#aaa;margin-top:5px;">Your typed name rendered as a signature</div>
-          </div>
-
-          <div style="font-size:11px;color:#888;line-height:1.5;">
-            By entering your name above, you confirm that you have reviewed this AI-generated treatment plan, verified it accurately reflects this individual's presenting needs, strengths, and goals, and made any necessary corrections. You accept responsibility for the accuracy of this documentation regardless of how it was drafted. Supervisor co-signature is completed in Pimsy.
-          </div>
+          <p id="tpQaGateMessage" style="font-size:12px;color:#E8417A;margin-top:8px;margin-left:28px;font-weight:600;"></p>
         </div>
 
         <div style="background:#f0faf2;border:1.5px solid #4CAF50;border-radius:8px;padding:12px 14px;">
-          <p style="font-size:12px;color:#2d5a2d;line-height:1.5;margin:0;">&#9432; <strong>Next step:</strong> After copying into Pimsy, complete supervisor co-signature using Pimsy's native workflow. This satisfies CARF, ODBH, and Ohio Medicaid dual signature requirements.</p>
+          <p style="font-size:12px;color:#2d5a2d;line-height:1.5;margin:0;">&#9432; <strong>Next step:</strong> After copying this plan into Pimsy, complete the dual sign-off (clinician + supervisor co-signature) using Pimsy's native review and sign-off workflow. This satisfies CARF, ODBH, and Ohio Medicaid dual signature requirements.</p>
         </div>
+
       </div>
     </div>
 
-        <button class="copy-all-btn" id="copyFullPlanBtn" onclick="copyFullPlan()" disabled style="opacity:0.4;cursor:not-allowed;">Copy Full Treatment Plan</button>
+    <button class="copy-all-btn" id="copyFullPlanBtn" onclick="copyFullPlan()" disabled style="opacity:0.4;cursor:not-allowed;">Copy Full Treatment Plan</button>
     <button class="reset-btn" onclick="resetForm()">Start New Plan</button>
 
-    <div style="margin-top:20px;padding:18px;background:#f0f2fa;border:1.5px solid #c8cfe8;border-radius:10px;text-align:center;">
-      <p style="font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:4px;">&#128197; 90-Day Review Due?</p>
-      <p style="font-size:12px;color:#888;margin-bottom:12px;">Use the review tool to document progress, justify continuation, and generate an updated plan.</p>
-      <button onclick="openReview()" style="padding:11px 28px;background:#4B5EA6;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">Start 90-Day Review</button>
+    <!-- 90-DAY REVIEW TRIGGER -->
+    <div style="margin-top:24px;padding:20px;background:#f0f2fa;border:1.5px solid #c8cfe8;border-radius:12px;text-align:center;">
+      <p style="font-size:14px;font-weight:700;color:#4B5EA6;margin-bottom:6px;">&#128197; 90-Day Review Due?</p>
+      <p style="font-size:13px;color:#666;margin-bottom:14px;">Use the review tool to document progress, justify continuation, and generate an updated plan.</p>
+      <button onclick="openReview()" style="padding:12px 32px;background:#4B5EA6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Start 90-Day Review</button>
     </div>
   </div>
 
-    <!-- 90-DAY REVIEW PANEL -->
+  <!-- 90-DAY REVIEW PANEL -->
   <div id="reviewPanel" style="display:none;margin-top:24px;">
     <div class="section-card">
       <div class="section-header" style="background:#1A5C63;">
@@ -573,22 +507,13 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
           <label class="field-label">Need Areas Being Reviewed <span class="required-star">*</span></label>
           <div class="field-hint">Select each need area from the current plan. A progress documentation block will appear for each one.</div>
           <div class="chips" id="reviewNeedChips">
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Recovery">Recovery</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Mental Health Services">Mental Health Services</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Basic Needs">Basic Needs</div>
+            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Substance Use / Recovery">Substance Use / Recovery</div>
+            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Mental Health">Mental Health</div>
+            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Housing">Housing</div>
+            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Employment / Education">Employment / Education</div>
+            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Social Support">Social Support</div>
             <div class="chip" onclick="toggleReviewNeed(this)" data-need="Physical Health">Physical Health</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Primary Care Provider">Primary Care Provider</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Employment">Employment</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Education">Education</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Family and Relationships">Family and Relationships</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Engagement & Recovery Assessment">Engagement &amp; Recovery Assessment</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Court/Probation">Court/Probation</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Transportation">Transportation</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Finances/Budgeting">Finances/Budgeting</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Recovery: Relapse Prevention">Recovery: Relapse Prevention</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Graduation">Graduation</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Case Management">Case Management</div>
-            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Additional Goals and Interventions">Additional Goals and Interventions</div>
+            <div class="chip" onclick="toggleReviewNeed(this)" data-need="Legal">Legal</div>
           </div>
         </div>
 
@@ -776,206 +701,183 @@ function phiConfirmChanged() {
 }
 
 var TEMPLATES = {
-  "Recovery": {
+  "Substance Use / Recovery": {
     "Enroll in SUD Treatment": {
-      "goal": "Over the next 12 months, Peer will maintain recovery from substance use by actively participating in recommended treatment services, attending at least one recovery support meeting or program weekly, practicing coping strategies to manage triggers, and building a sober support network.",
-      "objectives": "Within 30 days, Peer will identify and contact at least one SUD treatment program that aligns with their needs and schedule. Within 60 days, Peer will complete enrollment into a structured SUD treatment program (outpatient, IOP, or inpatient). Within 90 days, Peer will attend at least 80% of scheduled treatment sessions and report on progress with Peer Supporter.",
-      "interventions": "Peer Supporter will assist Peer in researching SUD treatment programs available locally and help identify the best fit based on Peer's needs and preferences. Peer Supporter will share relevant lived experience related to SUD treatment to provide insight and encouragement. Peer Supporter will support Peer through the enrollment process including applications and documentation. Peer Supporter will accompany Peer to initial appointments as appropriate to provide emotional support. Peer Supporter will conduct regular check-ins to review treatment engagement and address any barriers."
+      "goal": "Over the next 12 months, the client will maintain recovery from substance use by actively participating in recommended treatment services, attending at least one recovery support meeting or program weekly, practicing coping strategies to manage triggers, and building a sober support network, as evidenced by self-report, treatment participation, and absence or reduction of substance use.",
+      "objectives": "The client will enroll in and attend a structured SUD treatment program (e.g., outpatient, inpatient, or intensive outpatient program) for the next six months.",
+      "interventions": "Assist the client in researching various SUD treatment programs (outpatient, inpatient, or intensive outpatient) available locally. Facilitate discussions with the client to help them select the most appropriate program based on their specific needs and preferences. Help the client with the enrollment process, including filling out application forms and gathering necessary documents. Accompany the client to the initial appointment or orientation session of the chosen SUD treatment program to provide emotional support and ensure a smooth transition. Share personal lived experience related to SUD treatment to provide insight and encouragement. Help the client build a support network by connecting them with peer support groups, mentors, and recovery communities."
     },
     "Coping Strategies for Cravings & Stress": {
-      "goal": "Over the next 12 months, Peer will maintain recovery from substance use by practicing coping strategies to manage triggers, cravings, and stress as a foundation for sustained sobriety.",
-      "objectives": "Within 30 days, Peer will identify at least three personal triggers for cravings or stress and discuss with Peer Supporter. Within 60 days, Peer will practice at least two coping strategies weekly and report on effectiveness during sessions. Within 90 days, Peer will develop a personalized coping toolkit with at least four strategies to use independently.",
-      "interventions": "Peer Supporter will educate Peer on evidence-based coping strategies for managing cravings and stress. Peer Supporter will assist Peer in identifying strategies that fit their lifestyle and preferences. Peer Supporter will use role-play and modeling during sessions to practice coping in simulated high-stress scenarios. Peer Supporter will share lived experience using coping strategies during recovery to normalize the process. Peer Supporter will celebrate milestones and successes in using coping tools consistently."
+      "goal": "Over the next 12 months, the client will maintain recovery from substance use by actively participating in recommended treatment services and practicing coping strategies to manage triggers and cravings.",
+      "objectives": "The client will identify and practice at least three coping strategies to manage cravings and stress over the next three months.",
+      "interventions": "Educate the client about various coping strategies for managing cravings and stress. Assist the client in identifying three coping strategies that resonate with them and suit their lifestyle. Connect the client with community resources and activities that support stress management and healthy coping. Use role-playing exercises to help the client practice their coping strategies in simulated high-stress or craving scenarios. Acknowledge and celebrate the client's milestones and successes in using coping strategies."
     },
     "Support Group Attendance": {
-      "goal": "Over the next 3 months, Peer will build recovery-oriented social support by attending at least one recovery meeting or community activity per week and establishing at least two new supportive peer connections.",
-      "objectives": "Within 30 days, Peer will identify at least two recovery support groups or community meetings that align with their recovery goals. Within 60 days, Peer will attend at least one support group meeting per week. Within 90 days, Peer will identify at least two individuals from the recovery community who provide accountability and positive support.",
-      "interventions": "Peer Supporter will assist Peer in identifying local or online support groups that fit their recovery needs and preferences. Peer Supporter will help Peer create a schedule that includes weekly support group attendance. Peer Supporter will conduct regular check-ins to encourage attendance and discuss what was gained from meetings. Peer Supporter will share lived experience attending support groups to normalize participation. Peer Supporter will celebrate sobriety milestones and attendance achievements."
+      "goal": "Over the next 3 months, the client will build recovery-oriented social support by attending at least one recovery or supportive community meeting or activity per week and establishing at least two new supportive peer connections that promote sobriety and recovery.",
+      "objectives": "The client will attend at least one support group meeting (e.g., Alcoholics Anonymous, Narcotics Anonymous) per week for the next six months to build a supportive recovery network.",
+      "interventions": "Help the client identify local or online support groups that align with their recovery needs and preferences. Assist the client in creating a schedule that includes weekly support group meetings. Regularly check in with the client to encourage and remind them to attend their support group meetings. Share relevant lived experience with attending support groups to provide encouragement and normalize the process for the client. Help the client set specific attendance goals and track progress. Celebrate milestones with the client, such as attending a certain number of meetings or sharing in a meeting for the first time."
+    },
+    "Relapse Prevention Plan": {
+      "goal": "Over the next 12 months, the client will maintain recovery from substance use by practicing coping strategies to manage triggers and building a sober support network.",
+      "objectives": "The client will develop a personalized relapse prevention plan with their counselor and review it monthly to make necessary adjustments.",
+      "interventions": "Assist client in identifying triggers, high-risk situations, and early warning signs of relapse. Collaborate with the client to set SMART goals for maintaining sobriety and preventing relapse. Explore and teach coping skills and strategies (e.g., mindfulness, stress management, assertiveness training) to help the client manage triggers and cravings effectively. Create a detailed action plan outlining specific steps and responses to potential triggers and high-risk situations. Assist the client in identifying and strengthening their support network. Develop an emergency response plan outlining steps to take in case of a potential relapse or crisis situation."
+    },
+    "Physical Activity for Recovery": {
+      "goal": "Over the next 12 months, the client will support their recovery foundation by engaging in regular physical activity and self-care practices.",
+      "objectives": "The client will engage in regular physical activity, such as walking, running, or gym workouts, at least three times a week for the next three months to support overall well-being.",
+      "interventions": "Collaborate with the client to set SMART goals related to physical activity, considering their preferences and fitness level. Develop a personalized exercise plan that includes activities the client enjoys and can feasibly incorporate into their weekly schedule. Educate the client on the physical and mental health benefits of regular exercise, including stress reduction, improved mood, and enhanced overall well-being. Identify and address any barriers preventing the client from engaging in regular physical activity. Celebrate achievements and milestones in the client's physical activity journey."
+    },
+    "Build Support Network": {
+      "goal": "Over the next 3 months, the client will build recovery-oriented social support by establishing at least two new supportive peer connections that promote sobriety and recovery.",
+      "objectives": "The client will identify and connect with at least three supportive individuals (e.g., family members, support groups, friends, mentors) who can provide encouragement and accountability throughout their recovery journey.",
+      "interventions": "Assist the client in identifying potential supportive individuals in their life, such as family members, friends, mentors, or peers from support groups. Educate the client on the qualities of supportive relationships, including empathy, trust, and effective communication. Act as a bridge to facilitate introductions between the client and potential supporters. Encourage the client to expand their support network by participating in community activities, support groups, or volunteer opportunities. Acknowledge and celebrate milestones in the client's relationships with supportive individuals."
     },
     "Sobriety Milestones": {
-      "goal": "Over the next 12 months, Peer will maintain recovery from substance use and celebrate sobriety milestones to reinforce commitment and build confidence in sustained recovery.",
-      "objectives": "Within 30 days, Peer will identify personal sobriety goals and milestones meaningful to their recovery journey. Within 90 days, Peer will achieve and recognize their first major sobriety milestone (30, 60, or 90 days). Within 6 months, Peer will develop a plan to sustain recovery beyond 90 days including support systems and coping resources.",
-      "interventions": "Peer Supporter will collaborate with Peer to identify meaningful sobriety milestones and celebrate each achievement. Peer Supporter will encourage Peer to participate in support groups where milestones are recognized by peers. Peer Supporter will provide positive reinforcement and acknowledgment at each milestone to reinforce motivation. Peer Supporter will assist Peer in developing a sustainability plan for maintaining sobriety beyond current milestones. Peer Supporter will share lived experience with sobriety milestones to model hope and possibility."
+      "goal": "Over the next 12 months, the client will maintain recovery from substance use and celebrate sobriety milestones to reinforce commitment and build confidence.",
+      "objectives": "The client will achieve and celebrate sobriety milestones (e.g., 30 days, 90 days, 6 months) to reinforce their commitment to recovery and build confidence.",
+      "interventions": "Collaborate with the client to set specific sobriety milestones and create a personalized plan to achieve each milestone. Encourage the client to participate actively in support groups where they can share their milestones, receive peer support, and celebrate achievements. Assist the client in integrating sobriety milestones and celebrations into their daily routine. Provide positive reinforcement and acknowledgment whenever the client achieves a sobriety milestone, highlighting their progress and reinforcing their motivation."
+    },
+    "Self-Care Foundation": {
+      "goal": "Over the next 12 months, the client will support their recovery foundation through consistent engagement in self-care practices.",
+      "objectives": "The client will engage in 3 self-care activities to help support their recovery foundation.",
+      "interventions": "Assist the client in identifying self-care activities that align with their interests and recovery goals. Educate the client on the connection between self-care and sustained recovery. Support the client in developing a consistent self-care routine. Share relevant lived experience related to self-care in recovery to provide insight and encouragement. Gradually encourage the client to independently maintain their self-care routine while providing backup support as needed."
     }
   },
-  "Mental Health Services": {
+  "Mental Health": {
     "Connect to Mental Health Services": {
-      "goal": "Peer will schedule and attend at least one mental health service appointment per month and actively engage in recommended treatment over the next 6 months to support their recovery journey.",
-      "objectives": "Within 30 days, Peer will identify at least two mental health resources available in the community. Within 60 days, Peer will explore at least one mental health treatment option and discuss the potential benefits during peer support sessions. Within 90 days, Peer will contact, schedule, or complete an intake appointment with at least one mental health provider.",
-      "interventions": "Peer Supporter will guide Peer in identifying and researching available mental health resources in Cuyahoga County. Peer Supporter will share personal lived experience with mental health recovery to inspire hope and reduce stigma. Peer Supporter will assist Peer in preparing for intake appointments and accompany as appropriate. Peer Supporter will conduct regular check-ins to follow up on engagement with mental health services. Peer Supporter will help Peer advocate for their own mental health needs with providers."
+      "goal": "The client will schedule and attend at least one mental health service appointment per month and actively engage in recommended treatment over the next 6 months to support their recovery journey.",
+      "objectives": "Within 30 days, the client will identify at least three mental health resources or services available in the community that may support their recovery and wellness. Within 60 days, the client will explore at least two mental health treatment or recovery support options and discuss the potential benefits of each during peer support sessions. Within 90 days, the client will contact, schedule, or complete an intake appointment with at least one mental health provider or program.",
+      "interventions": "Guide the client in identifying and researching available mental health resources. Encourage the client to schedule initial consultations with different mental health resources. Supply the client with informational materials about each mental health resource. Assist the client in making an informed decision on which mental health resource to pursue further. Share personal lived experience with mental health recovery, focusing on challenges faced, strategies used, and successes achieved."
     },
     "Improve Mental Health & Wellness": {
-      "goal": "Peer will actively engage in mental health treatment and wellness practices over the next 6 months to reduce symptom burden and improve quality of life in recovery.",
-      "objectives": "Within 30 days, Peer will identify at least three personal triggers or early warning signs that impact mental health. Within 60 days, Peer will attend at least 80% of scheduled mental health appointments. Within 90 days, Peer will develop a personalized wellness plan that includes at least three activities supporting emotional well-being.",
-      "interventions": "Peer Supporter will schedule regular check-ins to follow up on mental health engagement and offer encouragement. Peer Supporter will assist Peer in developing and tracking a personal wellness plan. Peer Supporter will provide support in arranging transportation to therapy or support group meetings. Peer Supporter will act as an accountability partner by checking in before and after sessions. Peer Supporter will reinforce the connection between mental health engagement and recovery stability."
-    },
-    "Medication Adherence": {
-      "goal": "Peer will take medications as prescribed and actively engage in medication management to support reduction and management of mental health symptoms over the next 6 months.",
-      "objectives": "Within 30 days, Peer will develop a system for tracking medication schedules and report adherence during sessions. Within 60 days, Peer will communicate any side effects or concerns to their prescriber. Within 90 days, Peer will demonstrate consistent medication adherence as evidenced by self-report and session documentation.",
-      "interventions": "Peer Supporter will educate Peer on the importance of medication adherence in supporting mental health recovery. Peer Supporter will assist Peer in developing a tracking system (pill organizer, phone reminders, calendar). Peer Supporter will encourage Peer to communicate openly with their prescriber about side effects or concerns. Peer Supporter will normalize the experience of managing medications as part of recovery using lived experience. Peer Supporter will conduct regular check-ins on medication adherence and problem-solve any barriers."
+      "goal": "The client will schedule and attend at least one mental health service appointment per month and actively engage in recommended treatment over the next 6 months to support their recovery journey.",
+      "objectives": "Within 30 days, the client will identify at least three personal triggers, stressors, or early warning signs that impact mental health. Within the next three months, the client will attend at least 80% of scheduled mental health appointments and actively participate in recommended services. Within 90 days, the client will develop a personalized wellness or self-care plan that includes at least three activities that support emotional well-being and recovery.",
+      "interventions": "Schedule regular check-ins to follow up on the client's engagement with their selected mental health resource, offering encouragement and support. Encourage the client to advocate for their own mental health needs. Provide support in arranging transportation to therapy sessions or support group meetings. Act as an accountability partner by checking in with the client before and after their sessions. Provide emotional support and encouragement to the client, reinforcing the importance of regular attendance and its benefits to recovery."
     },
     "Coping Skills": {
-      "goal": "Over the next 12 weeks, Peer will learn and practice at least two coping skills to manage mental health symptoms, using these skills at least four times per week to support daily functioning and emotional stability.",
-      "objectives": "Within 30 days, Peer will identify at least three coping skills that can be used to manage stress, anxiety, depression, or cravings. Within 60 days, Peer will practice at least two coping skills weekly and discuss effectiveness during sessions. Within 90 days, Peer will develop a personalized coping plan with at least three strategies to support ongoing emotional wellness.",
-      "interventions": "Peer Supporter will assist Peer in identifying coping skills that resonate with their lifestyle and preferences. Peer Supporter will model and practice coping techniques during peer support sessions. Peer Supporter will share relevant lived experience related to using coping strategies during recovery. Peer Supporter will educate Peer on the connection between coping skills and recovery stability. Peer Supporter will encourage Peer to independently practice coping skills between sessions and report on effectiveness."
+      "goal": "Over the next 12 weeks, the client will learn and practice at least two coping skills to manage symptoms, using these skills at least four times per week, as evidenced by improved daily functioning and self-reported increases in emotional stability during treatment sessions.",
+      "objectives": "Within 30 days, the client will identify at least three coping skills that can be used to manage stress, anxiety, depression, cravings, or other recovery-related challenges. Within 60 days, the client will practice at least two coping skills on a weekly basis and discuss their effectiveness during peer support sessions. Within 90 days, the client will develop a personalized coping skills plan that includes at least three strategies to support emotional wellness and recovery.",
+      "interventions": "Assist the client in identifying coping skills that resonate with their lifestyle and preferences. Educate the client on the connection between coping skills and recovery stability. Model and practice coping techniques during peer support sessions. Share relevant lived experience related to using coping strategies during recovery. Encourage the client to independently practice coping skills between sessions and report on effectiveness."
+    },
+    "Anxiety Management": {
+      "goal": "Over the next 12 weeks, the client will learn and practice at least two coping skills to manage anxiety symptoms, using these skills at least four times per week.",
+      "objectives": "Within 30 days, the client will identify at least three physical, emotional, or behavioral signs of anxiety and discuss how these symptoms affect daily functioning. Within 90 days, the client will practice at least one grounding, relaxation, or mindfulness technique at least three times per week and discuss effectiveness during peer support sessions. Within 60 days, the client will develop a list of at least three supportive contacts, resources, or coping tools to utilize during periods of increased anxiety.",
+      "interventions": "Assist the client in identifying anxiety triggers and early warning signs. Model and practice grounding and relaxation techniques during peer support sessions. Share relevant lived experience related to managing anxiety to normalize the client's experience. Encourage the client to gradually engage in activities previously avoided due to anxiety. Support the client in developing a personalized anxiety management toolkit."
+    },
+    "Depression Management": {
+      "goal": "Over the next 12 weeks, the client will learn and practice at least two coping skills to manage symptoms of depression, as evidenced by improved daily functioning and self-reported increases in emotional stability.",
+      "objectives": "Within 90 days, the client will engage in at least two positive wellness or behavioral activation activities each week to improve mood and increase daily functioning. Within 60 days, the client will identify at least three activities that provide a sense of purpose, accomplishment, or enjoyment and engage in at least one weekly. Within 90 days, the client will identify at least three warning signs of worsening depression and develop a plan to respond to these warning signs.",
+      "interventions": "Assist the client in identifying activities that promote behavioral activation and mood improvement. Share relevant lived experience related to managing depression in recovery. Support the client in developing and maintaining a daily routine to promote mood stability. Encourage the client to strengthen their support system by identifying and interacting with supportive individuals. Monitor the client's engagement with wellness activities and celebrate progress."
+    },
+    "PTSD Support": {
+      "goal": "Over the next 12 weeks, the client will develop tools and strategies to manage trauma-related symptoms and improve daily functioning.",
+      "objectives": "Within 30 days, the client will identify at least three trauma-related triggers or stressors and discuss how these triggers impact daily functioning. Within 60 days, the client will identify and practice at least two coping skills to manage trauma-related symptoms, such as grounding techniques, deep breathing, or mindfulness. Within 90 days, the client will develop a personalized wellness and recovery plan that includes at least three strategies for managing trauma-related symptoms.",
+      "interventions": "Provide a safe, supportive environment for the client to share their recovery journey at their own pace. Share relevant lived experience to normalize trauma responses and inspire hope. Assist the client in identifying trauma-related triggers and developing personalized coping strategies. Connect the client with trauma-informed treatment resources and support groups. Support the client in engaging in recovery-supportive activities that promote emotional wellness."
+    },
+    "Medication Adherence": {
+      "goal": "The client will take medications as prescribed and actively engage in medication management to support reduction and management of mental health symptoms over the next 6 months.",
+      "objectives": "Within the next 90 days, the client will take medications as prescribed and report medication adherence and any concerns or side effects during peer support or treatment team sessions, as evidenced by client self-report and documentation in progress notes.",
+      "interventions": "Educate the client on the importance of medication adherence in supporting mental health recovery. Assist the client in developing a system for tracking medication schedules (e.g., pill organizer, phone reminders, calendar). Encourage the client to openly communicate with their prescriber about side effects or concerns. Provide ongoing encouragement and normalize the experience of managing medications as part of recovery. Regularly check in on medication adherence and problem-solve any barriers."
+    },
+    "PHQ & GAD Symptom Reduction": {
+      "goal": "Over the next 12 weeks, the client will participate in weekly mental health treatment sessions and practice at least two coping strategies (e.g., grounding exercises, behavioral activation, or relaxation techniques) per week, with the goal of reducing PHQ-9 and GAD-7 scores by at least 25% from baseline as measured at reassessment.",
+      "objectives": "Within 90 days, the client will engage in at least two positive wellness or behavioral activation activities each week. Within 60 days, the client will identify and practice at least two coping skills to manage symptoms of anxiety and depression and discuss effectiveness during peer support sessions. Within the next three months, the client will report an improvement in at least one area of daily functioning affected by mental health symptoms.",
+      "interventions": "Monitor and discuss the client's PHQ-9 and GAD-7 scores at regular intervals to track progress. Assist the client in identifying and practicing evidence-based coping strategies including grounding, behavioral activation, and relaxation techniques. Share lived experience to normalize the experience of managing mood and anxiety symptoms in recovery. Encourage consistent engagement with mental health treatment services. Celebrate improvements in symptom scores and daily functioning with the client."
     }
   },
-  "Basic Needs": {
-    "Housing Stability": {
-      "goal": "Within the next 3 months, Peer will work with service providers and community resources to obtain and maintain stable housing as a foundation for sustained recovery.",
-      "objectives": "Within 30 days, Peer will identify at least two housing resources or programs in the community. Within 60 days, Peer will take at least one concrete step toward securing stable housing such as completing an application or attending a housing appointment. Within 90 days, Peer will identify at least two barriers to housing stability and develop a strategy to address each.",
-      "interventions": "Peer Supporter will assist Peer in researching and identifying housing resources, shelter programs, and housing assistance services in the community. Peer Supporter will share relevant lived experience related to housing instability to normalize the experience and inspire hope. Peer Supporter will accompany Peer to housing appointments or resource meetings as appropriate. Peer Supporter will support Peer in completing housing applications and gathering required documentation. Peer Supporter will connect housing stability explicitly to Peer's mental health and recovery outcomes."
+  "Housing": {
+    "Basic Needs & Housing Stability": {
+      "goal": "Within the next 3 months, the client will work with service providers and community resources to obtain stable housing, secure consistent access to food resources, and establish ongoing healthcare coverage or services.",
+      "objectives": "Within the next 60 days, the client will identify and access at least 1-2 community resources related to stable housing, consistent nutrition, and/or healthcare, and verbally describe how each resource supports their recovery and stability. Within the next 90 days, the client will identify and take steps toward meeting at least two basic needs by connecting with appropriate community or social service resources.",
+      "interventions": "Assist the client in identifying and exploring 1-2 resources for stable housing, consistent nutrition, and access to healthcare within their community. Share relevant lived experience related to basic need instability to provide insight and encouragement. Facilitate discussions with the client to help them clearly articulate how each accessed resource benefits their recovery foundation. Schedule regular check-ins to review the client's use of resources, address any challenges, and provide ongoing support. Gradually encourage the client to independently access and utilize resources while providing backup support as needed."
     },
-    "Food Access": {
-      "goal": "Within the next 3 months, Peer will identify and consistently access food resources to meet nutritional needs and reduce food insecurity as a barrier to recovery.",
-      "objectives": "Within 30 days, Peer will identify at least two food assistance programs or pantries available in their area. Within 60 days, Peer will access at least one food resource and report on the experience during peer support sessions. Within 90 days, Peer will develop a consistent plan for meeting nutritional needs using available community resources.",
-      "interventions": "Peer Supporter will assist Peer in identifying local food pantries, SNAP benefits, community meal programs, and other food assistance resources. Peer Supporter will share lived experience related to navigating food insecurity to provide insight and reduce shame. Peer Supporter will accompany Peer to food resource appointments as appropriate. Peer Supporter will help Peer develop a plan for consistent food access and connect food security to recovery stability. Peer Supporter will conduct regular check-ins on food access and problem-solve any ongoing barriers."
+    "Housing Resources": {
+      "goal": "Within the next 3 months, the client will work with service providers and community resources to obtain stable housing as a foundation for sustained recovery.",
+      "objectives": "Within the next 60 days, the client will identify at least two housing resources or programs in the community and take at least one concrete step toward securing stable housing. Within 90 days, the client will identify and discuss at least two barriers to housing stability and develop at least one strategy to address each barrier with peer support.",
+      "interventions": "Assist the client in researching and identifying housing resources, shelter programs, and housing assistance services in the community. Share relevant lived experience related to housing instability to normalize the client's experience and inspire hope. Accompany the client to housing appointments or resource meetings as needed, focusing peer support work on what was discussed and accomplished. Support the client in completing housing applications and gathering required documentation. Connect the need for housing stability explicitly to the client's mental health and recovery outcomes."
+    }
+  },
+  "Employment / Education": {
+    "Explore Employment": {
+      "goal": "Within the next 3 months, the client will actively pursue employment by completing a resume, submitting at least two job applications per week, and attending interviews or employment support services as available, with the goal of obtaining and maintaining employment to support recovery and independence.",
+      "objectives": "Within 30 days, the client will identify at least two employment goals and discuss steps needed to achieve those goals during peer support sessions. Within the next three months, the client will complete at least two employment preparation activities such as resume development, job search activities, applications, or interview preparation. Within 90 days, the client will identify and utilize at least one employment-related resource such as a workforce development program or career center.",
+      "interventions": "Assist client with exploring employment resources in their community. Utilize lived experience to express the importance of stable employment as a foundation for recovery. Provide encouragement and motivation to the client during their job search and employment efforts. Assist client in creating or updating their resume and cover letter. Share relevant resources and information as applicable. Identify and address any barriers preventing the client from pursuing employment."
     },
-    "Clothing & Basic Necessities": {
-      "goal": "Within the next 3 months, Peer will identify and access community resources to meet basic needs for clothing and essential household items to support stability and dignity in recovery.",
-      "objectives": "Within 30 days, Peer will identify at least one community resource for clothing or essential household items. Within 60 days, Peer will access at least one resource and report on the outcome during peer support sessions. Within 90 days, Peer will develop a personal plan for meeting ongoing basic needs using available community supports.",
-      "interventions": "Peer Supporter will assist Peer in identifying community organizations that provide clothing, hygiene items, and household essentials. Peer Supporter will accompany Peer to resource locations as appropriate to provide support and encouragement. Peer Supporter will share lived experience related to accessing basic needs resources to normalize the process. Peer Supporter will help Peer connect meeting basic needs to overall recovery and self-sufficiency goals. Peer Supporter will conduct regular check-ins on access to basic necessities and address ongoing barriers."
+    "Maintain Employment": {
+      "goal": "Within the next 3 months, the client will maintain current employment and develop skills to support long-term workplace success and recovery stability.",
+      "objectives": "Within 30 days of obtaining employment, the client will identify at least three strengths or skills that contribute to workplace success. Within 60 days, the client will identify at least two potential workplace challenges and develop at least one coping or problem-solving strategy to address each challenge. Within six months, the client will utilize at least two coping skills or recovery strategies to manage work-related stress.",
+      "interventions": "Schedule regular check-ins to review the client's employment status, address any challenges, and provide ongoing support. Affirm the client for maintaining employment and celebrate workplace milestones. Assist the client in developing strategies to balance work responsibilities with recovery activities. Share relevant lived experience related to maintaining employment during recovery. Support the client in identifying workplace resources and supports when challenges arise."
     },
-    "Healthcare Access": {
-      "goal": "Within the next 3 months, Peer will identify and connect with healthcare resources to address unmet medical needs and support overall health and recovery stability.",
-      "objectives": "Within 30 days, Peer will identify at least one healthcare resource that can address their current medical needs. Within 60 days, Peer will schedule and attend at least one healthcare appointment. Within 90 days, Peer will identify at least two barriers to healthcare access and develop a plan to address each barrier.",
-      "interventions": "Peer Supporter will assist Peer in identifying community health centers, free clinics, and insurance enrollment resources available in Cuyahoga County. Peer Supporter will help Peer navigate healthcare enrollment and appointment scheduling processes. Peer Supporter will accompany Peer to healthcare appointments as appropriate to provide support. Peer Supporter will share lived experience navigating healthcare access during recovery to provide encouragement. Peer Supporter will connect healthcare access explicitly to Peer's recovery outcomes and quality of life."
+    "Explore Education Options": {
+      "goal": "Within the next 3 months, the client will explore and engage in educational or vocational resources by researching or contacting at least two educational programs or support services.",
+      "objectives": "Within 30 days, the client will identify at least two short-term educational goals and one long-term educational goal. Within 60 days, the client will identify and discuss at least two barriers to educational success and develop at least one strategy to address each barrier. Within 90 days, the client will access or explore at least two educational supports or resources.",
+      "interventions": "Collaborate with the client to identify their educational goals and interests. Assist the client in researching educational programs or courses that align with their goals. Support the client in completing applications for educational programs or courses. Help the client explore financial aid options including scholarships, grants, and tuition assistance. Encourage the client to celebrate each step toward enrolling in an educational program."
+    },
+    "Enroll in Education Program": {
+      "goal": "Within the next 3 months, the client will enroll in an educational or vocational program that supports their recovery and career goals.",
+      "objectives": "Within 30 days, the client will identify at least two educational, vocational, certification, or training programs that align with their interests and goals. Within 90 days, the client will gather information regarding admission requirements, enrollment procedures, and financial aid for at least one program. Within six months, the client will complete at least one enrollment-related activity such as submitting an application, meeting with an advisor, or registering for classes.",
+      "interventions": "Collaborate with the client to set SMART goals for each enrollment milestone. Help the client prioritize tasks based on deadlines and importance. Schedule regular check-ins to review progress, discuss challenges, and adjust plans as needed. Celebrate milestones and successes achieved through the client's educational engagement. Teach stress-reducing techniques to prevent burnout during the enrollment process."
+    }
+  },
+  "Social Support": {
+    "Community Support Development": {
+      "goal": "Over the next 3 months, the client will improve social connections by participating in at least one positive community or social activity per week to support recovery and stability.",
+      "objectives": "Within 30 days, the client will identify at least three community-based groups, activities, or resources that align with their interests and recovery goals. Within 60 days, the client will identify at least two barriers to participating in community activities and develop at least one strategy to address each barrier. Within the next three months, the client will attend at least one community-based activity, support group, volunteer opportunity, faith-based activity, or recreational event per month.",
+      "interventions": "Assist the client in researching and identifying community resources, recreational programs, peer support groups, and faith-based supports. Provide role-playing, modeling, and coaching to strengthen communication and relationship-building skills. When appropriate, accompany the client to initial community activities to increase comfort and confidence. Provide education on healthy relationships and managing feelings of isolation. Regularly review social goals, celebrate successes, and problem-solve barriers."
+    },
+    "Healthy Relationship Skills": {
+      "goal": "Over the next 3 months, the client will improve family relationships and social connections by participating in at least one positive family or social interaction per week and practicing healthy communication or boundary-setting skills.",
+      "objectives": "Within 30 days, the client will identify at least three characteristics of healthy relationships and discuss how these characteristics apply to their personal relationships. Within the next three months, the client will explore and practice at least two skills that support healthy relationships such as effective communication, active listening, conflict resolution, or boundary setting. Within 90 days, the client will identify at least two personal boundaries that support recovery and well-being.",
+      "interventions": "Assist client in exploring resources in the community to assist in developing skills for maintaining healthy relationships. Facilitate role-playing exercises with the client to practice communication techniques and conflict resolution strategies. Provide the client with resources on effective communication and conflict resolution. Encourage the client to join support groups where they can share experiences and learn from others. Facilitate regular check-ins to discuss progress, challenges, and strategies for improving communication."
+    },
+    "Family & Relationships": {
+      "goal": "Over the next 3 months, the client will improve family relationships and social connections by participating in at least one positive family or social interaction per week.",
+      "objectives": "Within 30 days, the client will identify at least three characteristics of healthy family relationships and discuss how they apply to their current situation. Within the next three months, the client will practice at least two communication or boundary-setting skills in family or social interactions and discuss outcomes during peer support sessions. Within 90 days, the client will identify at least two unhealthy relationship patterns and develop a plan to reduce their impact on recovery.",
+      "interventions": "Assist the client in researching and identifying community groups that align with their interests and needs. Accompany the client to initial meetings of selected community groups to provide support and encouragement. Facilitate the client's attendance at workshops focused on developing social skills and building relationships. Work with the client to set specific measurable goals for joining and participating in community groups. Encourage the client to attend support groups specific to their recovery or interests."
+    },
+    "Reduce Isolation": {
+      "goal": "Over the next 3 months, the client will reduce social isolation by participating in at least one community or supportive social activity per week and contacting or applying to at least two social service agencies to explore volunteer opportunities.",
+      "objectives": "Within 30 days, the client will identify at least two safe, enjoyable, and recovery-supportive social activities or community settings that align with their interests and recovery goals. Within 60 days, the client will identify and discuss at least two barriers to social engagement and develop at least one strategy to address each barrier. The client will attend at least one in-person social or community activity per week for the first 90 days.",
+      "interventions": "Provide peer support and encouragement to increase motivation for social engagement. Assist client in identifying safe, recovery-oriented, and preferred in-person activities. Support client in problem-solving barriers such as transportation planning and identifying local resources. Use motivational support to address ambivalence and build readiness for social connection. Role-model and practice communication and social skills during sessions. Provide education on the impact of social isolation on mental health and recovery."
+    },
+    "Increase Social Support": {
+      "goal": "Over the next 3 months, the client will build a stronger social support network by identifying and engaging with at least two new supportive connections in the community.",
+      "objectives": "Client will identify at least three community agencies or programs within the next 60 days that they are interested in attending or learning more about. Client will participate in one community-based activity or program per week to build social engagement and reduce isolation. Client will develop a personal social connection plan and review progress monthly with PRS staff. Client will learn and practice two interpersonal communication or social skills to improve confidence when interacting with others.",
+      "interventions": "Assist client in researching and identifying community resources, recreational programs, peer support groups, faith-based supports, or social service agencies. Provide role-playing, modeling, and coaching to strengthen communication and boundary-setting skills. When appropriate, accompany client to initial community activities or meetings to increase comfort and confidence. PRS will provide education on healthy relationships, navigating social stressors, and managing feelings of isolation. Regularly review social goals, celebrate successes, problem-solve barriers, and encourage ongoing participation in positive social environments."
     }
   },
   "Physical Health": {
+    "Physical Health Services": {
+      "goal": "Within the next 3 months, the client will engage in physical health services by scheduling and attending at least one primary care or relevant medical appointment and following recommended healthcare plans or referrals to support overall health and recovery.",
+      "objectives": "Within 30 days, the client will identify at least two physical health goals and discuss progress toward these goals during peer support sessions. Within the next three months, the client will attend at least 80% of scheduled medical, dental, vision, or other physical health-related appointments. Within 90 days, the client will identify and utilize at least two community or healthcare resources that support physical wellness.",
+      "interventions": "Assist the client in researching local physical health resources such as community health centers, physical therapy clinics, and nutritional counseling services. Assist the client in scheduling initial visits or consultations with identified physical health resources. Accompany the client to appointments to provide support as needed, focusing peer support on discussions that occurred and goals identified. Share relevant lived experience with physical health resources, highlighting what worked and how it contributed to recovery. Set specific, measurable goals for engaging with physical health resources."
+    },
     "Improve Physical Health": {
-      "goal": "Within the next 3 months, Peer will engage in physical health services and health-promoting activities to support overall health and recovery.",
-      "objectives": "Within 30 days, Peer will identify at least two personal physical health goals. Within 60 days, Peer will engage in at least one health-promoting activity at least three times per week. Within 90 days, Peer will identify at least two ways that improved physical health supports their recovery and quality of life.",
-      "interventions": "Peer Supporter will share relevant lived experience with physical health, highlighting how it contributed to recovery. Peer Supporter will work with Peer to set specific, measurable goals for physical health engagement. Peer Supporter will accompany Peer to health appointments as needed for support. Peer Supporter will encourage Peer to communicate openly with healthcare providers about their recovery needs. Peer Supporter will celebrate milestones in Peer's physical health journey."
+      "goal": "Within the next 3 months, the client will engage in physical health services and health-promoting activities to support overall health and recovery.",
+      "objectives": "Within 30 days, the client will identify at least two physical health goals. Within the next three months, the client will engage in at least one health-promoting activity at least three times per week. Within 90 days, the client will identify at least two ways that improved physical health supports their recovery, mental wellness, and overall quality of life.",
+      "interventions": "Share relevant lived experience with physical health resources, highlighting what worked and how it contributed to recovery. Work with the client to set specific, measurable goals for engaging with physical health resources. Accompany the client to appointments as needed to provide support. Encourage the client to communicate openly with healthcare providers about their recovery needs. Celebrate milestones in the client's physical health journey."
     },
     "Physical Activity": {
-      "goal": "Within the next 3 months, Peer will incorporate regular physical activity into their recovery routine to support overall health and wellness.",
-      "objectives": "Within 30 days, Peer will identify at least two physical activities of interest that support health and wellness. Within 60 days, Peer will participate in a physical activity of their choice at least two times per week. Within 90 days, Peer will establish a weekly routine that includes at least one form of regular physical activity.",
-      "interventions": "Peer Supporter will assist Peer in identifying physical activities that align with their interests, abilities, and recovery goals. Peer Supporter will explore barriers to physical activity and problem-solve solutions collaboratively with Peer. Peer Supporter will share lived experience using physical activity as a recovery support tool. Peer Supporter will support Peer in accessing community fitness resources such as walking groups or recreational programs. Peer Supporter will celebrate progress toward physical activity goals and connect physical wellness to recovery outcomes."
-    }
-  },
-  "Primary Care Provider": {
+      "goal": "Within the next 3 months, the client will incorporate regular physical activity into their recovery routine to support overall health and wellness.",
+      "objectives": "Within 30 days, the client will identify at least two physical activities of interest that support overall health and wellness. Within 60 days, the client will participate in a physical activity of their choice at least two times per week. Within the next two months, the client will establish a weekly routine that incorporates at least one form of physical activity.",
+      "interventions": "Assist the client in identifying physical activities that align with their interests, physical abilities, and recovery goals. Explore barriers to physical activity and problem-solve solutions with the client. Share lived experience related to using physical activity as a recovery support tool. Support the client in accessing community fitness resources such as gyms, walking groups, or recreational programs. Celebrate progress toward physical activity goals and connect physical wellness to recovery outcomes."
+    },
     "Establish Primary Care": {
-      "goal": "Peer will establish care with a primary care provider by identifying available providers, scheduling an appointment, and attending the initial visit within 60 days, with support from Peer Supporter as needed.",
-      "objectives": "Within 30 days, Peer will identify at least two primary care providers that accept their insurance or meet their preferences. Within 60 days, Peer will schedule and attend an initial primary care appointment. Within 90 days, Peer will participate in at least one preventive health screening and understand their basic ongoing care needs.",
-      "interventions": "Peer Supporter will educate Peer on the importance of regular primary care for physical and mental health maintenance. Peer Supporter will assist Peer in identifying primary care providers that accept their insurance or offer sliding-scale fees. Peer Supporter will support Peer in scheduling appointments and preparing questions for their provider. Peer Supporter will accompany Peer to the first appointment as appropriate to help with communication and coordination. Peer Supporter will review the outcome of the appointment with Peer and assist in developing a plan for ongoing care."
-    },
-    "Ongoing Care Management": {
-      "goal": "Peer will maintain consistent engagement with their primary care provider and follow recommended care plans to support long-term physical health and recovery over the next 6 months.",
-      "objectives": "Within 30 days, Peer will attend all scheduled primary care follow-up appointments. Within 60 days, Peer will identify at least two ways their primary care engagement supports their recovery. Within 90 days, Peer will demonstrate ability to independently schedule and attend primary care appointments.",
-      "interventions": "Peer Supporter will conduct regular check-ins to confirm Peer's engagement with their primary care provider. Peer Supporter will assist Peer in navigating any barriers to consistent care such as transportation, insurance, or scheduling. Peer Supporter will help Peer prepare for appointments and process outcomes during peer support sessions. Peer Supporter will reinforce the connection between primary care consistency and recovery stability. Peer Supporter will celebrate Peer's engagement with healthcare as a recovery milestone."
+      "goal": "Client will establish care with a primary care provider by identifying available providers, scheduling an appointment, and attending the initial visit, with support from the PRS worker as needed within 60 days.",
+      "objectives": "Client will establish connection with a primary care provider within 90 days to improve overall physical health management and coordination of care. Client will demonstrate understanding of their basic health needs and how to communicate effectively with healthcare professionals within 90 days. Client will participate in at least one preventive health screening within 3 months.",
+      "interventions": "Educate the client on the importance of regular primary care for physical and mental health maintenance. Encourage the client to discuss any barriers or fears related to seeing a doctor. Assist the client in identifying potential primary care providers that accept their insurance or meet their preferences. If needed, accompany the client to the first appointment to help with communication and coordination with mental health providers. Review the outcome of the appointment with the client and assist in developing a plan for ongoing care."
     }
   },
-  "Employment": {
-    "Explore Employment": {
-      "goal": "Within the next 3 months, Peer will actively explore employment options by completing a resume, submitting at least two applications, and engaging with at least one employment support service.",
-      "objectives": "Within 30 days, Peer will identify at least two employment goals and discuss steps needed during peer support sessions. Within 60 days, Peer will complete at least two employment preparation activities such as resume development, job applications, or interview preparation. Within 90 days, Peer will identify and utilize at least one employment-related resource such as a workforce development program.",
-      "interventions": "Peer Supporter will assist Peer in exploring employment resources in their community. Peer Supporter will utilize lived experience to reinforce the importance of stable employment as a foundation for recovery. Peer Supporter will assist Peer in creating or updating their resume and cover letter. Peer Supporter will provide encouragement and motivation during the job search process. Peer Supporter will identify and help address any barriers preventing Peer from pursuing employment."
-    },
-    "Maintain Employment": {
-      "goal": "Within the next 3 months, Peer will maintain current employment and develop skills to support long-term workplace success and recovery stability.",
-      "objectives": "Within 30 days, Peer will identify at least three strengths or skills that contribute to workplace success. Within 60 days, Peer will identify at least two potential workplace challenges and develop one coping strategy for each. Within 6 months, Peer will utilize at least two coping skills to manage work-related stress.",
-      "interventions": "Peer Supporter will conduct regular check-ins to review employment status, address challenges, and provide ongoing support. Peer Supporter will affirm Peer for maintaining employment and celebrate workplace milestones. Peer Supporter will assist Peer in developing strategies to balance work responsibilities with recovery activities. Peer Supporter will share lived experience related to maintaining employment during recovery. Peer Supporter will support Peer in identifying workplace resources when challenges arise."
-    }
-  },
-  "Education": {
-    "Explore Education Options": {
-      "goal": "Within the next 3 months, Peer will explore educational or vocational resources by researching or contacting at least two educational programs or support services.",
-      "objectives": "Within 30 days, Peer will identify at least two short-term and one long-term educational goals. Within 60 days, Peer will identify at least two barriers to educational success and develop at least one strategy to address each. Within 90 days, Peer will access or explore at least two educational support resources.",
-      "interventions": "Peer Supporter will collaborate with Peer to identify educational goals and interests. Peer Supporter will assist Peer in researching programs at schools or trade programs that align with their goals. Peer Supporter will help Peer explore financial aid options including scholarships, grants, and tuition assistance. Peer Supporter will support Peer in completing program inquiries or applications. Peer Supporter will celebrate each step Peer takes toward educational enrollment."
-    },
-    "Enroll in Education Program": {
-      "goal": "Within the next 3 months, Peer will enroll in an educational or vocational program that supports their recovery and career goals.",
-      "objectives": "Within 30 days, Peer will identify at least two educational, vocational, certification, or training programs that align with their interests. Within 60 days, Peer will gather information on admission requirements and enrollment procedures for at least one program. Within 6 months, Peer will complete at least one enrollment-related activity such as submitting an application or meeting with an advisor.",
-      "interventions": "Peer Supporter will collaborate with Peer to set SMART goals for each enrollment milestone. Peer Supporter will help Peer prioritize tasks based on deadlines and program requirements. Peer Supporter will conduct regular check-ins to review progress, discuss challenges, and adjust plans. Peer Supporter will celebrate milestones achieved through Peer's educational engagement. Peer Supporter will teach stress-reducing techniques to prevent burnout during the enrollment process."
-    }
-  },
-  "Family and Relationships": {
-    "Improve Family Communication": {
-      "goal": "Over the next 3 months, Peer will improve family relationships by practicing healthy communication and boundary-setting skills in at least one family interaction per week.",
-      "objectives": "Within 30 days, Peer will identify at least three characteristics of healthy family relationships and how they apply to their current situation. Within 60 days, Peer will practice at least two communication or boundary-setting skills in family interactions. Within 90 days, Peer will identify at least two unhealthy relationship patterns and develop a plan to reduce their impact on recovery.",
-      "interventions": "Peer Supporter will assist Peer in identifying community resources that support healthy relationship skills development. Peer Supporter will facilitate role-playing exercises to practice communication and conflict resolution strategies. Peer Supporter will provide Peer with resources on effective communication and healthy boundaries. Peer Supporter will encourage Peer to share relationship experiences during sessions and process outcomes collaboratively. Peer Supporter will conduct regular check-ins to discuss progress and celebrate growth in relationship skills."
-    },
-    "Rebuild Social Connections": {
-      "goal": "Over the next 3 months, Peer will rebuild or strengthen social connections by participating in at least one positive social interaction per week and identifying at least two supportive relationships.",
-      "objectives": "Within 30 days, Peer will identify at least two recovery-supportive people in their life or community. Within 60 days, Peer will engage in at least one positive social activity per week. Within 90 days, Peer will identify at least two barriers to social connection and develop a plan to address each.",
-      "interventions": "Peer Supporter will assist Peer in identifying safe, recovery-supportive social activities and community settings. Peer Supporter will provide education on healthy relationships and managing feelings of isolation. Peer Supporter will use motivational support to address ambivalence about social engagement. Peer Supporter will accompany Peer to initial community activities as appropriate. Peer Supporter will celebrate Peer's efforts to rebuild social connections as a foundation for recovery."
-    },
-    "Reduce Isolation": {
-      "goal": "Over the next 3 months, Peer will reduce social isolation by participating in at least one community or supportive social activity per week.",
-      "objectives": "Within 30 days, Peer will identify at least two safe, enjoyable recovery-supportive social activities that align with their interests. Within 60 days, Peer will identify at least two barriers to social engagement and develop one strategy to address each. Within 90 days, Peer will attend at least one in-person social or community activity per week consistently.",
-      "interventions": "Peer Supporter will provide peer support and encouragement to increase motivation for social engagement. Peer Supporter will assist Peer in identifying safe, recovery-oriented in-person activities. Peer Supporter will problem-solve barriers such as transportation and identifying local resources. Peer Supporter will use motivational support to address ambivalence and build readiness for connection. Peer Supporter will provide education on the impact of social isolation on mental health and recovery."
-    }
-  },
-  "Engagement & Recovery Assessment": {
-    "Initial Engagement": {
-      "goal": "Peer will engage fully in the peer support intake and assessment process within the first 30 days of services to establish a foundation for a collaborative, recovery-oriented service plan.",
-      "objectives": "Within 14 days, Peer will complete the initial engagement and recovery assessment with Peer Supporter. Within 30 days, Peer will identify at least two personal recovery goals to guide the treatment planning process. Within 30 days, Peer will articulate at least one strength and one barrier that will inform their service plan.",
-      "interventions": "Peer Supporter will establish rapport and a strengths-based working relationship with Peer during initial contacts. Peer Supporter will complete the engagement and recovery assessment in collaboration with Peer using recovery-oriented language. Peer Supporter will share relevant lived experience to normalize the assessment process and build trust. Peer Supporter will review assessment results with Peer and collaboratively identify priority areas for the service plan. Peer Supporter will document assessment findings in compliance with CARF and ODBH standards."
-    },
-    "Recovery Readiness": {
-      "goal": "Over the next 90 days, Peer will explore and articulate their personal recovery vision and identify at least three concrete steps toward their recovery goals.",
-      "objectives": "Within 30 days, Peer will identify at least two personal values or motivators that support their commitment to recovery. Within 60 days, Peer will articulate a personal recovery vision and discuss with Peer Supporter. Within 90 days, Peer will identify at least three concrete action steps toward their recovery goals and begin implementing at least one.",
-      "interventions": "Peer Supporter will facilitate strengths-based conversations to help Peer explore their recovery vision and personal motivators. Peer Supporter will share lived experience of the recovery journey to model hope and possibility. Peer Supporter will use recovery-oriented tools and frameworks to guide goal exploration with Peer. Peer Supporter will assist Peer in translating their recovery vision into concrete, actionable steps. Peer Supporter will conduct regular check-ins to review progress toward recovery goals and celebrate milestones."
-    }
-  },
-  "Court/Probation": {
+  "Legal": {
     "Court & Probation Compliance": {
-      "goal": "Over the next 3 months, Peer will comply with all court and probation requirements by attending all scheduled meetings, completing mandated programs, and meeting court obligations to support progress toward stability and recovery.",
-      "objectives": "Within 30 days, Peer will develop a plan with Peer Supporter to support compliance with all court or probation requirements. Over the next 3 months, Peer will attend at least 90% of scheduled court, probation, or other legally required appointments. Within 60 days, Peer will identify at least two barriers to compliance and develop at least one strategy to address each.",
-      "interventions": "Peer Supporter will assist Peer in accessing resources to fulfill requirements of court or probation. Peer Supporter will share relevant lived experience related to court and probation to encourage hope and motivation. Peer Supporter will utilize lived experience to educate Peer on navigating the court and probation system. Peer Supporter will assist Peer in developing a plan to independently track and attend all court and probation appointments. Peer Supporter will support Peer in identifying recovery-supportive behaviors that reduce the risk of future legal involvement."
+      "goal": "Over the next 3 months, the client will comply with all court and probation requirements by attending all scheduled probation meetings, completing mandated programs or classes, and meeting court obligations to support progress toward stability and recovery.",
+      "objectives": "Within 30 days, the client will develop a plan with the Peer Recovery Supporter to support compliance with court or probation requirements. Over the next 3 months, the client will attend at least 90% of scheduled court, probation, or other legally required appointments. Within 60 days, the client will identify at least two barriers to complying with court or probation requirements and develop at least one strategy to address each barrier. Within the next 30 days, the client will establish and consistently use a system for tracking court dates and probation appointments.",
+      "interventions": "Assist client in accessing resources to fulfill requirements of court or probation. Share relevant lived experience related to court and probation requirements to encourage hope and motivation. As applicable, utilize lived experience to educate client on navigating the court and probation system. Assist client in developing a plan to independently access all appointments and meetings with the courts. Support the client in identifying recovery-supportive behaviors that can help maintain compliance and reduce the risk of future legal involvement."
     },
     "Drug Court Requirements": {
-      "goal": "Over the next 3 months, Peer will comply with all drug court requirements and maintain consistent communication with court personnel to support recovery and legal stability.",
-      "objectives": "Within 30 days, Peer will develop a tracking system for drug court and probation appointments and use it consistently. Over the next 3 months, Peer will attend at least 90% of all scheduled drug court and/or probation meetings. Within 60 days, Peer will identify at least two barriers to compliance and develop at least one strategy to address each with Peer Supporter.",
-      "interventions": "Peer Supporter will assist Peer in developing a tracking system for drug court dates, requirements, and deadlines. Peer Supporter will share relevant lived experience navigating drug court to encourage hope and motivation. Peer Supporter will accompany Peer to drug court appointments as appropriate to provide coaching and encouragement. Peer Supporter will support Peer in maintaining regular communication with probation and court personnel. Peer Supporter will help Peer identify at least two personal benefits of remaining compliant with drug court requirements."
-    }
-  },
-  "Transportation": {
-    "Access to Transportation": {
-      "goal": "Within the next 3 months, Peer will identify and consistently access reliable transportation options to support engagement with recovery services, appointments, and community activities.",
-      "objectives": "Within 30 days, Peer will identify at least two available transportation resources such as RTA, rideshare programs, or community transportation services. Within 60 days, Peer will independently utilize at least one transportation resource to attend a scheduled appointment or service. Within 90 days, Peer will develop a reliable transportation plan that supports consistent engagement with recovery-related activities.",
-      "interventions": "Peer Supporter will assist Peer in identifying available transportation resources in Cuyahoga County including RTA routes, Medicaid transportation, and community van services. Peer Supporter will help Peer develop a transportation plan that supports attendance at recovery services and appointments. Peer Supporter will accompany Peer on public transportation as appropriate to build comfort and confidence. Peer Supporter will problem-solve barriers to transportation access including scheduling conflicts and cost. Peer Supporter will connect reliable transportation to Peer's ability to achieve recovery goals."
-    }
-  },
-  "Finances/Budgeting": {
-    "Basic Budgeting Skills": {
-      "goal": "Within the next 3 months, Peer will develop and practice basic budgeting skills to support financial stability as a foundation for recovery.",
-      "objectives": "Within 30 days, Peer will identify their current income sources and primary monthly expenses. Within 60 days, Peer will develop a basic monthly budget with support from Peer Supporter. Within 90 days, Peer will identify at least two financial barriers and develop a plan to address each.",
-      "interventions": "Peer Supporter will assist Peer in identifying income sources, benefits, and primary expenses to establish a clear financial picture. Peer Supporter will help Peer develop a simple, practical monthly budget. Peer Supporter will share lived experience with financial challenges in recovery to normalize the process. Peer Supporter will connect Peer with community financial assistance resources as appropriate. Peer Supporter will conduct regular check-ins on Peer's progress with budgeting and celebrate financial stability milestones."
-    },
-    "Benefits Enrollment": {
-      "goal": "Within the next 3 months, Peer will identify and enroll in available benefits programs to support financial stability and access to services during recovery.",
-      "objectives": "Within 30 days, Peer will identify at least two public benefits programs they may be eligible for such as Medicaid, SNAP, or SSI. Within 60 days, Peer will complete applications for at least one benefits program with Peer Supporter's assistance. Within 90 days, Peer will understand their active benefits and how to maintain eligibility.",
-      "interventions": "Peer Supporter will assist Peer in identifying benefits programs available to them based on their current situation. Peer Supporter will support Peer in completing benefits applications and gathering required documentation. Peer Supporter will accompany Peer to benefits appointments as appropriate. Peer Supporter will help Peer understand their benefits and how to maintain eligibility over time. Peer Supporter will connect access to benefits explicitly to Peer's recovery stability and service engagement."
-    }
-  },
-  "Recovery: Relapse Prevention": {
-    "Relapse Prevention Plan": {
-      "goal": "Over the next 12 months, Peer will maintain recovery from substance use by developing and consistently using a personalized relapse prevention plan.",
-      "objectives": "Within 30 days, Peer will identify at least three personal triggers, high-risk situations, and early warning signs of relapse. Within 60 days, Peer will develop a written relapse prevention plan with Peer Supporter. Within 90 days, Peer will review and update the relapse prevention plan and identify at least two new coping strategies to strengthen the plan.",
-      "interventions": "Peer Supporter will assist Peer in identifying triggers, high-risk situations, and early warning signs of relapse. Peer Supporter will collaborate with Peer to develop a written relapse prevention plan with specific action steps. Peer Supporter will explore and model coping skills to help Peer manage triggers and cravings. Peer Supporter will help Peer identify and strengthen their support network as a relapse prevention resource. Peer Supporter will develop an emergency response plan with Peer outlining steps to take if relapse risk escalates."
-    }
-  },
-  "Graduation": {
-    "Transition Planning": {
-      "goal": "Peer will successfully prepare for transition and graduation from Thrive services by identifying ongoing support resources and developing a post-discharge recovery maintenance plan within 30 days of planned graduation.",
-      "objectives": "Within 30 days of graduation planning, Peer will identify at least three community-based resources that will continue to support recovery after discharge. Within 30 days, Peer will develop a personal recovery maintenance plan with Peer Supporter. At time of graduation, Peer will articulate at least two strategies for managing challenges without formal peer support.",
-      "interventions": "Peer Supporter will celebrate Peer's progress and recovery achievements leading up to graduation. Peer Supporter will assist Peer in identifying community resources, support groups, and natural supports to sustain recovery post-discharge. Peer Supporter will collaborate with Peer to develop a written recovery maintenance plan. Peer Supporter will discuss any concerns Peer has about transitioning out of services and address barriers to confidence. Peer Supporter will document graduation planning activities in compliance with CARF and ODBH standards."
-    }
-  },
-  "Case Management": {
-    "Care Coordination": {
-      "goal": "Over the next 3 months, Peer will engage in coordinated care across services by maintaining active communication with all providers and attending at least 80% of scheduled appointments across all service areas.",
-      "objectives": "Within 30 days, Peer will identify all current service providers and establish a communication plan between services. Within 60 days, Peer will attend at least 80% of scheduled appointments across all active service areas. Within 90 days, Peer will demonstrate the ability to independently coordinate between at least two service providers.",
-      "interventions": "Peer Supporter will assist Peer in identifying all current service providers and coordinating communication between services. Peer Supporter will help Peer develop a master schedule to track all appointments and obligations. Peer Supporter will accompany Peer to key appointments as appropriate to support coordination. Peer Supporter will facilitate warm handoffs between services as needed to ensure continuity of care. Peer Supporter will document care coordination activities in compliance with CARF and ODBH standards."
-    }
-  },
-  "Additional Goals and Interventions": {
-    "Individualized Goal": {
-      "goal": "Over the next 90 days, Peer will work toward an individualized recovery goal identified collaboratively with Peer Supporter that addresses a priority need not captured in standard need areas.",
-      "objectives": "Within 30 days, Peer will clearly articulate the individualized goal and identify at least two steps toward achieving it. Within 60 days, Peer will demonstrate measurable progress toward the individualized goal and discuss progress with Peer Supporter. Within 90 days, Peer will review goal status and determine whether to continue, modify, or close the goal based on progress.",
-      "interventions": "Peer Supporter will collaborate with Peer to define a clear, SMART individualized goal that reflects Peer's unique recovery priorities. Peer Supporter will assist Peer in identifying resources and supports relevant to the individualized goal. Peer Supporter will conduct regular check-ins to review progress and address barriers to goal achievement. Peer Supporter will share relevant lived experience as applicable to provide encouragement and insight. Peer Supporter will document individualized goal progress in compliance with CARF and ODBH standards."
+      "goal": "Over the next 3 months, the client will comply with all drug court requirements and maintain consistent communication with court personnel to support recovery and legal stability.",
+      "objectives": "Within 30 days, the client will develop a system for tracking drug court and probation appointments and use it consistently to support attendance. Over the next three months, the client will attend at least 90% of all scheduled drug court and/or probation meetings. Within 60 days, the client will identify and discuss at least two barriers that may interfere with compliance and develop at least one strategy to address each barrier with peer support.",
+      "interventions": "Assist client in developing a tracking system for drug court dates, requirements, and deadlines. Share relevant lived experience related to navigating drug court requirements to encourage hope and motivation. Accompany the client to drug court appointments as appropriate, focusing peer support on coaching and encouragement provided. Support the client in maintaining regular communication with probation and court personnel. Help the client identify at least two personal benefits of remaining compliant with drug court requirements."
     }
   }
 };
@@ -1143,32 +1045,145 @@ function copyEl(id,btn){
   });
 }
 
-function copyFullDoc(btn){
-  var planEl = document.getElementById('unifiedPlanOutput');
-  var text = planEl ? planEl.innerText.trim() : '';
-  if(!text) return;
-  navigator.clipboard.writeText(text).then(function(){
-    var orig = btn.textContent;
-    btn.textContent = 'Copied!';
-    setTimeout(function(){ btn.textContent = orig; }, 2000);
+function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustification) {
+  var fullPlanText = (planSummary + ' ' + needCardsData.map(function(n){return n.goal+' '+n.obj+' '+n.intv;}).join(' ') + ' ' + clientGoal + ' ' + sliJustification).toLowerCase();
+  var results = [];
+
+  function check(label, passed) {
+    results.push({label: label, passed: passed});
+  }
+
+  // 1. Client ID documented
+  check('Client ID is documented', !!document.getElementById('clientId').value.trim());
+
+  // 2. Program documented
+  check('Program is documented', !!document.getElementById('program').value);
+
+  // 3. Plan start and end dates documented (CARF requires defined review period)
+  var hasStart = !!document.getElementById('planStartDate').value;
+  var hasEnd = !!document.getElementById('planEndDate').value;
+  check('Plan period (start and end dates) is documented', hasStart && hasEnd);
+
+  // 4. Individual Goal Statement present in person\'s own voice (CARF person-centered planning)
+  check('Individual Goal Statement reflects the person\'s own voice', !!clientGoal && clientGoal.trim().length > 15);
+
+  // 5. Strengths documented (CARF requires strengths-based assessment)
+  check('Assessed strengths are documented', !!document.getElementById('strengths').value.trim());
+
+  // 6. Barriers/needs documented
+  check('Presenting needs and barriers are documented', !!document.getElementById('barriers').value.trim());
+
+  // 7. Stage of Change documented
+  check('Stage of Change is documented', !!document.getElementById('stageOfChange').value);
+
+  // 8. At least one Need Area with Goal, Objectives, and Interventions (CARF/ODBH core requirement)
+  var allNeedsComplete = needCardsData.length > 0 && needCardsData.every(function(n){
+    return n.goal && n.goal.trim().length > 10 && n.obj && n.obj.trim().length > 10 && n.intv && n.intv.trim().length > 10;
   });
+  check('At least one Need Area has complete Goal, Objectives, and Interventions', allNeedsComplete);
+
+  // 9. SLI scores entered (medical necessity requires documented clinical justification)
+  var sliFields = ['sli_phq9','sli_gad7','sli_bam','sli_asam','sli_risk'];
+  var sliComplete = sliFields.every(function(id){ return document.getElementById(id).value !== ''; });
+  check('SLI 2.0 clinical scores (PHQ-9, GAD-7, BAM, ASAM, Risk) are complete', sliComplete);
+
+  // 10. SLI Clinical Justification narrative documented (medical necessity)
+  check('Clinical justification for service level is documented', !!document.getElementById('clinicalJustification').value.trim());
+
+  // 11. SLI summary/justification generated and substantive
+  check('SLI 2.0 scoring and clinical justification narrative is generated', !!sliJustification && sliJustification.trim().length > 60);
+
+  // 12. Service frequency documented (required for Ohio Medicaid billing)
+  check('Service frequency is documented', !!document.getElementById('frequency').value);
+
+  // 13. Plan is individualized, not generic/templated
+  var genericPhrases = ['services were rendered', 'support was provided', 'goals were addressed', 'progress was made', 'individual is doing well', 'no concerns noted'];
+  var foundGeneric = genericPhrases.find(function(p){ return fullPlanText.indexOf(p) > -1; });
+  check('Plan content is individualized, not generic or templated', !foundGeneric);
+
+  // 14. Plan avoids unauthenticated clinical overreach language for non-licensed staff context
+  var prohibitedTerms = ['this writer', 'the patient'];
+  var foundProhibited = prohibitedTerms.find(function(t){ return fullPlanText.indexOf(t) > -1; });
+  check('Plan avoids non-standard documentation language', !foundProhibited);
+
+  // 15. Not copy/pasted from a previous plan for this client
+  var clientId = document.getElementById('clientId').value.trim();
+  var storageKey = 'thrive_tp_last_plan_' + clientId;
+  var prevPlan = '';
+  try { prevPlan = localStorage.getItem(storageKey) || ''; } catch(e) {}
+  var isDuplicate = prevPlan && prevPlan === fullPlanText;
+  check('Plan is not duplicated from a previous treatment plan for this client', !isDuplicate);
+  try { if (clientId) localStorage.setItem(storageKey, fullPlanText); } catch(e) {}
+
+  // 16. Director approval flag check — if Level 5, flag must be acknowledged (not blocking, informational)
+  var directorFlag = document.getElementById('directorFlag');
+  var isLevel5 = directorFlag && directorFlag.style.display === 'block';
+  check('Director approval requirement reviewed (if Level 5 applies)', true); // informational only, see note below
+  if (isLevel5) {
+    results[results.length-1].label = 'Level 5 service intensity \u2014 Director approval required before initiating services';
+    results[results.length-1].passed = false;
+  }
+
+  // Render results
+  var resultsEl = document.getElementById('tpQaResults');
+  resultsEl.innerHTML = '';
+  var failCount = 0;
+  results.forEach(function(r) {
+    if (!r.passed) failCount++;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:' + (r.passed ? '#f0faf2' : '#FDECEA') + ';';
+    row.innerHTML = '<span style="font-size:14px;flex-shrink:0;">' + (r.passed ? '\u2705' : '\u26a0\ufe0f') + '</span>'
+      + '<span style="font-size:13px;color:' + (r.passed ? '#2d5a2d' : '#8B1A1A') + ';">' + r.label + '</span>';
+    resultsEl.appendChild(row);
+  });
+
+  var summaryEl = document.getElementById('tpQaSummary');
+  var attestCheckbox = document.getElementById('clinicianAttestation');
+  var gateMsg = document.getElementById('tpQaGateMessage');
+
+  if (failCount === 0) {
+    summaryEl.style.background = '#f0faf2';
+    summaryEl.style.color = '#2d5a2d';
+    summaryEl.textContent = '\u2705 All compliance checks passed. You may proceed to review and copy this plan.';
+    attestCheckbox.disabled = false;
+    gateMsg.textContent = '';
+  } else {
+    summaryEl.style.background = '#FDECEA';
+    summaryEl.style.color = '#8B1A1A';
+    summaryEl.textContent = '\u26a0\ufe0f ' + failCount + ' item' + (failCount > 1 ? 's' : '') + ' need attention before this plan can be copied. Edit the plan or form fields above, then click Re-Check.';
+    attestCheckbox.disabled = true;
+    attestCheckbox.checked = false;
+    gateMsg.textContent = 'Resolve all compliance check items above before this plan can be reviewed and copied.';
+  }
+  updateSignOff();
 }
 
-function updateSigPreview(){
-  var name = document.getElementById('clinicianName') ? document.getElementById('clinicianName').value.trim() : '';
-  var cred = document.getElementById('clinicianCredential') ? document.getElementById('clinicianCredential').value : '';
-  var preview = document.getElementById('sigPreview');
-  if(preview){
-    preview.textContent = name ? (name + (cred ? ', ' + cred : '')) : '';
-  }
+function getNeedCardsData() {
+  var data = [];
+  document.querySelectorAll('#needBlocksOutput .output-card').forEach(function(card){
+    var divs = card.querySelectorAll('[contenteditable="true"]');
+    data.push({
+      goal: divs[0] ? divs[0].innerText.trim() : '',
+      obj: divs[1] ? divs[1].innerText.trim() : '',
+      intv: divs[2] ? divs[2].innerText.trim() : ''
+    });
+  });
+  return data;
+}
+
+function rerunPlanQAChecks() {
+  var planSummary = document.getElementById('planSummaryOutput').innerText;
+  var clientGoal = document.getElementById('clientGoalOutput').innerText;
+  var sliJustification = document.getElementById('justificationOutput').innerText;
+  var needCardsData = getNeedCardsData();
+  runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustification);
 }
 
 function updateSignOff() {
-  var name = document.getElementById('clinicianName') ? document.getElementById('clinicianName').value.trim() : '';
-  var cred = document.getElementById('clinicianCredential') ? document.getElementById('clinicianCredential').value : '';
+  var attested = document.getElementById('clinicianAttestation').checked;
   var participation = document.querySelector('input[name="clientParticipation"]:checked');
   var consent = document.querySelector('input[name="clientConsent"]:checked');
-  var ready = name && cred && participation && consent;
+  var ready = attested && participation && consent;
   var btn = document.getElementById('copyFullPlanBtn');
   if (btn) {
     btn.disabled = !ready;
@@ -1233,79 +1248,103 @@ function copyFullPlan(){
   var thin = '─'.repeat(60);
   var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
+  // Pull form values for header
   var clientId = document.getElementById('clientId').value.trim() || '______';
   var program = document.getElementById('program').value || '______';
   var startDate = document.getElementById('planStartDate').value || '______';
   var endDate = document.getElementById('planEndDate').value || '______';
   var freq = document.getElementById('frequency').value || '______';
+
+  // Format dates nicely
   function fmtDate(d){ if(!d||d==='______') return d; var p=d.split('-'); return p[1]+'/'+p[2]+'/'+p[0]; }
 
   var lines = [];
 
-  // Header
+  // ── HEADER ──
   lines.push(div);
   lines.push('THRIVE PEER RECOVERY SERVICES');
   lines.push('INDIVIDUAL SERVICE PLAN (TREATMENT PLAN)');
   lines.push(div);
-  lines.push('Client ID:         ' + clientId);
-  lines.push('Program:           ' + program);
-  lines.push('Plan Start Date:   ' + fmtDate(startDate));
-  lines.push('Plan End Date:     ' + fmtDate(endDate));
+  lines.push('Client ID:        ' + clientId);
+  lines.push('Program:          ' + program);
+  lines.push('Plan Start Date:  ' + fmtDate(startDate));
+  lines.push('Plan End Date:    ' + fmtDate(endDate));
   lines.push('Service Frequency: ' + freq);
-  lines.push('Date Generated:    ' + today);
+  lines.push('Date Generated:   ' + today);
   lines.push(div);
-  lines.push('');
 
-  // Main plan content from unified editable box
-  var planEl = document.getElementById('unifiedPlanOutput');
-  var planText = planEl ? planEl.innerText.trim() : '';
-  if(planText) lines.push(planText);
+  // ── INDIVIDUAL GOAL STATEMENT (person-centered planning — CARF requires person's voice first) ──
+  var goal = document.getElementById('clientGoalOutput').innerText.trim();
+  if(goal){
+    lines.push('');
+    lines.push('SECTION 1: INDIVIDUAL GOAL STATEMENT');
+    lines.push(thin);
+    lines.push('(The individual\'s own recovery goal, in their own words, as the foundation of this plan)');
+    lines.push('');
+    lines.push(goal);
+  }
 
-  // Sign-off block
+  // ── PLAN SUMMARY ──
+  var summary = document.getElementById('planSummaryOutput').innerText.trim();
+  if(summary){
+    lines.push('');
+    lines.push('');
+    lines.push('SECTION 2: PLAN SUMMARY & CLINICAL OVERVIEW');
+    lines.push(thin);
+    lines.push(summary);
+  }
+
+  // ── NEED AREAS ──
+  var needCards = document.querySelectorAll('#needBlocksOutput .output-card');
+  if(needCards.length > 0){
+    lines.push('');
+    lines.push('');
+    lines.push('SECTION 3: PRESENTING NEEDS, GOALS, OBJECTIVES & INTERVENTIONS');
+    lines.push(thin);
+    needCards.forEach(function(card, idx){
+      var header = card.querySelector('h3') ? card.querySelector('h3').innerText : 'NEED AREA';
+      var divs = card.querySelectorAll('[contenteditable="true"]');
+      var goalTxt = divs[0] ? divs[0].innerText.trim() : '';
+      var objTxt  = divs[1] ? divs[1].innerText.trim() : '';
+      var intTxt  = divs[2] ? divs[2].innerText.trim() : '';
+      if(idx > 0) lines.push('');
+      lines.push('Need Area ' + (idx+1) + ': ' + header);
+      lines.push('');
+      if(goalTxt){ lines.push('  GOAL:'); lines.push('  ' + goalTxt); lines.push(''); }
+      if(objTxt){ lines.push('  OBJECTIVES:'); lines.push('  ' + objTxt); lines.push(''); }
+      if(intTxt){ lines.push('  INTERVENTIONS:'); lines.push('  ' + intTxt); }
+      if(idx < needCards.length - 1) lines.push('···');
+    });
+  }
+
+  // ── SLI JUSTIFICATION ──
+  var just = document.getElementById('justificationOutput').innerText.trim();
+  if(just){
+    lines.push('');
+    lines.push('');
+    lines.push('SECTION 4: SLI 2.0 SCORING & CLINICAL JUSTIFICATION FOR SERVICE LEVEL');
+    lines.push(thin);
+    lines.push('(Establishes medical necessity and supports authorized service intensity)');
+    lines.push('');
+    lines.push(just);
+  }
+
+  // ── CONSENT & SIGN-OFF ──
   lines.push('');
-  lines.push(div);
-  lines.push('PLAN SIGN-OFF & CONSENT DOCUMENTATION');
+  lines.push('');
+  lines.push('SECTION 5: CONSENT, PARTICIPATION & SIGNATURES');
   lines.push(thin);
+  lines.push(getSignOffBlock());
 
-  var cp = document.querySelector('input[name="clientParticipation"]:checked');
-  var cc = document.querySelector('input[name="clientConsent"]:checked');
-  var gc = document.querySelector('input[name="guardianConsent"]:checked');
-  lines.push('Client participated in plan development and approved goals: ' + (cp?cp.value:'Not recorded'));
-  lines.push('Client provided verbal consent for implementation: ' + (cc?cc.value:'Not recorded'));
-  lines.push('Guardian provided verbal consent: ' + (gc?gc.value:'Not recorded'));
-
-  var parts = [];
-  if(document.getElementById('partClinician')&&document.getElementById('partClinician').checked) parts.push('Clinician');
-  if(document.getElementById('partCareCoord')&&document.getElementById('partCareCoord').checked) parts.push('Care Coordinator');
-  if(document.getElementById('partClient')&&document.getElementById('partClient').checked) parts.push('Client / Individual');
-  if(document.getElementById('partPRS')&&document.getElementById('partPRS').checked) parts.push('Peer Recovery Supporter');
-  if(document.getElementById('partGuardian')&&document.getElementById('partGuardian').checked) parts.push('Guardian / Family');
-  if(parts.length) lines.push('Plan development participants: ' + parts.join(', '));
-
-  var remarks = document.getElementById('signOffRemarks') ? document.getElementById('signOffRemarks').value.trim() : '';
-  if(remarks) lines.push('Remarks: ' + remarks);
-
-  var clinName = document.getElementById('clinicianName') ? document.getElementById('clinicianName').value.trim() : '';
-  var clinCred = document.getElementById('clinicianCredential') ? document.getElementById('clinicianCredential').value : '';
-  var sigDisplay = clinName ? (clinName + (clinCred ? ', ' + clinCred : '')) : '________________________________';
-  var today2 = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  lines.push('');
-  lines.push('Clinician / Care Coordinator of Record:');
-  lines.push('Signature: ' + sigDisplay);
-  lines.push('Date: ' + today2);
-  lines.push('');
-  lines.push('(Supervisor co-signature completed in Pimsy per CARF, ODBH, and Ohio Medicaid requirements)');
-  lines.push(div);
-
-  navigator.clipboard.writeText(lines.join('\n')).then(function(){
-    var btn = document.getElementById('copyFullPlanBtn');
-    var orig = btn.textContent;
-    btn.textContent = 'Copied!';
-    setTimeout(function(){ btn.textContent = orig; }, 2500);
+  var fullText = lines.join('\n');
+  navigator.clipboard.writeText(fullText).then(function(){
+    var btn=document.getElementById('copyFullPlanBtn');
+    btn.textContent='Full Plan Copied!';
+    setTimeout(function(){btn.textContent='Copy Full Treatment Plan';},2500);
   });
 }
 
-
+// ── RESET ──
 function resetForm(){
   if(!confirm('Start a new plan? This will clear all entries.')) return;
   document.querySelectorAll('input[type=text],input[type=date],input[type=number],textarea').forEach(function(el){el.value='';});
@@ -1319,6 +1358,11 @@ function resetForm(){
   document.getElementById('loadingBlock').className='loading';
   document.getElementById('errorMsg').className='error-msg';
   document.getElementById('sliResult').className='sli-result';
+  var attestCb = document.getElementById('clinicianAttestation');
+  if(attestCb){ attestCb.checked=false; attestCb.disabled=true; }
+  if(document.getElementById('tpQaResults')) document.getElementById('tpQaResults').innerHTML='';
+  if(document.getElementById('tpQaSummary')){ document.getElementById('tpQaSummary').textContent=''; document.getElementById('tpQaSummary').style.background='transparent'; }
+  if(document.getElementById('tpQaGateMessage')) document.getElementById('tpQaGateMessage').textContent='';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1415,14 +1459,14 @@ async function runGeneratePlan(){
     +'INDIVIDUAL GOAL STATEMENT: '+clientGoalStatement+'\n\n'
     +'Generate the treatment plan now. Follow the output format exactly.';
 
-  var systemPrompt='You are a clinical documentation specialist for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate concise, individualized treatment plans compliant with CARF, OhioMHAS, and Ohio Medicaid standards.\n\nTERMINOLOGY:\n- Use "Peer will..." in GOAL statements only\n- Use "the individual" in all other narrative sections\n- Refer to the provider as "PRS" (Peer Recovery Supporter)\n- Never use "the worker," "This writer," or "staff"\n\nOUTPUT FORMAT — follow exactly:\n\nPLAN SUMMARY\n[3-4 sentences: program, plan period, presenting clinical picture, stage of change, assessed strengths, primary barriers, SLI support level, and authorized service frequency.]\n\nFor EACH need area, output this exact block — no markdown, no asterisks, no bold, plain text only:\nNEED: [need area name]\nFOCUS: [sub-need name]\nGOAL: [SMART goal. "Peer will [specific outcome] by [date]."]\nOBJECTIVES:\n1. [Measurable 30-day objective]\n2. [Measurable 60-day objective]\n3. [Measurable 90-day objective]\nINTERVENTIONS:\n1. [Specific PRS action]\n2. [Specific PRS action]\n3. [Specific PRS action]\n\nINDIVIDUAL GOAL STATEMENT\n[2-3 sentences. The individual\'s recovery goal in strengths-based language.]\n\nSLI 2.0 SUMMARY AND CLINICAL JUSTIFICATION\n[State scores, support level, hours, cap status. Then 3-4 sentences connecting scores to functional impairment, SDOH impact, and medical necessity for the assigned service level.]\n\nRULES:\n- Plain text only — no markdown, no ** bold **, no # headers\n- SMART goals individualized to this person — no generic templates\n- SDOH barriers explicitly connected to recovery outcomes\n- Interventions within PRS scope: lived experience, skill-building, advocacy, resource linkage, accompaniment\n- Never repeat Stage of Change in every need block — state it once in Plan Summary only\n- Medical necessity demonstrable throughout'
+  var systemPrompt='You are a clinical documentation specialist supporting Thrive Peer Recovery Services, a CARF-accredited, OhioMHAS-certified, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate individualized, person-centered treatment plans that meet CARF behavioral health standards, OhioMHAS certification requirements, Ohio Medicaid billing documentation standards, and SAMHSA best practices for peer support services.\n\nCLINICAL FRAMING: This is a peer support treatment plan completed by a clinician or care coordinator. Language should be professional, clinical, and recovery-oriented. Goals, objectives, and interventions must reflect the scope of peer support services — not clinical therapy or case management — but should use proper clinical documentation language appropriate for CARF audit, Medicaid review, and OhioMHAS oversight.\n\nPIMSY TEMPLATE INSTRUCTIONS: You are provided with Thrive\'s Pimsy template language for each need area. Use this as the structural foundation — preserve the core goal, objective, and intervention architecture — but individualize the language to reflect this specific individual\'s assessed strengths, identified barriers, stage of change, and presenting clinical context. Plans must not read as copied templates. Do NOT repeat the Stage of Change in every need block — reference it once in the Plan Summary and once in the SLI Justification only.\n\nTERMINOLOGY:\n- Refer to the person receiving services as "the individual" or by the pronoun appropriate to context in formal clinical sections; use "Peer" when referencing their recovery role or in goal language (e.g., "Peer will...")\n- Refer to the provider as "Peer Recovery Supporter" or "PRS" — never "the worker," "This writer," or "staff"\n- Use clinically appropriate language: presenting needs, identified barriers, assessed strengths, clinical rationale, medical necessity, functional impairment, level of care, service intensity\n- Use \"Peer will...\" ONLY in GOAL statements. Use \"the individual\" everywhere else in plan narrative sections.\n\nOUTPUT FORMAT — follow exactly, each section on its own line:\n\nPLAN SUMMARY\n[4-5 sentences covering: program, plan period, presenting clinical picture, stage of change, assessed strengths, primary barriers including SDOH factors, assigned SLI support level, and authorized service frequency. This section establishes medical necessity and must be suitable for CARF audit and Medicaid review.]\n\nFor EACH need area, output in this exact structure:\nNEED: [need area name]\nFOCUS: [sub-need name]\nGOAL: [Long-term SMART goal individualized to this person. Must be Specific, Measurable, Achievable, Relevant, and Time-bound. Written as: "Peer will [specific, observable outcome] by [timeframe]."]\nOBJECTIVES:\n1. [Short-term, measurable objective that incrementally supports the goal. Time-bound where possible.]\n2. [Short-term, measurable objective.]\n3. [Short-term, measurable objective.]\nINTERVENTIONS:\n1. [Specific peer support intervention the PRS will provide. Use active clinical language: "PRS will [action verb] to support the individual in [outcome]..."]\n2. [Specific intervention.]\n3. [Specific intervention.]\n\nINDIVIDUAL GOAL STATEMENT\n[The individual\'s own recovery goal reframed in strengths-based, recovery-oriented clinical language. 2-3 sentences written in first person or as a direct quote contextually framed. This reflects person-centered planning per CARF standards.]\n\nSLI 2.0 SUMMARY AND CLINICAL JUSTIFICATION\n[State: SLI Clinical Score, SDOH Barrier Score, Adjusted SLI Total, assigned Support Level (1-5), authorized hours per week, and whether the Low Clinical/High SDOH cap was applied. Then provide a 4-5 sentence clinical justification narrative that: (1) connects the individual\'s PHQ-9, GAD-7, BAM, ASAM, and Risk scores to their functional presentation; (2) links identified SDOH barriers to their impact on mental health and/or substance use recovery outcomes; (3) articulates why the assigned service level is clinically necessary and appropriate; (4) references the individual\'s strengths and how peer support at this intensity will leverage them. This section must demonstrate medical necessity and be audit-ready for CARF, ODBH, and Ohio Medicaid.]\n\nCOMPLIANCE REQUIREMENTS:\n- All goals must be SMART and individually tailored — generic or interchangeable goals are non-compliant\n- Interventions must be within PRS scope of practice: lived experience, skill-building, advocacy, resource linkage, accompaniment, motivational support — not therapy or counseling\n- Peer support tenets must be embedded naturally: use of lived experience, fostering self-determination and independence, mutuality, instilling hope\n- SDOH barriers must be explicitly connected to recovery outcomes — never documented as standalone social service tasks\n- Interventions must build individual capacity and self-determination — not create dependency\n- Medical necessity must be demonstrable throughout — link presenting needs to service intensity\n- Never use "goal met" or "goal not met" language\n- Never use vague interventions such as "provide support," "check in," or "offer encouragement"\n- All content in third person except the Individual Goal Statement\n- Person-first, strengths-based, recovery-oriented language throughout'
 
   document.getElementById('loadingBlock').className='loading visible';
   document.getElementById('outputSection').className='output-section';
   document.getElementById('generateBtn').disabled=true;
 
   try {
-    var response=await fetch('/functions/claude',{
+    var response=await fetch('/api/claude',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({system:systemPrompt,messages:[{role:'user',content:userContent}]})
@@ -1431,21 +1475,91 @@ async function runGeneratePlan(){
     if(!response.ok) throw new Error(data.error||'API error');
     var fullText=(data.content&&data.content[0]&&data.content[0].text)?data.content[0].text:'';
 
-    // Set header client ID
-    var cidEl=document.getElementById('outputClientId');
-    if(cidEl) cidEl.textContent=document.getElementById('clientId').value.trim()||'—';
+    // Parse PLAN SUMMARY
+    var summaryMatch=fullText.match(/PLAN SUMMARY[\s\S]*?(?=NEED:|INDIVIDUAL GOAL STATEMENT|SLI 2)/i);
+    document.getElementById('planSummaryOutput').innerText=summaryMatch?summaryMatch[0].replace(/^PLAN SUMMARY\s*/i,'').trim():'';
 
-    // Render the full AI output as a single unified editable document
-    var unifiedEl=document.getElementById('unifiedPlanOutput');
-    if(unifiedEl){
-      // Clean up any markdown asterisks/bold that slipped through
-      var cleanText=fullText.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').trim();
-      unifiedEl.innerText=cleanText;
+    // Parse per-need blocks — split full text on NEED: headers first
+    var needBlocksContainer=document.getElementById('needBlocksOutput');
+    needBlocksContainer.innerHTML='';
+
+    // Split the full text into need blocks by finding all NEED: sections
+    var needSections=[];
+    var needSplitRegex=/(?=^NEED:)/gim;
+    var needParts=fullText.split(/\n(?=NEED:)/i);
+    // First part is pre-need content (plan summary etc), rest are need blocks
+    for(var np=1;np<needParts.length;np++){
+      needSections.push(needParts[np]);
     }
 
-    // Enable copy button
-    var copyBtn=document.getElementById('copyFullPlanBtn');
-    if(copyBtn){copyBtn.disabled=false;copyBtn.style.opacity='1';copyBtn.style.cursor='pointer';}
+    // Also try single-pass if split didn't work
+    if(needSections.length===0){
+      var allNeedMatches=fullText.match(/NEED:[\s\S]*?(?=(?:\nNEED:)|(?:\nINDIVIDUAL GOAL)|(?:\nSLI 2)|$)/gi)||[];
+      needSections=allNeedMatches;
+    }
+
+    // Map need sections to selected needs by partial name match
+    selectedNeeds.forEach(function(need){
+      var id=need.replace(/[^a-zA-Z0-9]/g,'_');
+      var subNeed=document.getElementById('subneed_'+id)?document.getElementById('subneed_'+id).value:'';
+
+      // Find the block that matches this need name (case-insensitive partial match)
+      var blockText='';
+      for(var ns=0;ns<needSections.length;ns++){
+        if(needSections[ns].toLowerCase().indexOf(need.toLowerCase())>-1){
+          blockText=needSections[ns];
+          break;
+        }
+      }
+
+      // Fallback: search full text directly
+      if(!blockText){
+        var escapedNeed=need.replace(/[.*+?^${}()|\[\]\\]/g,'\\$&');
+        var fbRegex=new RegExp('NEED:[^\\n]*'+escapedNeed+'[\\s\\S]*?(?=\\nNEED:|\\nINDIVIDUAL GOAL|\\nSLI 2|$)','i');
+        var fbMatch=fullText.match(fbRegex);
+        if(fbMatch) blockText=fbMatch[0];
+      }
+
+      var goalMatch=blockText?blockText.match(/GOAL:\s*([\s\S]*?)(?=\nOBJECTIVES:|$)/i):null;
+      var objMatch=blockText?blockText.match(/OBJECTIVES:\s*([\s\S]*?)(?=\nINTERVENTIONS:|$)/i):null;
+      var intMatch=blockText?blockText.match(/INTERVENTIONS:\s*([\s\S]*?)(?=\nNEED:|\nINDIVIDUAL GOAL|\nSLI 2|$)/i):null;
+
+      var card=document.createElement('div');
+      card.className='output-card';
+      card.innerHTML='<div class="output-header"><h3>'+need.toUpperCase()+(subNeed?' — '+subNeed.toUpperCase():'')+'</h3>'
+        +'<button class="copy-btn" onclick="copyNeedBlock(this)">Copy</button></div>'
+        +'<div class="output-body">'
+        +'<div class="need-section-label">Goal</div>'
+        +'<div contenteditable="true" style="font-size:14px;color:#2d2d2d;line-height:1.7;margin-bottom:12px;">'
+        +(goalMatch?goalMatch[1].trim():'[Goal not parsed — check AI output]')
+        +'</div>'
+        +'<div class="need-section-label">Objectives</div>'
+        +'<div contenteditable="true" style="font-size:14px;color:#2d2d2d;line-height:1.7;margin-bottom:12px;">'
+        +(objMatch?objMatch[1].trim():'[Objectives not parsed]')
+        +'</div>'
+        +'<div class="need-section-label">Interventions</div>'
+        +'<div contenteditable="true" style="font-size:14px;color:#2d2d2d;line-height:1.7;">'
+        +(intMatch?intMatch[1].trim():'[Interventions not parsed]')
+        +'</div></div>';
+      needBlocksContainer.appendChild(card);
+    });
+
+    // Parse CLIENT GOAL STATEMENT
+    var goalMatch2=fullText.match(/INDIVIDUAL GOAL STATEMENT[\s\S]*?(?=SLI 2|$)/i);
+    document.getElementById('clientGoalOutput').innerText=goalMatch2?goalMatch2[0].replace(/^INDIVIDUAL GOAL STATEMENT\s*/i,'').trim():'';
+
+    // Parse SLI JUSTIFICATION
+    var justMatch=fullText.match(/SLI 2\.0 SUMMARY[\s\S]*/i);
+    document.getElementById('justificationOutput').innerText=justMatch?justMatch[0].replace(/^SLI 2\.0[^\r\n]*/i,'').trim():'';
+
+    // Run CARF/ODBH compliance QA checks
+    var qaNeedCardsData = getNeedCardsData();
+    runPlanQAChecks(
+      document.getElementById('planSummaryOutput').innerText,
+      qaNeedCardsData,
+      document.getElementById('clientGoalOutput').innerText,
+      document.getElementById('justificationOutput').innerText
+    );
 
     document.getElementById('loadingBlock').className='loading';
     document.getElementById('outputSection').className='output-section visible';
@@ -1648,7 +1762,7 @@ async function generateReview() {
   document.getElementById('generateReviewBtn').disabled = true;
 
   try {
-    var response = await fetch('/functions/claude', {
+    var response = await fetch('/api/claude', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({system:systemPrompt, messages:[{role:'user',content:userContent}]})
