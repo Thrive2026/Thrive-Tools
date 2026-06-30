@@ -1320,6 +1320,7 @@ function copyFullPlan(){
         lines.push('');
       }
       if(intTxt){
+        intTxt = intTxt.replace(/\n?-{2,}\s*$/,'').trim();
         lines.push('    INTERVENTIONS');
         lines.push('    ' + intTxt.split('\n').join('\n    '));
         lines.push('');
@@ -1329,7 +1330,6 @@ function copyFullPlan(){
         lines.push('');
       }
     });
-    lines.push('');
   }
 
   // SECTION 4 — SLI JUSTIFICATION
