@@ -471,17 +471,6 @@ select{cursor:pointer;}
       <p id="qaGateMessage" style="font-size:12px;color:#E8417A;margin-top:8px;margin-left:30px;font-weight:600;"></p>
     </div>
 
-    <div style="background:#f4f5f7;border:1.5px solid #dde0f0;border-radius:12px;padding:18px 24px;margin-bottom:16px;">
-      <h3 style="font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:14px;display:flex;align-items:center;gap:8px;">&#9998; Signature Block — appears at bottom of copied note</h3>
-      <div style="background:#fff;border:1.5px solid #dde0f0;border-radius:8px;padding:14px 16px;font-size:13px;color:#555;line-height:2;font-family:monospace;">
-        <div style="border-bottom:1px solid #bbb;margin-bottom:10px;padding-bottom:6px;"></div>
-        Peer Recovery Supporter of Record: ________________________&nbsp;&nbsp;Date: __________<br/>
-        <br/>
-        Supervisor Co-Signature: ________________________________&nbsp;&nbsp;Date: __________
-      </div>
-      <p style="font-size:11px;color:#999;margin-top:8px;line-height:1.5;">Signature block is automatically appended when using <strong>Copy Full Note</strong>. Sign in Pimsy per your agency workflow. Supervisor co-signature is required for Medicaid billing of PRS services.</p>
-    </div>
-
     <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()" disabled style="opacity:0.4;cursor:not-allowed;">Copy Full Note (All Sections)</button>
     <button class="reset-btn" onclick="resetForm()">Start New Note</button>
   </div>
@@ -861,20 +850,18 @@ function runQAChecks(descText, assessText, planText) {
   var summaryEl = document.getElementById('qaSummary');
   var attestCheckbox = document.getElementById('reviewAttestation');
   var gateMsg = document.getElementById('qaGateMessage');
+  attestCheckbox.disabled = false;
 
   if (failCount === 0) {
     summaryEl.style.background = '#f0faf2';
     summaryEl.style.color = '#2d5a2d';
-    summaryEl.textContent = '\u2705 All compliance checks passed. You may proceed to review and copy this note.';
-    attestCheckbox.disabled = false;
+    summaryEl.textContent = '\u2705 All compliance checks passed.';
     gateMsg.textContent = '';
   } else {
-    summaryEl.style.background = '#FDECEA';
-    summaryEl.style.color = '#8B1A1A';
-    summaryEl.textContent = '\u26a0\ufe0f ' + failCount + ' item' + (failCount > 1 ? 's' : '') + ' need attention before this note can be copied. Edit the note or form fields above, then click Generate again to re-check.';
-    attestCheckbox.disabled = true;
-    attestCheckbox.checked = false;
-    gateMsg.textContent = 'Resolve all compliance check items above before this note can be reviewed and copied.';
+    summaryEl.style.background = '#FFF8E6';
+    summaryEl.style.color = '#7A5200';
+    summaryEl.textContent = '\u26a0\ufe0f ' + failCount + ' item' + (failCount > 1 ? 's' : '') + ' flagged for review. This is advisory \u2014 use your judgment on whether the note needs editing before copying.';
+    gateMsg.textContent = '';
   }
   toggleCopyButtons();
 }
@@ -909,10 +896,7 @@ function copyAll() {
   var d = document.getElementById('dataOutput').innerText;
   var a = document.getElementById('assessmentOutput').innerText;
   var p = document.getElementById('planOutput').innerText;
-  var sig = '\n\n' + '─'.repeat(52) + '\n'
-    + 'Peer Recovery Supporter of Record: ________________________  Date: __________\n\n'
-    + 'Supervisor Co-Signature: ________________________________  Date: __________';
-  var full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT OF PROGRESS\n\n' + a + '\n\nPLANS TO FOLLOW UP\n\n' + p + sig;
+  var full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT OF PROGRESS\n\n' + a + '\n\nPLANS TO FOLLOW UP\n\n' + p;
   navigator.clipboard.writeText(full).then(function(){
     var btn = document.querySelector('.copy-all-btn');
     btn.textContent = 'Full Note Copied!';
