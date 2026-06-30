@@ -5,117 +5,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>DAP Progress Note — Thrive Peer Recovery Services</title>
 <style>
-/* ── RESET & BASE ── */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f7;color:#1a1a2e;min-height:100vh;font-size:14px;line-height:1.5;}
-
-/* ── HEADER ── */
-.header{background:#fff;border-bottom:3px solid #4B5EA6;padding:14px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,0.08);}
-.header img{height:48px;width:auto;}
-.header-text h1{font-size:17px;font-weight:700;color:#2d2d4e;letter-spacing:-0.2px;}
-.header-text p{font-size:11px;color:#888;margin-top:2px;letter-spacing:0.3px;text-transform:uppercase;}
-
-/* ── PHI BANNER ── */
-.phi-banner{background:#fffbea;border-left:4px solid #f0c040;padding:12px 32px;display:flex;align-items:center;gap:12px;}
-.phi-icon{font-size:18px;flex-shrink:0;}
-.phi-banner p{font-size:12px;color:#5a4000;line-height:1.5;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a1a2e;min-height:100vh;}
+.header{background:#fff;border-bottom:4px solid #4B5EA6;padding:16px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.header img{height:56px;width:auto;}
+.header-text h1{font-size:18px;font-weight:700;color:#4B5EA6;}
+.header-text p{font-size:12px;color:#888;margin-top:2px;}
+.phi-banner{background:#FFF3CD;border-left:5px solid #F5C518;padding:14px 32px;display:flex;align-items:center;gap:12px;}
+.phi-banner .phi-icon{font-size:20px;flex-shrink:0;}
+.phi-banner p{font-size:13px;color:#5a4200;line-height:1.5;}
 .phi-banner strong{color:#3a2800;}
-
-/* ── LAYOUT ── */
-.main{max-width:860px;margin:28px auto;padding:0 20px 60px;}
-
-/* ── SECTION CARDS ── */
-.section-card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04);margin-bottom:16px;overflow:hidden;}
-.section-header{background:#2d2d4e;padding:12px 20px;display:flex;align-items:center;gap:10px;}
-.section-header .step{background:#4B5EA6;color:#fff;font-size:10px;font-weight:800;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.section-header h2{font-size:13px;font-weight:700;color:#fff;letter-spacing:0.3px;text-transform:uppercase;}
-.section-body{padding:20px 24px;}
-
-/* ── FORM FIELDS ── */
-.field{margin-bottom:18px;}
+.main{max-width:860px;margin:32px auto;padding:0 20px 60px;}
+.section-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:20px;overflow:hidden;}
+.section-header{background:#4B5EA6;padding:14px 24px;display:flex;align-items:center;gap:10px;}
+.section-header .step{background:#fff;color:#4B5EA6;font-size:11px;font-weight:700;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.section-header h2{font-size:15px;font-weight:700;color:#fff;letter-spacing:0.3px;}
+.section-body{padding:24px;}
+.field{margin-bottom:20px;}
 .field:last-child{margin-bottom:0;}
-label.field-label{display:block;font-size:12px;font-weight:700;color:#2d2d4e;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;}
-.field-hint{font-size:11px;color:#999;margin-bottom:6px;line-height:1.4;}
-select,textarea,input[type=text],input[type=date],input[type=number]{width:100%;border:1.5px solid #dde0f0;border-radius:6px;padding:9px 12px;font-size:13px;color:#1a1a2e;font-family:inherit;background:#fafbff;transition:border-color 0.15s,box-shadow 0.15s;}
-select:focus,textarea:focus,input:focus{outline:none;border-color:#4B5EA6;box-shadow:0 0 0 3px rgba(75,94,166,0.1);}
-textarea{resize:vertical;min-height:76px;line-height:1.55;}
+label.field-label{display:block;font-size:13px;font-weight:600;color:#2d2d4e;margin-bottom:6px;}
+.field-hint{font-size:11px;color:#888;margin-bottom:6px;line-height:1.4;}
+select,textarea,input[type=text],input[type=date]{width:100%;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;color:#1a1a2e;font-family:inherit;background:#fafbff;transition:border-color 0.2s;}
+select:focus,textarea:focus,input[type=text]:focus,input[type=date]:focus{outline:none;border-color:#4B5EA6;background:#fff;}
+textarea{resize:vertical;min-height:90px;line-height:1.5;}
+select{cursor:pointer;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.chip{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #dde0f0;background:#f4f5f7;color:#555;user-select:none;transition:all 0.15s;}
+.chip:hover{border-color:#4B5EA6;color:#4B5EA6;}
+.chip.selected{background:#4B5EA6;border-color:#4B5EA6;color:#fff;}
+.toggle-row{display:flex;align-items:center;gap:16px;padding:14px 0;}
+.toggle-label{font-size:14px;font-weight:600;color:#2d2d4e;}
+.toggle-options{display:flex;border:1.5px solid #dde0f0;border-radius:8px;overflow:hidden;}
+.toggle-btn{padding:8px 24px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:#f4f5f7;color:#666;transition:all 0.15s;}
+.toggle-btn.active-yes{background:#E8F5EC;color:#1A7A3A;}
+.toggle-btn.active-no{background:#FDECEA;color:#8B1A1A;}
+.conditional-block{background:#fdf8ff;border:1.5px solid #e0d6f5;border-radius:8px;padding:18px;margin-top:12px;display:none;}
+.conditional-block.visible{display:block;}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 @media(max-width:600px){.two-col{grid-template-columns:1fr;}}
-.required-star{color:#E8417A;margin-left:2px;}
-
-/* ── CHIPS ── */
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
-.chip{padding:7px 14px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #dde0f0;background:#f4f5f7;color:#666;user-select:none;transition:all 0.12s;}
-.chip:hover{border-color:#4B5EA6;color:#4B5EA6;background:#eef0fb;}
-.chip.selected{background:#4B5EA6;border-color:#4B5EA6;color:#fff;box-shadow:0 1px 4px rgba(75,94,166,0.25);}
-
-/* ── ATTESTATION ── */
-.attestation-card{background:#EEF1FB;border:2px solid #4B5EA6;border-radius:10px;padding:18px 22px;margin-bottom:18px;}
-.attestation-card h3{font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:10px;}
-.attestation-row{display:flex;align-items:flex-start;gap:10px;}
-.attestation-row input[type=checkbox]{width:17px;height:17px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;}
-.attestation-row label{font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;}
-
-/* ── BUTTONS ── */
-.generate-btn{width:100%;padding:15px;background:#4B5EA6;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s;letter-spacing:0.2px;}
+.attestation-card{background:#EEF1FB;border:2px solid #4B5EA6;border-radius:12px;padding:20px 24px;margin-bottom:20px;}
+.attestation-card h3{font-size:14px;font-weight:700;color:#4B5EA6;margin-bottom:12px;}
+.attestation-row{display:flex;align-items:flex-start;gap:12px;}
+.attestation-row input[type=checkbox]{width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;}
+.attestation-row label{font-size:13px;color:#2d2d4e;line-height:1.5;cursor:pointer;}
+.generate-btn{width:100%;padding:16px;background:#4B5EA6;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.2s;letter-spacing:0.3px;}
 .generate-btn:hover:not(:disabled){background:#3a4d8f;}
-.generate-btn:disabled{background:#b8c0db;cursor:not-allowed;}
-.copy-all-btn{width:100%;padding:12px;background:#fff;color:#4B5EA6;border:2px solid #4B5EA6;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;margin-bottom:8px;}
-.copy-all-btn:hover{background:#4B5EA6;color:#fff;}
-.reset-btn{width:100%;padding:10px;background:transparent;color:#aaa;border:1.5px solid #e4e7f4;border-radius:8px;font-size:12px;cursor:pointer;transition:all 0.15s;}
-.reset-btn:hover{border-color:#4B5EA6;color:#4B5EA6;}
-
-/* ── LOADING & ERROR ── */
-.loading{display:none;text-align:center;padding:40px;}
-.loading.visible{display:block;}
-.spinner{width:36px;height:36px;border:3px solid #e4e7f4;border-top-color:#4B5EA6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.error-msg{background:#FDECEA;border:1.5px solid #f5c6c6;border-radius:7px;padding:12px 16px;color:#8B1A1A;font-size:12px;display:none;margin-top:10px;line-height:1.5;}
-.error-msg.visible{display:block;}
-
-/* ── OUTPUT SECTION ── */
-.output-section{display:none;margin-top:20px;}
+.generate-btn:disabled{background:#b0b8d8;cursor:not-allowed;}
+.output-section{display:none;margin-top:24px;}
 .output-section.visible{display:block;}
-.review-banner{margin-bottom:14px;padding:12px 16px;background:#fffbea;border:1.5px solid #f0c040;border-radius:7px;font-size:12px;color:#5a4000;line-height:1.5;}
-
-/* ── OUTPUT CARDS ── */
-.output-card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04);overflow:hidden;margin-bottom:12px;}
-.output-header{background:#2d2d4e;padding:11px 18px;display:flex;align-items:center;justify-content:space-between;}
-.output-header h3{font-size:11px;font-weight:800;color:#fff;letter-spacing:0.8px;text-transform:uppercase;}
-.output-body{padding:18px 20px;font-size:13px;line-height:1.8;color:#2d2d2d;white-space:pre-wrap;}
-
-/* ── COPY BUTTONS ── */
-.copy-btn{padding:5px 12px;border-radius:5px;border:1.5px solid rgba(255,255,255,0.4);background:transparent;font-size:11px;font-weight:700;cursor:pointer;color:#fff;transition:all 0.12s;letter-spacing:0.2px;}
-.copy-btn:hover{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.7);}
-
-/* ── PHI MODAL ── */
-.phi-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;}
-.phi-modal{background:#fff;border-radius:12px;padding:28px 32px;max-width:520px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.18);}
-.phi-modal h2{font-size:16px;font-weight:700;color:#2d2d4e;margin-bottom:12px;}
-.phi-modal p{font-size:13px;color:#555;line-height:1.6;margin-bottom:16px;}
-.phi-modal ul{font-size:12px;color:#E8417A;margin-left:20px;margin-bottom:16px;line-height:1.7;}
-.phi-modal-btns{display:flex;gap:10px;justify-content:flex-end;}
-
-/* ── TOGGLE YES/NO ── */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;flex-wrap:wrap;}
-.toggle-label{font-size:13px;color:#2d2d4e;font-weight:500;line-height:1.4;}
-.toggle-options{display:flex;gap:4px;flex-shrink:0;}
-.toggle-btn{padding:7px 20px;border-radius:6px;border:1.5px solid #dde0f0;background:#f4f5f7;color:#888;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.12s;font-family:inherit;}
-.toggle-btn:hover{border-color:#4B5EA6;color:#4B5EA6;}
-.toggle-btn.active-yes{background:#E8417A;border-color:#E8417A;color:#fff;}
-.toggle-btn.active-no{background:#4B5EA6;border-color:#4B5EA6;color:#fff;}
-
-/* ── CONDITIONAL BLOCK ── */
-.conditional-block{display:none;margin-top:14px;}
-.conditional-block.visible{display:block;}
-
-/* ── PHI MODAL ── */
-.phi-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;}
-.phi-modal{background:#fff;border-radius:12px;padding:28px 32px;max-width:520px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.18);}
-.phi-modal h2{font-size:16px;font-weight:700;color:#2d2d4e;margin-bottom:12px;}
-.phi-modal p{font-size:13px;color:#555;line-height:1.6;margin-bottom:16px;}
-.phi-modal ul{font-size:12px;color:#E8417A;margin-left:20px;margin-bottom:16px;line-height:1.7;}
-.phi-modal-btns{display:flex;gap:10px;justify-content:flex-end;}
+.output-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.07);overflow:hidden;margin-bottom:16px;}
+.output-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+.output-header-data{background:#E8F0FB;}
+.output-header-assessment{background:#EEF6EE;}
+.output-header-plan{background:#FFF8E6;}
+.output-header h3{font-size:14px;font-weight:700;}
+.output-header-data h3{color:#1a3a7a;}
+.output-header-assessment h3{color:#1A5A2A;}
+.output-header-plan h3{color:#7A5200;}
+.output-body{padding:20px;font-size:14px;line-height:1.7;color:#2d2d2d;white-space:pre-wrap;}
+.copy-btn{padding:6px 16px;border-radius:6px;border:1.5px solid currentColor;background:transparent;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.output-header-data .copy-btn{color:#1a3a7a;}
+.output-header-assessment .copy-btn{color:#1A5A2A;}
+.output-header-plan .copy-btn{color:#7A5200;}
+.copy-btn:hover{opacity:0.7;}
+.loading{display:none;text-align:center;padding:40px;color:#4B5EA6;}
+.loading.visible{display:block;}
+.spinner{width:40px;height:40px;border:4px solid #dde0f0;border-top-color:#4B5EA6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.error-msg{background:#FDECEA;border:1.5px solid #f5c6c6;border-radius:8px;padding:14px;color:#8B1A1A;font-size:13px;display:none;margin-top:12px;}
+.error-msg.visible{display:block;}
+.copy-all-btn{width:100%;padding:12px;background:#fff;color:#4B5EA6;border:2px solid #4B5EA6;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-bottom:8px;}
+.copy-all-btn:hover{background:#4B5EA6;color:#fff;}
+.reset-btn{width:100%;padding:10px;background:transparent;color:#888;border:1.5px solid #dde0f0;border-radius:10px;font-size:13px;cursor:pointer;transition:all 0.2s;}
+.reset-btn:hover{border-color:#4B5EA6;color:#4B5EA6;}
+.required-star{color:#E8417A;margin-left:2px;}
 </style>
 </head>
 <body>
@@ -485,41 +448,41 @@ textarea{resize:vertical;min-height:76px;line-height:1.55;}
       <div class="output-body" id="planOutput" contenteditable="true"></div>
     </div>
 
+    <div id="qaPanel" style="background:#fff;border:2px solid #4B5EA6;border-radius:12px;overflow:hidden;margin-bottom:16px;">
+      <div style="background:#4B5EA6;padding:14px 24px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:16px;">&#9989;</span>
+        <h2 style="font-size:15px;font-weight:700;color:#fff;">Compliance Quality Check</h2>
+      </div>
+      <div style="padding:18px 24px;">
+        <p style="font-size:12px;color:#666;margin-bottom:14px;line-height:1.5;">Automated check against Community Peer Support Notes compliance standards. Items marked &#9888; need attention before this note can be copied. If you edit the note text above, click Re-Check below.</p>
+        <div id="qaResults" style="display:flex;flex-direction:column;gap:6px;"></div>
+        <div id="qaSummary" style="margin-top:14px;padding:12px 14px;border-radius:8px;font-size:13px;font-weight:600;"></div>
+        <button onclick="rerunQAChecks()" style="margin-top:12px;width:100%;padding:10px;background:#fff;color:#4B5EA6;border:1.5px solid #4B5EA6;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">&#8635; Re-Check After Edits</button>
+      </div>
+    </div>
+
     <div style="background:#EEF1FB;border:2px solid #4B5EA6;border-radius:12px;padding:18px 24px;margin-bottom:16px;">
       <div style="display:flex;align-items:flex-start;gap:12px;">
-        <input type="checkbox" id="reviewAttestation" onchange="toggleCopyButtons()" style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;"/>
-        <label for="reviewAttestation" style="font-size:13px;color:#2d2d4e;line-height:1.6;cursor:pointer;">
+        <input type="checkbox" id="reviewAttestation" onchange="toggleCopyButtons()" disabled style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;"/>
+        <label for="reviewAttestation" id="reviewAttestationLabel" style="font-size:13px;color:#2d2d4e;line-height:1.6;cursor:pointer;">
           <strong>I confirm that I have reviewed this AI-generated note, verified that it accurately reflects the session as it occurred, and made any necessary corrections. I understand that as the Peer Recovery Supporter of record, I am responsible for the accuracy and completeness of this documentation regardless of how it was drafted.
         </label>
       </div>
+      <p id="qaGateMessage" style="font-size:12px;color:#E8417A;margin-top:8px;margin-left:30px;font-weight:600;"></p>
     </div>
 
-    <!-- NOTE QUALITY REVIEW PANEL -->
-    <div id="reviewPanel" style="display:none;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.04);margin-bottom:12px;">
-      <div style="background:#2d2d4e;padding:11px 18px;display:flex;align-items:center;justify-content:space-between;">
-        <h3 style="font-size:11px;font-weight:800;color:#fff;letter-spacing:0.8px;text-transform:uppercase;">&#9733; Note Quality Review</h3>
-        <button onclick="runNoteReview()" id="reviewBtn" style="padding:5px 14px;border-radius:5px;border:1.5px solid rgba(255,255,255,0.4);background:transparent;font-size:11px;font-weight:700;cursor:pointer;color:#fff;">Run Review</button>
+    <div style="background:#f4f5f7;border:1.5px solid #dde0f0;border-radius:12px;padding:18px 24px;margin-bottom:16px;">
+      <h3 style="font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:14px;display:flex;align-items:center;gap:8px;">&#9998; Signature Block — appears at bottom of copied note</h3>
+      <div style="background:#fff;border:1.5px solid #dde0f0;border-radius:8px;padding:14px 16px;font-size:13px;color:#555;line-height:2;font-family:monospace;">
+        <div style="border-bottom:1px solid #bbb;margin-bottom:10px;padding-bottom:6px;"></div>
+        Peer Recovery Supporter of Record: ________________________&nbsp;&nbsp;Date: __________<br/>
+        <br/>
+        Supervisor Co-Signature: ________________________________&nbsp;&nbsp;Date: __________
       </div>
-      <div style="padding:16px 20px;">
-        <p style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.5;">Before copying, run an automated quality check against CARF, ODBH, and peer support documentation standards. Fix any flagged issues then copy.</p>
-        <div id="reviewLoading" style="display:none;text-align:center;padding:20px;">
-          <div style="width:28px;height:28px;border:3px solid #e4e7f4;border-top-color:#4B5EA6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px;"></div>
-          <p style="font-size:12px;color:#888;">Reviewing note...</p>
-        </div>
-        <div id="reviewResults" style="display:none;">
-          <div id="reviewScoreBar" style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px 16px;border-radius:8px;background:#f7f8fc;border:1.5px solid #dde0f0;">
-            <div id="reviewScoreCircle" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;"></div>
-            <div>
-              <div id="reviewScoreLabel" style="font-size:14px;font-weight:700;color:#2d2d4e;margin-bottom:2px;"></div>
-              <div id="reviewScoreSub" style="font-size:12px;color:#888;"></div>
-            </div>
-          </div>
-          <div id="reviewItems" style="display:flex;flex-direction:column;gap:8px;"></div>
-        </div>
-      </div>
+      <p style="font-size:11px;color:#999;margin-top:8px;line-height:1.5;">Signature block is automatically appended when using <strong>Copy Full Note</strong>. Sign in Pimsy per your agency workflow. Supervisor co-signature is required for Medicaid billing of PRS services.</p>
     </div>
 
-        <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()" disabled style="opacity:0.4;cursor:not-allowed;">Copy Full Note (All Sections)</button>
+    <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()" disabled style="opacity:0.4;cursor:not-allowed;">Copy Full Note (All Sections)</button>
     <button class="reset-btn" onclick="resetForm()">Start New Note</button>
   </div>
 
@@ -774,13 +737,6 @@ function loadKickback() {
   document.getElementById('assessmentOutput').innerText = assessment;
   document.getElementById('planOutput').innerText = plan;
 
-  // Show review panel and reset it
-  var rp = document.getElementById('reviewPanel');
-  if (rp) { rp.style.display = 'block'; }
-  document.getElementById('reviewResults').style.display = 'none';
-  document.getElementById('reviewLoading').style.display = 'none';
-  document.getElementById('reviewBtn').textContent = 'Run Review';
-
   // Reset review attestation — staff must re-attest after edits
   var reviewAttest = document.getElementById('reviewAttestation');
   if (reviewAttest) {
@@ -810,6 +766,126 @@ function loadKickback() {
 }
 
 
+function runQAChecks(descText, assessText, planText) {
+  var fullNoteText = (descText + ' ' + assessText + ' ' + planText).toLowerCase();
+  var results = [];
+
+  function check(label, passed) {
+    results.push({label: label, passed: passed});
+  }
+
+  // 1. Date of service present
+  check('Date of service is documented', !!document.getElementById('sessionDate').value);
+
+  // 2. Client ID / full identifying info documented
+  check('Client ID is documented', !!document.getElementById('clientId').value.trim());
+
+  // 3. Correct mode of service selected (In-Person or Telehealth)
+  var sessionType = document.getElementById('sessionType').value;
+  check('Mode of service is selected (In-Person or Telehealth)', !!sessionType);
+
+  // 4. Session location documented
+  var locationOk = false;
+  if (sessionType === 'In-Person') {
+    locationOk = !!document.getElementById('location').value;
+  } else if (sessionType === 'Telehealth') {
+    var modality = document.querySelector('input[name="telehealthModality"]:checked');
+    locationOk = !!modality;
+  }
+  check('Session location/modality is documented', locationOk);
+
+  // 5. Session length within 8 minutes - 4 hours (using sessionLength select as proxy)
+  var sessionLength = document.getElementById('sessionLength').value;
+  check('Session duration is documented and billable', !!sessionLength);
+
+  // 6. At least one goal addressed
+  var goalsAddressed = document.getElementById('goalsAddressed').value.trim();
+  check('At least one treatment plan goal is addressed', !!goalsAddressed);
+
+  // 7. Description of session properly documented (not empty, reasonable length)
+  check('Description of Session is documented', descText && descText.trim().length > 40);
+
+  // 8. Assessment of Progress documented
+  check('Assessment of Progress is documented', assessText && assessText.trim().length > 40);
+
+  // 9. Plan for follow-up documented
+  check('Plan for Follow-Up is documented', planText && planText.trim().length > 20);
+
+  // 10. Recovery/Resilience/Wellness language present in Assessment
+  var recoveryTerms = ['recovery', 'resilien', 'wellness', 'strength', 'progress', 'engagement'];
+  var hasRecoveryLanguage = recoveryTerms.some(function(t){ return assessText.toLowerCase().indexOf(t) > -1; });
+  check('Assessment reflects Recovery, Resilience, or Wellness', hasRecoveryLanguage);
+
+  // 11. Note avoids clinical language / uses peer support terminology
+  var clinicalTerms = ['clinician', 'clinical', 'diagnosis', 'symptom management', 'therapeutic', 'treatment modality', 'intervention', 'this writer', 'the patient', 'the client'];
+  var foundClinicalTerm = clinicalTerms.find(function(t){ return fullNoteText.indexOf(t) > -1; });
+  check('Note avoids clinical language and uses peer support terminology', !foundClinicalTerm);
+
+  // 12. Note is individualized, not generic/templated
+  var genericPhrases = ['support was provided', 'services were rendered', 'session was productive', 'peer was cooperative', 'peer was compliant', 'no issues reported', 'session was uneventful'];
+  var foundGeneric = genericPhrases.find(function(p){ return fullNoteText.indexOf(p) > -1; });
+  check('Note is individualized to the Peer, not generic', !foundGeneric);
+
+  // 13. Not copy/pasted from previous session for this client
+  var clientId = document.getElementById('clientId').value.trim();
+  var storageKey = 'thrive_dap_last_note_' + clientId;
+  var prevNote = '';
+  try { prevNote = localStorage.getItem(storageKey) || ''; } catch(e) {}
+  var isDuplicate = prevNote && prevNote === fullNoteText;
+  check('Description, Assessment, and Plan are not copy/pasted from a previous session', !isDuplicate);
+  try { if (clientId) localStorage.setItem(storageKey, fullNoteText); } catch(e) {}
+
+  // 14. Next appointment / plan for follow-up reflected
+  var nextAppt = document.getElementById('nextApptTimeframe').value;
+  check('Plan includes anticipated focus or next appointment', !!nextAppt || (planText && planText.trim().length > 20));
+
+  // 15. If safety concern flagged, provider response documented
+  if (concernActive === true) {
+    var providerResponse = document.getElementById('providerResponse').value.trim();
+    check('Safety concern includes documented provider response', !!providerResponse);
+  }
+
+  // Render results
+  var resultsEl = document.getElementById('qaResults');
+  resultsEl.innerHTML = '';
+  var failCount = 0;
+  results.forEach(function(r) {
+    if (!r.passed) failCount++;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:' + (r.passed ? '#f0faf2' : '#FDECEA') + ';';
+    row.innerHTML = '<span style="font-size:14px;flex-shrink:0;">' + (r.passed ? '\u2705' : '\u26a0\ufe0f') + '</span>'
+      + '<span style="font-size:13px;color:' + (r.passed ? '#2d5a2d' : '#8B1A1A') + ';">' + r.label + '</span>';
+    resultsEl.appendChild(row);
+  });
+
+  var summaryEl = document.getElementById('qaSummary');
+  var attestCheckbox = document.getElementById('reviewAttestation');
+  var gateMsg = document.getElementById('qaGateMessage');
+
+  if (failCount === 0) {
+    summaryEl.style.background = '#f0faf2';
+    summaryEl.style.color = '#2d5a2d';
+    summaryEl.textContent = '\u2705 All compliance checks passed. You may proceed to review and copy this note.';
+    attestCheckbox.disabled = false;
+    gateMsg.textContent = '';
+  } else {
+    summaryEl.style.background = '#FDECEA';
+    summaryEl.style.color = '#8B1A1A';
+    summaryEl.textContent = '\u26a0\ufe0f ' + failCount + ' item' + (failCount > 1 ? 's' : '') + ' need attention before this note can be copied. Edit the note or form fields above, then click Generate again to re-check.';
+    attestCheckbox.disabled = true;
+    attestCheckbox.checked = false;
+    gateMsg.textContent = 'Resolve all compliance check items above before this note can be reviewed and copied.';
+  }
+  toggleCopyButtons();
+}
+
+function rerunQAChecks() {
+  var descText = document.getElementById('dataOutput').innerText;
+  var assessText = document.getElementById('assessmentOutput').innerText;
+  var planText = document.getElementById('planOutput').innerText;
+  runQAChecks(descText, assessText, planText);
+}
+
 function toggleCopyButtons() {
   var checked = document.getElementById('reviewAttestation').checked;
   var btns = ['copyDataBtn', 'copyAssessBtn', 'copyPlanBtn', 'copyAllBtn'];
@@ -833,93 +909,14 @@ function copyAll() {
   var d = document.getElementById('dataOutput').innerText;
   var a = document.getElementById('assessmentOutput').innerText;
   var p = document.getElementById('planOutput').innerText;
-  var full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT OF PROGRESS\n\n' + a + '\n\nPLANS TO FOLLOW UP\n\n' + p;
+  var sig = '\n\n' + '─'.repeat(52) + '\n'
+    + 'Peer Recovery Supporter of Record: ________________________  Date: __________\n\n'
+    + 'Supervisor Co-Signature: ________________________________  Date: __________';
+  var full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT OF PROGRESS\n\n' + a + '\n\nPLANS TO FOLLOW UP\n\n' + p + sig;
   navigator.clipboard.writeText(full).then(function(){
     var btn = document.querySelector('.copy-all-btn');
     btn.textContent = 'Full Note Copied!';
     setTimeout(function(){ btn.textContent = 'Copy Full Note (All Sections)'; }, 2500);
-  });
-}
-
-function runNoteReview() {
-  var d = document.getElementById('dataOutput') ? document.getElementById('dataOutput').innerText.trim() : '';
-  var a = document.getElementById('assessmentOutput') ? document.getElementById('assessmentOutput').innerText.trim() : '';
-  var p = document.getElementById('planOutput') ? document.getElementById('planOutput').innerText.trim() : '';
-
-  if (!d && !a && !p) { alert('Generate a note first before running the review.'); return; }
-
-  var fullNote = 'DESCRIPTION:\n' + d + '\n\nASSESSMENT OF PROGRESS:\n' + a + '\n\nPLANS TO FOLLOW UP:\n' + p;
-
-  document.getElementById('reviewLoading').style.display = 'block';
-  document.getElementById('reviewResults').style.display = 'none';
-  document.getElementById('reviewBtn').textContent = 'Reviewing...';
-  document.getElementById('reviewBtn').disabled = true;
-
-  var reviewSystemPrompt = 'You are a clinical documentation quality reviewer for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency. Review DAP progress notes written by Peer Recovery Supporters (PRS) against the following rubric. Return ONLY valid JSON, no markdown, no preamble.\n\nRUBRIC — score each item as pass, warn, or fail:\n\n1. data_objective: DESCRIPTION section uses objective, behavioral, observable language. No interpretations, diagnoses, or clinical judgments. No prohibited phrases like "client appears to," "this writer," "the worker," "seemed." Uses "the individual" or "Peer."\n2. data_specific: DESCRIPTION contains specific observable details about how Peer presented, what was discussed, and what occurred — not vague summaries like "session went well."\n3. assessment_connection: ASSESSMENT connects Peer\'s presentation to their recovery goals and treatment plan. Does not just restate Description.\n4. assessment_progress: ASSESSMENT speaks to Peer\'s progress, barriers, strengths, or stage of change in a meaningful clinical way.\n5. plan_actionable: PLANS TO FOLLOW UP includes specific, actionable next steps — not just "continue to provide peer support."\n6. plan_timeline: PLANS include at least one time-bound or milestone-based next step.\n7. no_phi: Note contains no proper names, dates of birth, addresses, SSNs, or other PHI. Client referenced by ID or "the individual" or "Peer" only.\n8. no_prohibited_language: Note avoids prohibited phrases: "this writer," "the worker," "noncompliant," "refused," "manipulative," "client" (instead of Peer/individual), "resistant."\n9. peer_scope: Interventions described are within PRS scope — lived experience sharing, skill-building, resource linkage, advocacy, accompaniment. No clinical treatment, diagnosis, or therapy language.\n10. length_appropriate: Note is substantive enough to justify the session — not a one-liner, not padded filler.\n\nReturn this exact JSON structure:\n{\n  "score": <integer 0-100>,\n  "grade": "<Excellent|Good|Needs Revision|Incomplete>",\n  "summary": "<1-2 sentence overall assessment>",\n  "items": [\n    {"id": "data_objective", "label": "Objective Language (Description)", "status": "<pass|warn|fail>", "note": "<specific feedback or empty string if pass>"},\n    {"id": "data_specific", "label": "Specificity of Description", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "assessment_connection", "label": "Assessment Connects to Goals", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "assessment_progress", "label": "Assessment Addresses Progress", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "plan_actionable", "label": "Plan is Actionable", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "plan_timeline", "label": "Plan Includes Timeline/Milestones", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "no_phi", "label": "No PHI Present", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "no_prohibited_language", "label": "No Prohibited Language", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "peer_scope", "label": "Within PRS Scope of Practice", "status": "<pass|warn|fail>", "note": ""},\n    {"id": "length_appropriate", "label": "Appropriate Length & Substance", "status": "<pass|warn|fail>", "note": ""}\n  ]\n}';
-
-  fetch('/functions/claude', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      system: reviewSystemPrompt,
-      messages: [{role: 'user', content: 'Review this DAP progress note:\n\n' + fullNote}]
-    })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    document.getElementById('reviewLoading').style.display = 'none';
-    document.getElementById('reviewBtn').textContent = 'Re-run Review';
-    document.getElementById('reviewBtn').disabled = false;
-
-    var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
-    // Strip any markdown fences
-    text = text.replace(/```json|```/g, '').trim();
-
-    var result;
-    try { result = JSON.parse(text); } catch(e) {
-      document.getElementById('reviewResults').style.display = 'block';
-      document.getElementById('reviewItems').innerHTML = '<p style="color:#E8417A;font-size:12px;">Could not parse review results. Try again.</p>';
-      return;
-    }
-
-    // Score circle color
-    var score = result.score || 0;
-    var circleColor = score >= 85 ? '#1A7A3A' : score >= 65 ? '#7A5200' : '#8B1A1A';
-    var circleBg = score >= 85 ? '#E8F5EC' : score >= 65 ? '#FFF8E6' : '#FDECEA';
-
-    document.getElementById('reviewScoreCircle').style.background = circleBg;
-    document.getElementById('reviewScoreCircle').style.color = circleColor;
-    document.getElementById('reviewScoreCircle').textContent = score;
-    document.getElementById('reviewScoreLabel').textContent = result.grade || '';
-    document.getElementById('reviewScoreSub').textContent = result.summary || '';
-
-    // Render items
-    var html = '';
-    var statusIcon = {pass: '✅', warn: '⚠️', fail: '❌'};
-    var statusColor = {pass: '#1A7A3A', warn: '#7A5200', fail: '#8B1A1A'};
-    var statusBg = {pass: '#E8F5EC', warn: '#FFF8E6', fail: '#FDECEA'};
-    var statusBorder = {pass: '#b8e0c4', warn: '#f0c040', fail: '#f5c6c6'};
-
-    (result.items || []).forEach(function(item) {
-      var st = item.status || 'warn';
-      html += '<div style="background:' + statusBg[st] + ';border:1px solid ' + statusBorder[st] + ';border-radius:7px;padding:10px 14px;">'
-        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:' + (item.note ? '6px' : '0') + ';">'
-        + '<span style="font-size:14px;">' + (statusIcon[st]||'⚠️') + '</span>'
-        + '<span style="font-size:12px;font-weight:700;color:' + statusColor[st] + ';">' + item.label + '</span>'
-        + '</div>'
-        + (item.note ? '<p style="font-size:12px;color:#555;margin:0;line-height:1.5;padding-left:22px;">' + item.note + '</p>' : '')
-        + '</div>';
-    });
-
-    document.getElementById('reviewItems').innerHTML = html;
-    document.getElementById('reviewResults').style.display = 'block';
-  })
-  .catch(function(err){
-    document.getElementById('reviewLoading').style.display = 'none';
-    document.getElementById('reviewBtn').textContent = 'Re-run Review';
-    document.getElementById('reviewBtn').disabled = false;
-    document.getElementById('reviewResults').style.display = 'block';
-    document.getElementById('reviewItems').innerHTML = '<p style="color:#E8417A;font-size:12px;">Review failed: ' + err.message + '</p>';
   });
 }
 
@@ -932,8 +929,12 @@ function resetForm() {
   handleModalityChange();  document.getElementById('phiAttestation').checked = false;
   if(document.getElementById('reviewAttestation')) {
     document.getElementById('reviewAttestation').checked = false;
+    document.getElementById('reviewAttestation').disabled = true;
     toggleCopyButtons();
   }
+  if(document.getElementById('qaResults')) document.getElementById('qaResults').innerHTML = '';
+  if(document.getElementById('qaSummary')) { document.getElementById('qaSummary').textContent = ''; document.getElementById('qaSummary').style.background = 'transparent'; }
+  if(document.getElementById('qaGateMessage')) document.getElementById('qaGateMessage').textContent = '';
   document.getElementById('kickbackSection').style.display = 'none';
   var kb = document.getElementById('kickbackBanner');
   if (kb) kb.remove();
@@ -1049,7 +1050,7 @@ async function runGenerateNote() {
   var userContent = 'Generate a DAP progress note using the following session data:\n\n'
     + 'PROGRAM: ' + program + '\n'
     + 'SESSION TYPE: ' + sessionType + locationLine + '\n'
-    + 'SESSION LENGTH (use only to calibrate note depth and detail — do NOT mention the session length in the note output): ' + sessionLength + '\n\n'
+    + 'SESSION LENGTH: ' + sessionLength + '\n\n'
     + 'TREATMENT PLAN GOALS ADDRESSED THIS SESSION:\n' + goals + '\n\n'
     + 'HOW PEER PRESENTED:\n'
     + (chips.length > 0 ? 'Observed descriptors: ' + chips.join(', ') + '\n' : '')
@@ -1071,7 +1072,7 @@ async function runGenerateNote() {
   document.getElementById('generateBtn').disabled = true;
 
   try {
-    var response = await fetch('/functions/claude', {
+    var response = await fetch('/api/claude', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({system: systemPrompt, messages: [{role: 'user', content: userContent}]})
@@ -1105,6 +1106,8 @@ async function runGenerateNote() {
     document.getElementById('dataOutput').innerText = descText || fullText;
     document.getElementById('assessmentOutput').innerText = assessText;
     document.getElementById('planOutput').innerText = planText;
+
+    runQAChecks(descText, assessText, planText);
 
     document.getElementById('loadingBlock').className = 'loading';
     document.getElementById('outputSection').className = 'output-section visible';
