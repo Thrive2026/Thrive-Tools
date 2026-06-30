@@ -319,16 +319,16 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
   <div class="output-section" id="outputSection">
     <div class="review-banner"><strong>Review before using.</strong> Confirm the AI output accurately reflects this client's individualized plan. Edit directly in the boxes below before copying to Pimsy.</div>
     <div class="output-card">
-      <div class="output-header"><h3>PLAN SUMMARY</h3><button class="copy-btn" onclick="copyEl('planSummaryOutput',this)">Copy</button></div>
+      <div class="output-header"><h3>PLAN SUMMARY</h3></div>
       <div class="output-body" id="planSummaryOutput" contenteditable="true"></div>
     </div>
     <div id="needBlocksOutput"></div>
     <div class="output-card">
-      <div class="output-header"><h3>INDIVIDUAL GOAL STATEMENT</h3><button class="copy-btn" onclick="copyEl('clientGoalOutput',this)">Copy</button></div>
+      <div class="output-header"><h3>INDIVIDUAL GOAL STATEMENT</h3></div>
       <div class="output-body" id="clientGoalOutput" contenteditable="true"></div>
     </div>
     <div class="output-card">
-      <div class="output-header"><h3>SLI 2.0 SUMMARY &amp; CLINICAL JUSTIFICATION</h3><button class="copy-btn" onclick="copyEl('justificationOutput',this)">Copy</button></div>
+      <div class="output-header"><h3>SLI 2.0 SUMMARY &amp; CLINICAL JUSTIFICATION</h3></div>
       <div class="output-body" id="justificationOutput" contenteditable="true"></div>
     </div>
     <!-- CARF/ODBH COMPLIANCE QUALITY CHECK -->
@@ -1140,20 +1140,18 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
   var summaryEl = document.getElementById('tpQaSummary');
   var attestCheckbox = document.getElementById('clinicianAttestation');
   var gateMsg = document.getElementById('tpQaGateMessage');
+  attestCheckbox.disabled = false;
 
   if (failCount === 0) {
     summaryEl.style.background = '#f0faf2';
     summaryEl.style.color = '#2d5a2d';
-    summaryEl.textContent = '\u2705 All compliance checks passed. You may proceed to review and copy this plan.';
-    attestCheckbox.disabled = false;
+    summaryEl.textContent = '\u2705 All compliance checks passed.';
     gateMsg.textContent = '';
   } else {
-    summaryEl.style.background = '#FDECEA';
-    summaryEl.style.color = '#8B1A1A';
-    summaryEl.textContent = '\u26a0\ufe0f ' + failCount + ' item' + (failCount > 1 ? 's' : '') + ' need attention before this plan can be copied. Edit the plan or form fields above, then click Re-Check.';
-    attestCheckbox.disabled = true;
-    attestCheckbox.checked = false;
-    gateMsg.textContent = 'Resolve all compliance check items above before this plan can be reviewed and copied.';
+    summaryEl.style.background = '#FFF8E6';
+    summaryEl.style.color = '#7A5200';
+    summaryEl.textContent = '\u26a0\ufe0f ' + failCount + ' item' + (failCount > 1 ? 's' : '') + ' flagged for review. This is advisory \u2014 use your judgment on whether the plan needs editing before copying.';
+    gateMsg.textContent = '';
   }
   updateSignOff();
 }
@@ -1204,24 +1202,23 @@ function getSignOffBlock() {
   if(document.getElementById('partPRS').checked) participants.push('Peer Recovery Supporter');
   if(document.getElementById('partGuardian').checked) participants.push('Guardian / Family');
   var today = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
-  var thin = '─'.repeat(60);
+  var thin = '-'.repeat(64);
   var b = [];
-  b.push(thin);
-  b.push('CONSENT & PARTICIPATION DOCUMENTATION');
   b.push('Completed: ' + today);
   b.push('');
   b.push('  Client participated in development/review of plan and');
-  b.push('  approved all goals and objectives:                     ' + (participation ? participation.value : '—'));
+  b.push('  approved all goals and objectives:                     ' + (participation ? participation.value : '\u2014'));
   b.push('');
-  b.push('  Client provided verbal consent for implementation:     ' + (clientConsent ? clientConsent.value : '—'));
+  b.push('  Client provided verbal consent for implementation:     ' + (clientConsent ? clientConsent.value : '\u2014'));
   b.push('');
   b.push('  Guardian provided verbal consent for implementation:   ' + (guardianConsent ? guardianConsent.value : 'N/A'));
   b.push('');
   b.push('  Who participated in plan development:');
-  b.push('  ' + (participants.length ? participants.join(', ') : '—'));
+  b.push('  ' + (participants.length ? participants.join(', ') : '\u2014'));
   if(remarks){ b.push(''); b.push('  Remarks: ' + remarks); }
   b.push('');
   b.push(thin);
+  b.push('');
   b.push('ELECTRONIC AUTHORIZATION & SIGNATURES');
   b.push('');
   b.push('  This plan was reviewed and authorized through Thrive Peer');
@@ -1232,107 +1229,123 @@ function getSignOffBlock() {
   b.push('  This electronic record is the authoritative signed document');
   b.push('  and is compliant with CARF, ODBH, and Ohio Medicaid standards.');
   b.push('');
-  b.push('  ► NEXT STEPS IN PIMSY:');
+  b.push('  NEXT STEPS IN PIMSY:');
   b.push('  1. Paste this plan into the designated note type in Pimsy');
   b.push('  2. Complete the Treatment Plan Signatures Q&A (client');
   b.push('     participation, verbal consent, guardian consent)');
-  b.push('  3. Release note for supervisor review — dual sign-off');
+  b.push('  3. Release note for supervisor review \u2014 dual sign-off');
   b.push('     required per OhioMHAS for non-independently licensed staff');
-  b.push('');
-  b.push(thin);
   return b.join('\n');
 }
 
+
 function copyFullPlan(){
-  var div = '═'.repeat(60);
-  var thin = '─'.repeat(60);
+  var thick = '='.repeat(64);
+  var thin = '-'.repeat(64);
   var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
-  // Pull form values for header
   var clientId = document.getElementById('clientId').value.trim() || '______';
   var program = document.getElementById('program').value || '______';
   var startDate = document.getElementById('planStartDate').value || '______';
   var endDate = document.getElementById('planEndDate').value || '______';
   var freq = document.getElementById('frequency').value || '______';
 
-  // Format dates nicely
   function fmtDate(d){ if(!d||d==='______') return d; var p=d.split('-'); return p[1]+'/'+p[2]+'/'+p[0]; }
+
+  function padLabel(label, width){
+    while(label.length < width) label += ' ';
+    return label;
+  }
 
   var lines = [];
 
-  // ── HEADER ──
-  lines.push(div);
+  // HEADER
+  lines.push(thick);
   lines.push('THRIVE PEER RECOVERY SERVICES');
   lines.push('INDIVIDUAL SERVICE PLAN (TREATMENT PLAN)');
-  lines.push(div);
-  lines.push('Client ID:        ' + clientId);
-  lines.push('Program:          ' + program);
-  lines.push('Plan Start Date:  ' + fmtDate(startDate));
-  lines.push('Plan End Date:    ' + fmtDate(endDate));
-  lines.push('Service Frequency: ' + freq);
-  lines.push('Date Generated:   ' + today);
-  lines.push(div);
+  lines.push(thick);
+  lines.push(padLabel('Client ID:', 20) + clientId);
+  lines.push(padLabel('Program:', 20) + program);
+  lines.push(padLabel('Plan Period:', 20) + fmtDate(startDate) + '  to  ' + fmtDate(endDate));
+  lines.push(padLabel('Frequency:', 20) + freq);
+  lines.push(padLabel('Date Generated:', 20) + today);
+  lines.push(thick);
+  lines.push('');
 
-  // ── INDIVIDUAL GOAL STATEMENT (person-centered planning — CARF requires person's voice first) ──
+  // SECTION 1 — INDIVIDUAL GOAL STATEMENT
   var goal = document.getElementById('clientGoalOutput').innerText.trim();
   if(goal){
-    lines.push('');
-    lines.push('SECTION 1: INDIVIDUAL GOAL STATEMENT');
+    lines.push('SECTION 1 \u2014 INDIVIDUAL GOAL STATEMENT');
     lines.push(thin);
-    lines.push('(The individual\'s own recovery goal, in their own words, as the foundation of this plan)');
+    lines.push('In the individual\'s own words, as the foundation of this plan:');
     lines.push('');
     lines.push(goal);
+    lines.push('');
+    lines.push('');
   }
 
-  // ── PLAN SUMMARY ──
+  // SECTION 2 — PLAN SUMMARY
   var summary = document.getElementById('planSummaryOutput').innerText.trim();
   if(summary){
-    lines.push('');
-    lines.push('');
-    lines.push('SECTION 2: PLAN SUMMARY & CLINICAL OVERVIEW');
+    lines.push('SECTION 2 \u2014 PLAN SUMMARY & CLINICAL OVERVIEW');
     lines.push(thin);
     lines.push(summary);
+    lines.push('');
+    lines.push('');
   }
 
-  // ── NEED AREAS ──
+  // SECTION 3 — NEED AREAS
   var needCards = document.querySelectorAll('#needBlocksOutput .output-card');
   if(needCards.length > 0){
-    lines.push('');
-    lines.push('');
-    lines.push('SECTION 3: PRESENTING NEEDS, GOALS, OBJECTIVES & INTERVENTIONS');
+    lines.push('SECTION 3 \u2014 PRESENTING NEEDS, GOALS, OBJECTIVES & INTERVENTIONS');
     lines.push(thin);
+    lines.push('');
     needCards.forEach(function(card, idx){
       var header = card.querySelector('h3') ? card.querySelector('h3').innerText : 'NEED AREA';
       var divs = card.querySelectorAll('[contenteditable="true"]');
       var goalTxt = divs[0] ? divs[0].innerText.trim() : '';
       var objTxt  = divs[1] ? divs[1].innerText.trim() : '';
       var intTxt  = divs[2] ? divs[2].innerText.trim() : '';
-      if(idx > 0) lines.push('');
-      lines.push('Need Area ' + (idx+1) + ': ' + header);
+
+      lines.push('[' + (idx+1) + '] ' + header);
       lines.push('');
-      if(goalTxt){ lines.push('  GOAL:'); lines.push('  ' + goalTxt); lines.push(''); }
-      if(objTxt){ lines.push('  OBJECTIVES:'); lines.push('  ' + objTxt); lines.push(''); }
-      if(intTxt){ lines.push('  INTERVENTIONS:'); lines.push('  ' + intTxt); }
-      if(idx < needCards.length - 1) lines.push('···');
+      if(goalTxt){
+        lines.push('    GOAL');
+        lines.push('    ' + goalTxt.split('\n').join('\n    '));
+        lines.push('');
+      }
+      if(objTxt){
+        lines.push('    OBJECTIVES');
+        lines.push('    ' + objTxt.split('\n').join('\n    '));
+        lines.push('');
+      }
+      if(intTxt){
+        lines.push('    INTERVENTIONS');
+        lines.push('    ' + intTxt.split('\n').join('\n    '));
+        lines.push('');
+      }
+      if(idx < needCards.length - 1){
+        lines.push(thin);
+        lines.push('');
+      }
     });
+    lines.push('');
   }
 
-  // ── SLI JUSTIFICATION ──
+  // SECTION 4 — SLI JUSTIFICATION
   var just = document.getElementById('justificationOutput').innerText.trim();
   if(just){
-    lines.push('');
-    lines.push('');
-    lines.push('SECTION 4: SLI 2.0 SCORING & CLINICAL JUSTIFICATION FOR SERVICE LEVEL');
+    lines.push('SECTION 4 \u2014 SLI 2.0 SCORING & CLINICAL JUSTIFICATION');
     lines.push(thin);
-    lines.push('(Establishes medical necessity and supports authorized service intensity)');
+    lines.push('Establishes medical necessity and supports the authorized service level.');
     lines.push('');
     lines.push(just);
+    lines.push('');
+    lines.push('');
   }
 
-  // ── CONSENT & SIGN-OFF ──
-  lines.push('');
-  lines.push('');
-  lines.push('SECTION 5: CONSENT, PARTICIPATION & SIGNATURES');
+  // SECTION 5 — CONSENT & SIGN-OFF
+  lines.push('SECTION 5 \u2014 CONSENT, PARTICIPATION & SIGNATURES');
   lines.push(thin);
   lines.push(getSignOffBlock());
 
@@ -1526,8 +1539,7 @@ async function runGeneratePlan(){
 
       var card=document.createElement('div');
       card.className='output-card';
-      card.innerHTML='<div class="output-header"><h3>'+need.toUpperCase()+(subNeed?' — '+subNeed.toUpperCase():'')+'</h3>'
-        +'<button class="copy-btn" onclick="copyNeedBlock(this)">Copy</button></div>'
+      card.innerHTML='<div class="output-header"><h3>'+need.toUpperCase()+(subNeed?' — '+subNeed.toUpperCase():'')+'</h3></div>'
         +'<div class="output-body">'
         +'<div class="need-section-label">Goal</div>'
         +'<div contenteditable="true" style="font-size:14px;color:#2d2d2d;line-height:1.7;margin-bottom:12px;">'
