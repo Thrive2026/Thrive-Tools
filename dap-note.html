@@ -1072,7 +1072,7 @@ async function runGenerateNote() {
   document.getElementById('generateBtn').disabled = true;
 
   try {
-    var response = await fetch('/api/claude', {
+    var response = await fetch('/functions/claude', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({system: systemPrompt, messages: [{role: 'user', content: userContent}]})
