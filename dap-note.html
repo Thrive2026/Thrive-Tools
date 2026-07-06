@@ -119,12 +119,16 @@ select{cursor:pointer;}
             <option value="Courts and Dockets / Jail">Courts &amp; Dockets / Jail</option>
           </select>
         </div>
-        <div class="field" id="linkageCodeField" style="display:none;">
+      </div>
+      <div class="two-col" id="linkageCodeField" style="display:none;">
+        <div class="field">
           <label class="field-label">Linkage Note Type <span class="required-star">*</span></label>
           <div class="field-hint">Select the U-code or referral type this contact documents. This changes the question set below.</div>
           <select id="linkageCode" onchange="handleLinkageCode()">
             <option value="">Select linkage note type...</option>
             <option value="standard">Standard Peer Support Contact (DAP Note)</option>
+            <option value="U1">U1 &ndash; Initial Connection</option>
+            <option value="U2">U2 &ndash; Initial Engagement</option>
             <option value="U3">U3 &ndash; Successful Initiation (Post-Hospitalization)</option>
             <option value="U4">U4 &ndash; Unsuccessful Outreach Attempt(s)</option>
             <option value="U5">U5 &ndash; Successful 7-Day Follow-Up</option>
@@ -217,6 +221,24 @@ select{cursor:pointer;}
   <div class="section-card" id="linkageDetailsCard" style="display:none;">
     <div class="section-header"><div class="step">L</div><h2 id="linkageCardTitle">Linkage Note Details</h2></div>
     <div class="section-body">
+
+      <div id="u1Block" style="display:none;">
+        <div class="field-hint" style="margin-bottom:12px;">Per agency workflow, U1 (initial connection) is documented on the U1 Jotform, not through this tool. Use the U1 Jotform to submit this contact. You may still generate a brief narrative below to paste into the legacy note if needed.</div>
+        <div class="field">
+          <label class="field-label">Brief Description of Initial Connection <span class="required-star">*</span></label>
+          <div class="field-hint">How and when the member was initially connected (e.g. referral source, method of contact).</div>
+          <textarea id="u1Details" placeholder="e.g. Initially connected with member via referral from Hospital ABC discharge planning" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div id="u2Block" style="display:none;">
+        <div class="field-hint" style="margin-bottom:12px;">Per agency workflow, U2 (initial engagement) is documented on the U2 Jotform, not through this tool. Use the U2 Jotform to submit this contact. You may still generate a brief narrative below to paste into the legacy note if needed.</div>
+        <div class="field">
+          <label class="field-label">Brief Description of Initial Engagement <span class="required-star">*</span></label>
+          <div class="field-hint">What occurred during this initial engagement contact.</div>
+          <textarea id="u2Details" placeholder="e.g. Engaged member telephonically to review peer support services and confirm continued interest" rows="3"></textarea>
+        </div>
+      </div>
 
       <div id="u3Block" style="display:none;">
         <div class="field-hint" style="margin-bottom:12px;">Per ODBH requirements, U3 is documented as a Service Note with both Location Type and Location Code recorded as Home, and must reflect a contact of 8 minutes or more. Use the Session Length field above to reflect duration.</div>
@@ -887,6 +909,8 @@ function handleSessionType() {
 
 var LINKAGE_TITLES = {
   standard: 'Standard Peer Support Contact (DAP Note)',
+  U1: 'U1 — Initial Connection',
+  U2: 'U2 — Initial Engagement',
   U3: 'U3 — Successful Initiation (Post-Hospitalization)',
   U4: 'U4 — Unsuccessful Outreach Attempt(s)',
   U5: 'U5 — Successful 7-Day Follow-Up',
@@ -901,7 +925,7 @@ function handleProgramChange() {
   var program = document.getElementById('program').value;
   var linkageField = document.getElementById('linkageCodeField');
   if (program === 'BH Linkage') {
-    linkageField.style.display = 'block';
+    linkageField.style.display = 'grid';
   } else {
     linkageField.style.display = 'none';
     document.getElementById('linkageCode').value = '';
@@ -918,20 +942,21 @@ function getLinkageCode() {
 
 function handleLinkageCode() {
   var code = getLinkageCode();
-  var allBlocks = ['u3Block','u4Block','u5Block','u6Block','u7Block','u8Block','u9Block','gBlock'];
+  var allBlocks = ['u1Block','u2Block','u3Block','u4Block','u5Block','u6Block','u7Block','u8Block','u9Block','gBlock'];
   allBlocks.forEach(function(id){ document.getElementById(id).style.display = 'none'; });
 
   var linkageCard = document.getElementById('linkageDetailsCard');
   var standardSections = document.getElementById('standardDapSections');
   var standardSessionInfo = document.getElementById('standardSessionInfoBlock');
   var generateBtn = document.getElementById('generateBtn');
+  var blockIdMap = {U1:'u1Block', U2:'u2Block', U3:'u3Block', U4:'u4Block', U5:'u5Block', U6:'u6Block', U7:'u7Block', U8:'u8Block', U9:'u9Block', G:'gBlock'};
 
   if (code) {
     linkageCard.style.display = 'block';
     standardSections.style.display = 'none';
-    // U3 still needs a duration, so keep session length/type visible; other codes are administrative narratives, hide them.
-    standardSessionInfo.style.display = (code === 'U3') ? 'block' : 'none';
-    document.getElementById(code === 'G' ? 'gBlock' : (code + 'Block')).style.display = 'block';
+    // Session Length / Session Type still apply to every linkage contact, so keep them visible for all codes.
+    standardSessionInfo.style.display = 'block';
+    document.getElementById(blockIdMap[code]).style.display = 'block';
     document.getElementById('linkageCardTitle').textContent = LINKAGE_TITLES[code] + ' — Details';
     generateBtn.textContent = 'Generate Linkage Note';
   } else {
@@ -1013,7 +1038,23 @@ function buildLinkageNarrative(code) {
   var missing = [];
   var narrative = '';
 
-  if (code === 'U3') {
+  if (code === 'U1') {
+    var u1Details = document.getElementById('u1Details').value.trim();
+    if (!sessionDate) missing.push('Session Date');
+    if (!u1Details) missing.push('Brief Description of Initial Connection');
+    if (missing.length) return {missing: missing};
+    narrative = 'Initially connected with member on ' + formatDateSlash(sessionDate) + '. ' + u1Details + '.';
+  }
+
+  else if (code === 'U2') {
+    var u2Details = document.getElementById('u2Details').value.trim();
+    if (!sessionDate) missing.push('Session Date');
+    if (!u2Details) missing.push('Brief Description of Initial Engagement');
+    if (missing.length) return {missing: missing};
+    narrative = 'On ' + formatDateSlash(sessionDate) + ', ' + u2Details + '.';
+  }
+
+  else if (code === 'U3') {
     var sessionLength = document.getElementById('sessionLength').value;
     var refGiven = window._u3RefState;
     var refDetails = document.getElementById('u3ReferralDetails').value.trim();
