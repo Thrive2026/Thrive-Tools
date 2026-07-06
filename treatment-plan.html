@@ -101,7 +101,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 
 <div class="phi-banner">
   <div class="phi-icon">&#9888;&#65039;</div>
-  <p><strong>HIPAA Notice:</strong> Do NOT enter any Protected Health Information (PHI). Use <strong>Client ID numbers only</strong> &mdash; no names, dates of birth, Social Security numbers, or any other identifying information.</p>
+  <p><strong>HIPAA Notice:</strong> Do NOT enter any Protected Health Information (PHI) &mdash; no names, dates of birth, Social Security numbers, or any other identifying information.</p>
 </div>
 
 <div class="main">
@@ -111,11 +111,6 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
     <div class="section-header"><div class="step">1</div><h2>Client &amp; Plan Information</h2></div>
     <div class="section-body">
       <div class="two-col">
-        <div class="field">
-          <label class="field-label">Client ID <span class="required-star">*</span></label>
-          <div class="field-hint">Numbers only &mdash; no names or identifying information</div>
-          <input type="text" id="clientId" placeholder="e.g. 10042"/>
-        </div>
         <div class="field">
           <label class="field-label">Program <span class="required-star">*</span></label>
           <div class="field-hint">Select Peer's current Thrive program</div>
@@ -303,7 +298,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
     <h3>&#128203; PHI Attestation &mdash; Required Before Generating</h3>
     <div class="attestation-row">
       <input type="checkbox" id="phiAttestation" onchange="updateGenerateBtn()"/>
-      <label for="phiAttestation">I attest that no Protected Health Information (PHI) has been entered in this form. I have used a Client ID number only &mdash; no client names, dates of birth, Social Security numbers, or any other identifying information.</label>
+      <label for="phiAttestation">I attest that no Protected Health Information (PHI) has been entered in this form &mdash; no client names, dates of birth, Social Security numbers, or any other identifying information.</label>
     </div>
   </div>
 
@@ -617,7 +612,6 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 function scanForPHI() {
   var warnings = [];
   var fieldsToScan = [
-    {id: 'clientId', label: 'Client ID'},
     {id: 'strengths', label: 'Strengths & Protective Factors'},
     {id: 'barriers', label: 'Barriers to Recovery'},
     {id: 'clinicalJustification', label: 'Clinical Justification Notes'},
@@ -629,8 +623,7 @@ function scanForPHI() {
     {name: 'Phone Number', regex: /\b(\+1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/g},
     {name: 'Email Address', regex: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g},
     {name: 'Date of Birth pattern', regex: /\b(DOB|date of birth|born on|dob:)\s*[:\-]?\s*\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/gi},
-    {name: 'Street Address', regex: /\b\d+\s+[a-zA-Z]+\s+(street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|way|court|ct|place|pl)\b/gi},
-    {name: 'Name in Client ID field', regex: /[a-zA-Z]/g}
+    {name: 'Street Address', regex: /\b\d+\s+[a-zA-Z]+\s+(street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|way|court|ct|place|pl)\b/gi}
   ];
 
   fieldsToScan.forEach(function(field) {
@@ -639,8 +632,6 @@ function scanForPHI() {
     var val = el.value;
     if (!val) return;
     patterns.forEach(function(pattern) {
-      if (field.id !== 'clientId' && pattern.name === 'Name in Client ID field') return;
-      if (field.id === 'clientId' && pattern.name !== 'Name in Client ID field') return;
       if (pattern.regex.test(val)) {
         pattern.regex.lastIndex = 0;
         warnings.push({field: field.label, type: pattern.name});
@@ -1053,13 +1044,10 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
     results.push({label: label, passed: passed});
   }
 
-  // 1. Client ID documented
-  check('Client ID is documented', !!document.getElementById('clientId').value.trim());
-
-  // 2. Program documented
+  // 1. Program documented
   check('Program is documented', !!document.getElementById('program').value);
 
-  // 3. Plan start and end dates documented (CARF requires defined review period)
+  // 2. Plan start and end dates documented (CARF requires defined review period)
   var hasStart = !!document.getElementById('planStartDate').value;
   var hasEnd = !!document.getElementById('planEndDate').value;
   check('Plan period (start and end dates) is documented', hasStart && hasEnd);
@@ -1106,14 +1094,13 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
   var foundProhibited = prohibitedTerms.find(function(t){ return fullPlanText.indexOf(t) > -1; });
   check('Plan avoids non-standard documentation language', !foundProhibited);
 
-  // 15. Not copy/pasted from a previous plan for this client
-  var clientId = document.getElementById('clientId').value.trim();
-  var storageKey = 'thrive_tp_last_plan_' + clientId;
+  // 15. Not copy/pasted from a previous plan
+  var storageKey = 'thrive_tp_last_plan';
   var prevPlan = '';
   try { prevPlan = localStorage.getItem(storageKey) || ''; } catch(e) {}
   var isDuplicate = prevPlan && prevPlan === fullPlanText;
-  check('Plan is not duplicated from a previous treatment plan for this client', !isDuplicate);
-  try { if (clientId) localStorage.setItem(storageKey, fullPlanText); } catch(e) {}
+  check('Plan is not duplicated from a previous treatment plan', !isDuplicate);
+  try { localStorage.setItem(storageKey, fullPlanText); } catch(e) {}
 
   // 16. Director approval flag check — if Level 5, flag must be acknowledged (not blocking, informational)
   var directorFlag = document.getElementById('directorFlag');
@@ -1244,7 +1231,6 @@ function copyFullPlan(){
   var thin = '-'.repeat(64);
   var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
-  var clientId = document.getElementById('clientId').value.trim() || '______';
   var program = document.getElementById('program').value || '______';
   var startDate = document.getElementById('planStartDate').value || '______';
   var endDate = document.getElementById('planEndDate').value || '______';
@@ -1264,7 +1250,6 @@ function copyFullPlan(){
   lines.push('THRIVE PEER RECOVERY SERVICES');
   lines.push('INDIVIDUAL SERVICE PLAN (TREATMENT PLAN)');
   lines.push(thick);
-  lines.push(padLabel('Client ID:', 20) + clientId);
   lines.push(padLabel('Program:', 20) + program);
   lines.push(padLabel('Plan Period:', 20) + fmtDate(startDate) + '  to  ' + fmtDate(endDate));
   lines.push(padLabel('Frequency:', 20) + freq);
@@ -1390,7 +1375,6 @@ async function generatePlan(){
 }
 
 async function runGeneratePlan(){
-  var clientId=document.getElementById('clientId').value.trim();
   var planStartDate=document.getElementById('planStartDate').value;
   var planEndDate=document.getElementById('planEndDate').value;
   var program=document.getElementById('program').value;
@@ -1402,7 +1386,6 @@ async function runGeneratePlan(){
   var clinicalJustification=document.getElementById('clinicalJustification').value.trim();
 
   var missing=[];
-  if(!clientId) missing.push('Client ID');
   if(!planStartDate) missing.push('Plan Start Date');
   if(!planEndDate) missing.push('Plan End Date');
   if(!program) missing.push('Program');
@@ -1463,7 +1446,7 @@ async function runGeneratePlan(){
   });
 
   var userContent='Generate an individualized treatment plan using the following data:\n\n'
-    +'CLIENT ID: '+clientId+'\nPROGRAM: '+program+'\nPLAN PERIOD: '+planStartDate+' through '+planEndDate+'\n'
+    +'PROGRAM: '+program+'\nPLAN PERIOD: '+planStartDate+' through '+planEndDate+'\n'
     +'STAGE OF CHANGE: '+stageOfChange+'\nSERVICE FREQUENCY: '+frequency+'\n\n'
     +'STRENGTHS & PROTECTIVE FACTORS:\n'+strengths+'\n\nBARRIERS TO RECOVERY:\n'+barriers+'\n\n'
     +'SLI 2.0 SCORES:\n'+sliScores+'\nSLI Total: '+sliTotal+' | Support Level: '+sliLevel+' | '+sliCap+'\n\n'
@@ -1808,3 +1791,4 @@ async function generateReview() {
 </script>
 </body>
 </html>
+
