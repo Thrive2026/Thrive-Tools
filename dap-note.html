@@ -93,7 +93,7 @@ select{cursor:pointer;}
 
 <div class="phi-banner">
   <div class="phi-icon">&#9888;&#65039;</div>
-  <p><strong>HIPAA Notice:</strong> Do NOT enter any Protected Health Information (PHI) in this tool. Use <strong>Client ID numbers only</strong> &mdash; no names, dates of birth, Social Security numbers, or any other identifying information. You will be required to attest to this before generating a note.</p>
+  <p><strong>HIPAA Notice:</strong> Do NOT enter any Protected Health Information (PHI) in this tool &mdash; no names, dates of birth, Social Security numbers, or any other identifying information. You will be required to attest to this before generating a note.</p>
 </div>
 
 <div class="main">
@@ -103,11 +103,6 @@ select{cursor:pointer;}
     <div class="section-body">
       <div class="two-col">
         <div class="field">
-          <label class="field-label">Client ID <span class="required-star">*</span></label>
-          <div class="field-hint">Numbers only &mdash; no names or identifying information</div>
-          <input type="text" id="clientId" placeholder="e.g. 10042"/>
-        </div>
-        <div class="field">
           <label class="field-label">Session Date <span class="required-star">*</span></label>
           <div class="field-hint">Captured in Pimsy &mdash; not included in note text</div>
           <input type="date" id="sessionDate"/>
@@ -116,7 +111,7 @@ select{cursor:pointer;}
       <div class="two-col">
         <div class="field">
           <label class="field-label">Program <span class="required-star">*</span></label>
-          <select id="program">
+          <select id="program" onchange="handleProgramChange()">
             <option value="">Select program...</option>
             <option value="Community Peer Support">Community Peer Support</option>
             <option value="BH Linkage">BH Linkage</option>
@@ -124,81 +119,300 @@ select{cursor:pointer;}
             <option value="Courts and Dockets / Jail">Courts &amp; Dockets / Jail</option>
           </select>
         </div>
-        <div class="field">
-          <label class="field-label">Session Length <span class="required-star">*</span></label>
-          <select id="sessionLength">
-            <option value="">Select duration...</option>
-            <option value="less than 1 hour">Less than 1 hour</option>
-            <option value="1 to 2 hours">1&ndash;2 hours</option>
-            <option value="2 to 3 hours">2&ndash;3 hours</option>
-            <option value="3 to 4 hours">3&ndash;4 hours</option>
+        <div class="field" id="linkageCodeField" style="display:none;">
+          <label class="field-label">Linkage Note Type <span class="required-star">*</span></label>
+          <div class="field-hint">Select the U-code or referral type this contact documents. This changes the question set below.</div>
+          <select id="linkageCode" onchange="handleLinkageCode()">
+            <option value="">Select linkage note type...</option>
+            <option value="standard">Standard Peer Support Contact (DAP Note)</option>
+            <option value="U3">U3 &ndash; Successful Initiation (Post-Hospitalization)</option>
+            <option value="U4">U4 &ndash; Unsuccessful Outreach Attempt(s)</option>
+            <option value="U5">U5 &ndash; Successful 7-Day Follow-Up</option>
+            <option value="U6">U6 &ndash; Initiated but Not Linked within 7 Days</option>
+            <option value="U7">U7 &ndash; Successfully Engaged in MH Treatment (60-Day)</option>
+            <option value="U8">U8 &ndash; Linked but Not Sustained (60-Day)</option>
+            <option value="U9">U9 &ndash; Remains Engaged in MH Treatment (90-Day)</option>
+            <option value="G">G-Code &ndash; Resource Referral</option>
           </select>
         </div>
       </div>
-      <div class="two-col">
-        <div class="field">
-          <label class="field-label">Session Type <span class="required-star">*</span></label>
-          <select id="sessionType" onchange="handleSessionType()">
-            <option value="">Select type...</option>
-            <option value="In-Person">In-Person</option>
-            <option value="Telehealth">Telehealth</option>
-          </select>
-        </div>
-        <div class="field" id="locationField" style="display:none;">
-          <label class="field-label" id="locationLabel">Meeting Location</label>
-          <select id="location">
-            <option value="">Select location...</option>
-            <option value="Peer's home">Peer's Home</option>
-            <option value="Thrive office">Thrive Office</option>
-            <option value="community location (coffee shop, library, etc.)">Community Location (coffee shop, library, etc.)</option>
-            <option value="Peer's place of employment">Peer's Place of Employment</option>
-            <option value="medical/behavioral health appointment">Medical / Behavioral Health Appointment</option>
-            <option value="court / legal setting">Court / Legal Setting</option>
-            <option value="shelter or transitional housing">Shelter or Transitional Housing</option>
-            <option value="recovery community center">Recovery Community Center</option>
-            <option value="other community setting">Other Community Setting</option>
-          </select>
-        </div>
-      </div>
-      <div id="telehealthFields" style="display:none;">
-        <div class="field">
-          <label class="field-label">Telehealth Modality <span class="required-star">*</span></label>
-          <div class="field-hint">Required for Medicaid billing — select the technology used.</div>
-          <div style="display:flex;gap:12px;margin-top:4px;">
-            <label id="modalityPhoneLabel" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#2d2d4e;cursor:pointer;padding:10px 18px;border:1.5px solid #dde0f0;border-radius:8px;background:#fafbff;flex:1;justify-content:center;">
-              <input type="radio" name="telehealthModality" value="telephone (audio only)" id="modalityPhone" onchange="handleModalityChange()" style="accent-color:#4B5EA6;width:15px;height:15px;"> &#128222; Phone (Audio Only)
-            </label>
-            <label id="modalityVideoLabel" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#2d2d4e;cursor:pointer;padding:10px 18px;border:1.5px solid #dde0f0;border-radius:8px;background:#fafbff;flex:1;justify-content:center;">
-              <input type="radio" name="telehealthModality" value="video (audio and visual)" id="modalityVideo" onchange="handleModalityChange()" style="accent-color:#4B5EA6;width:15px;height:15px;"> &#127909; Video (Audio &amp; Visual)
-            </label>
+      <div id="standardSessionInfoBlock">
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Session Length <span class="required-star">*</span></label>
+            <select id="sessionLength">
+              <option value="">Select duration...</option>
+              <option value="less than 1 hour">Less than 1 hour</option>
+              <option value="1 to 2 hours">1&ndash;2 hours</option>
+              <option value="2 to 3 hours">2&ndash;3 hours</option>
+              <option value="3 to 4 hours">3&ndash;4 hours</option>
+            </select>
           </div>
         </div>
         <div class="two-col">
           <div class="field">
-            <label class="field-label">Provider Location During Session</label>
-            <select id="providerLocation">
-              <option value="">Select provider location...</option>
-              <option value="Thrive office">Thrive Office</option>
-              <option value="remote / home office">Remote / Home Office</option>
-              <option value="other agency location">Other Agency Location</option>
+            <label class="field-label">Session Type <span class="required-star">*</span></label>
+            <select id="sessionType" onchange="handleSessionType()">
+              <option value="">Select type...</option>
+              <option value="In-Person">In-Person</option>
+              <option value="Telehealth">Telehealth</option>
             </select>
           </div>
-          <div class="field">
-            <label class="field-label">Client Location During Session</label>
-            <select id="clientLocation">
-              <option value="">Select client location...</option>
+          <div class="field" id="locationField" style="display:none;">
+            <label class="field-label" id="locationLabel">Meeting Location</label>
+            <select id="location">
+              <option value="">Select location...</option>
               <option value="Peer's home">Peer's Home</option>
+              <option value="Thrive office">Thrive Office</option>
+              <option value="community location (coffee shop, library, etc.)">Community Location (coffee shop, library, etc.)</option>
               <option value="Peer's place of employment">Peer's Place of Employment</option>
-              <option value="community location">Community Location</option>
-              <option value="medical / behavioral health setting">Medical / Behavioral Health Setting</option>
-              <option value="other location">Other Location</option>
+              <option value="medical/behavioral health appointment">Medical / Behavioral Health Appointment</option>
+              <option value="court / legal setting">Court / Legal Setting</option>
+              <option value="shelter or transitional housing">Shelter or Transitional Housing</option>
+              <option value="recovery community center">Recovery Community Center</option>
+              <option value="other community setting">Other Community Setting</option>
             </select>
+          </div>
+        </div>
+        <div id="telehealthFields" style="display:none;">
+          <div class="field">
+            <label class="field-label">Telehealth Modality <span class="required-star">*</span></label>
+            <div class="field-hint">Required for Medicaid billing — select the technology used.</div>
+            <div style="display:flex;gap:12px;margin-top:4px;">
+              <label id="modalityPhoneLabel" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#2d2d4e;cursor:pointer;padding:10px 18px;border:1.5px solid #dde0f0;border-radius:8px;background:#fafbff;flex:1;justify-content:center;">
+                <input type="radio" name="telehealthModality" value="telephone (audio only)" id="modalityPhone" onchange="handleModalityChange()" style="accent-color:#4B5EA6;width:15px;height:15px;"> &#128222; Phone (Audio Only)
+              </label>
+              <label id="modalityVideoLabel" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#2d2d4e;cursor:pointer;padding:10px 18px;border:1.5px solid #dde0f0;border-radius:8px;background:#fafbff;flex:1;justify-content:center;">
+                <input type="radio" name="telehealthModality" value="video (audio and visual)" id="modalityVideo" onchange="handleModalityChange()" style="accent-color:#4B5EA6;width:15px;height:15px;"> &#127909; Video (Audio &amp; Visual)
+              </label>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label class="field-label">Provider Location During Session</label>
+              <select id="providerLocation">
+                <option value="">Select provider location...</option>
+                <option value="Thrive office">Thrive Office</option>
+                <option value="remote / home office">Remote / Home Office</option>
+                <option value="other agency location">Other Agency Location</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">Client Location During Session</label>
+              <select id="clientLocation">
+                <option value="">Select client location...</option>
+                <option value="Peer's home">Peer's Home</option>
+                <option value="Peer's place of employment">Peer's Place of Employment</option>
+                <option value="community location">Community Location</option>
+                <option value="medical / behavioral health setting">Medical / Behavioral Health Setting</option>
+                <option value="other location">Other Location</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <div class="section-card" id="linkageDetailsCard" style="display:none;">
+    <div class="section-header"><div class="step">L</div><h2 id="linkageCardTitle">Linkage Note Details</h2></div>
+    <div class="section-body">
+
+      <div id="u3Block" style="display:none;">
+        <div class="field-hint" style="margin-bottom:12px;">Per ODBH requirements, U3 is documented as a Service Note with both Location Type and Location Code recorded as Home, and must reflect a contact of 8 minutes or more. Use the Session Length field above to reflect duration.</div>
+        <div class="field">
+          <label class="field-label">Were referrals given during this contact? <span class="required-star">*</span></label>
+          <div class="toggle-options" style="display:flex;gap:10px;">
+            <button type="button" class="toggle-btn" id="u3RefYes" onclick="setU3Referrals(true)">Yes</button>
+            <button type="button" class="toggle-btn" id="u3RefNo" onclick="setU3Referrals(false)">No</button>
+          </div>
+        </div>
+        <div class="field" id="u3ReferralDetailsField" style="display:none;">
+          <label class="field-label">Referral Details <span class="required-star">*</span></label>
+          <div class="field-hint">Describe the referral(s) provided (resource name, contact info if applicable).</div>
+          <textarea id="u3ReferralDetails" placeholder="e.g. Referral provided to Cuyahoga WarmLine, 440-886-5950" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div id="u4Block" style="display:none;">
+        <div class="field">
+          <label class="field-label">Number of Unsuccessful Outreach Attempts <span class="required-star">*</span></label>
+          <select id="u4Count" onchange="renderU4Dates()">
+            <option value="">Select number...</option>
+            <option value="1">1 attempt</option>
+            <option value="2">2 attempts</option>
+            <option value="3">3 attempts</option>
+          </select>
+        </div>
+        <div class="two-col" id="u4DatesRow" style="flex-wrap:wrap;"></div>
+        <div class="field">
+          <label class="field-label">Reason / Outcome (if documented) <span style="font-size:11px;font-weight:400;color:#888;">(optional)</span></label>
+          <div class="field-hint">e.g. member was not interested in services, no answer, voicemail left. Leave blank if no reason was given.</div>
+          <textarea id="u4Outcome" placeholder="e.g. the member was not interested in services" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div id="u5Block" style="display:none;">
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <input type="date" id="u5ConnectedDate"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Discharge Date <span class="required-star">*</span></label>
+            <input type="date" id="u5DischargeDate"/>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Follow-Up Appointment Date <span class="required-star">*</span></label>
+            <input type="date" id="u5ApptDate"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Attestation Completion Date <span class="required-star">*</span></label>
+            <input type="date" id="u5AttestationDate"/>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Attestation Method <span class="required-star">*</span></label>
+          <select id="u5Method">
+            <option value="">Select method...</option>
+            <option value="confirming">Provider confirmed member's attendance</option>
+            <option value="tookmember">Provider took the member to the appointment</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="u6Block" style="display:none;">
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <input type="date" id="u6ConnectedDate"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Successful Initial Community Contact Date <span class="required-star">*</span></label>
+            <input type="date" id="u6ContactDate"/>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Number of Follow-Up Contacts <span class="required-star">*</span></label>
+          <select id="u6Count" onchange="renderFollowupDates('u6')">
+            <option value="">Select number...</option>
+            <option value="1">1 follow-up</option>
+            <option value="2">2 follow-ups</option>
+            <option value="3">3 follow-ups</option>
+          </select>
+        </div>
+        <div class="two-col" id="u6DatesRow" style="flex-wrap:wrap;"></div>
+      </div>
+
+      <div id="u7Block" style="display:none;">
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <input type="date" id="u7ConnectedDate"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Attestation Date <span class="required-star">*</span></label>
+            <input type="date" id="u7AttestationDate"/>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Appointments Attended <span class="required-star">*</span></label>
+            <input type="number" min="0" id="u7Attended" placeholder="e.g. 15"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Appointments Scheduled (Total) <span class="required-star">*</span></label>
+            <input type="number" min="0" id="u7Total" placeholder="e.g. 20"/>
+          </div>
+        </div>
+      </div>
+
+      <div id="u8Block" style="display:none;">
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <input type="date" id="u8ConnectedDate"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Successful Initial Community Contact Date <span class="required-star">*</span></label>
+            <input type="date" id="u8ContactDate"/>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Number of Follow-Up Contacts (Days 8&ndash;30) <span class="required-star">*</span></label>
+          <select id="u8Count" onchange="renderFollowupDates('u8')">
+            <option value="">Select number...</option>
+            <option value="1">1 follow-up</option>
+            <option value="2">2 follow-ups</option>
+            <option value="3">3 follow-ups</option>
+          </select>
+        </div>
+        <div class="two-col" id="u8DatesRow" style="flex-wrap:wrap;"></div>
+      </div>
+
+      <div id="u9Block" style="display:none;">
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <input type="date" id="u9ConnectedDate"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Attestation Date <span class="required-star">*</span></label>
+            <input type="date" id="u9AttestationDate"/>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Attendance Detail <span class="required-star">*</span></label>
+          <div class="field-hint">e.g. 75% of scheduled appointments, or 15 out of 20 appointments.</div>
+          <input type="text" id="u9Detail" placeholder="e.g. 75% of scheduled appointments"/>
+        </div>
+      </div>
+
+      <div id="gBlock" style="display:none;">
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label">Referral Type <span class="required-star">*</span></label>
+            <select id="gType">
+              <option value="">Select type...</option>
+              <option value="mental health resource">Mental Health Resource</option>
+              <option value="food resource">Food Resource</option>
+              <option value="medical referral">Medical Referral</option>
+              <option value="housing resource">Housing Resource</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Referral Date <span class="required-star">*</span></label>
+            <input type="date" id="gDate"/>
+          </div>
+        </div>
+        <div class="field" id="gOtherTypeField" style="display:none;">
+          <label class="field-label">Describe Referral Type <span class="required-star">*</span></label>
+          <input type="text" id="gOtherType" placeholder="e.g. legal resource assistance"/>
+        </div>
+        <div class="field">
+          <label class="field-label">Referral Details <span class="required-star">*</span></label>
+          <div class="field-hint">Include organization/provider name(s), address, and phone number as applicable &mdash; no client-identifying information.</div>
+          <textarea id="gDetails" placeholder="e.g. Catholic Charities Diocese food pantry, 1234 Main St., Any City, OH, 111-111-1111" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">Documentation Method <span class="required-star">*</span></label>
+          <div class="field-hint">Select all that apply.</div>
+          <div class="chips" id="gDocChips">
+            <div class="chip" onclick="toggleChip(this)">PRS shared with member</div>
+            <div class="chip" onclick="toggleChip(this)">Sent to member's phone</div>
+            <div class="chip" onclick="toggleChip(this)">Documented in Community Connect</div>
+            <div class="chip" onclick="toggleChip(this)">Other</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="standardDapSections">
   <div class="section-card">
     <div class="section-header"><div class="step">2</div><h2>Goals Addressed This Session</h2></div>
     <div class="section-body">
@@ -346,6 +560,7 @@ select{cursor:pointer;}
       </div>
     </div>
   </div>
+  </div>
 
   <div style="background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:10px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
     <span style="font-size:20px;flex-shrink:0;">🔒</span>
@@ -428,19 +643,19 @@ select{cursor:pointer;}
     </div>
     <div class="output-card">
       <div class="output-header output-header-data">
-        <h3>D — Description of Session</h3>
+        <h3 id="dataOutputHeader">D — Description of Session</h3>
         <button class="copy-btn" id="copyDataBtn" onclick="copySection('dataOutput', this)" disabled style="opacity:0.4;cursor:not-allowed;">Copy</button>
       </div>
       <div class="output-body" id="dataOutput" contenteditable="true"></div>
     </div>
-    <div class="output-card">
+    <div class="output-card" id="assessOutputCard">
       <div class="output-header output-header-assessment">
         <h3>A — Assessment of Progress</h3>
         <button class="copy-btn" id="copyAssessBtn" onclick="copySection('assessmentOutput', this)" disabled style="opacity:0.4;cursor:not-allowed;">Copy</button>
       </div>
       <div class="output-body" id="assessmentOutput" contenteditable="true"></div>
     </div>
-    <div class="output-card">
+    <div class="output-card" id="planOutputCard">
       <div class="output-header output-header-plan">
         <h3>P — Plans to Follow Up</h3>
         <button class="copy-btn" id="copyPlanBtn" onclick="copySection('planOutput', this)" disabled style="opacity:0.4;cursor:not-allowed;">Copy</button>
@@ -495,7 +710,7 @@ select{cursor:pointer;}
       <div style="background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:12px 14px;margin-bottom:18px;">
         <div style="display:flex;align-items:flex-start;gap:9px;">
           <input type="checkbox" id="phiScreenAttest" onchange="phiScreenUpdate()" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;cursor:pointer;"/>
-          <label for="phiScreenAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;"><strong>I confirm</strong> that no Protected Health Information has been entered. Client ID only &mdash; no names, dates of birth, Social Security numbers, addresses, or other identifying information.</label>
+          <label for="phiScreenAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;"><strong>I confirm</strong> that no Protected Health Information has been entered &mdash; no names, dates of birth, Social Security numbers, addresses, or other identifying information.</label>
         </div>
       </div>
       <div style="display:flex;gap:10px;">
@@ -513,7 +728,6 @@ select{cursor:pointer;}
 function scanForPHI() {
   var warnings = [];
   var fieldsToScan = [
-    {id: 'clientId', label: 'Client ID'},
     {id: 'presentationDetail', label: 'Client Presentation Detail'},
     {id: 'sessionFlow', label: 'Session Narrative'},
     {id: 'clientQuote', label: 'Client Quote'},
@@ -543,10 +757,6 @@ function scanForPHI() {
     {
       name: 'Street Address',
       regex: /\b\d+\s+[a-zA-Z]+\s+(street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|way|court|ct|place|pl)\b/gi
-    },
-    {
-      name: 'Name in Client ID field',
-      regex: /[a-zA-Z]/g
     }
   ];
 
@@ -557,10 +767,6 @@ function scanForPHI() {
     if (!val) return;
 
     patterns.forEach(function(pattern) {
-      // Client ID field only checks for letters
-      if (field.id !== 'clientId' && pattern.name === 'Name in Client ID field') return;
-      if (field.id === 'clientId' && pattern.name !== 'Name in Client ID field') return;
-
       if (pattern.regex.test(val)) {
         pattern.regex.lastIndex = 0; // reset regex state
         warnings.push({
@@ -677,6 +883,299 @@ function handleSessionType() {
   }
 }
 
+// ── LINKAGE NOTE (U-CODE / G-CODE) LOGIC ──
+
+var LINKAGE_TITLES = {
+  standard: 'Standard Peer Support Contact (DAP Note)',
+  U3: 'U3 — Successful Initiation (Post-Hospitalization)',
+  U4: 'U4 — Unsuccessful Outreach Attempt(s)',
+  U5: 'U5 — Successful 7-Day Follow-Up',
+  U6: 'U6 — Initiated but Not Linked within 7 Days',
+  U7: 'U7 — Successfully Engaged in MH Treatment (60-Day)',
+  U8: 'U8 — Linked but Not Sustained (60-Day)',
+  U9: 'U9 — Remains Engaged in MH Treatment (90-Day)',
+  G: 'G-Code — Resource Referral'
+};
+
+function handleProgramChange() {
+  var program = document.getElementById('program').value;
+  var linkageField = document.getElementById('linkageCodeField');
+  if (program === 'BH Linkage') {
+    linkageField.style.display = 'block';
+  } else {
+    linkageField.style.display = 'none';
+    document.getElementById('linkageCode').value = '';
+    handleLinkageCode();
+  }
+}
+
+function getLinkageCode() {
+  var program = document.getElementById('program').value;
+  if (program !== 'BH Linkage') return '';
+  var val = document.getElementById('linkageCode').value;
+  return (val && val !== 'standard') ? val : '';
+}
+
+function handleLinkageCode() {
+  var code = getLinkageCode();
+  var allBlocks = ['u3Block','u4Block','u5Block','u6Block','u7Block','u8Block','u9Block','gBlock'];
+  allBlocks.forEach(function(id){ document.getElementById(id).style.display = 'none'; });
+
+  var linkageCard = document.getElementById('linkageDetailsCard');
+  var standardSections = document.getElementById('standardDapSections');
+  var standardSessionInfo = document.getElementById('standardSessionInfoBlock');
+  var generateBtn = document.getElementById('generateBtn');
+
+  if (code) {
+    linkageCard.style.display = 'block';
+    standardSections.style.display = 'none';
+    // U3 still needs a duration, so keep session length/type visible; other codes are administrative narratives, hide them.
+    standardSessionInfo.style.display = (code === 'U3') ? 'block' : 'none';
+    document.getElementById(code === 'G' ? 'gBlock' : (code + 'Block')).style.display = 'block';
+    document.getElementById('linkageCardTitle').textContent = LINKAGE_TITLES[code] + ' — Details';
+    generateBtn.textContent = 'Generate Linkage Note';
+  } else {
+    linkageCard.style.display = 'none';
+    standardSections.style.display = 'block';
+    standardSessionInfo.style.display = 'block';
+    generateBtn.textContent = 'Generate DAP Progress Note';
+  }
+}
+
+function setU3Referrals(val) {
+  document.getElementById('u3RefYes').className = 'toggle-btn' + (val ? ' active-yes' : '');
+  document.getElementById('u3RefNo').className = 'toggle-btn' + (!val ? ' active-no' : '');
+  document.getElementById('u3ReferralDetailsField').style.display = val ? 'block' : 'none';
+  window._u3RefState = val;
+}
+
+function renderU4Dates() {
+  var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
+  var row = document.getElementById('u4DatesRow');
+  row.innerHTML = '';
+  for (var i = 1; i <= count; i++) {
+    var field = document.createElement('div');
+    field.className = 'field';
+    field.style.minWidth = '150px';
+    field.style.flex = '1';
+    field.innerHTML = '<label class="field-label">Attempt ' + i + ' Date <span class="required-star">*</span></label>'
+      + '<input type="date" id="u4Date' + i + '"/>';
+    row.appendChild(field);
+  }
+}
+
+function renderFollowupDates(prefix) {
+  var count = parseInt(document.getElementById(prefix + 'Count').value, 10) || 0;
+  var row = document.getElementById(prefix + 'DatesRow');
+  row.innerHTML = '';
+  for (var i = 1; i <= count; i++) {
+    var field = document.createElement('div');
+    field.className = 'field';
+    field.style.minWidth = '150px';
+    field.style.flex = '1';
+    field.innerHTML = '<label class="field-label">Follow-Up ' + i + ' Date <span class="required-star">*</span></label>'
+      + '<input type="date" id="' + prefix + 'Followup' + i + '"/>';
+    row.appendChild(field);
+  }
+}
+
+document.addEventListener('change', function(e){
+  if (e.target && e.target.id === 'gType') {
+    document.getElementById('gOtherTypeField').style.display = (e.target.value === 'other') ? 'block' : 'none';
+  }
+});
+
+function formatDateSlash(dateStr) {
+  if (!dateStr) return '';
+  var parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  var y = parts[0], m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+  return m + '/' + d + '/' + y;
+}
+
+function daysBetween(d1, d2) {
+  if (!d1 || !d2) return null;
+  var a = new Date(d1 + 'T00:00:00');
+  var b = new Date(d2 + 'T00:00:00');
+  return Math.round((b - a) / 86400000);
+}
+
+function joinDatesList(dates) {
+  var d = dates.filter(function(x){ return x; }).map(formatDateSlash);
+  if (d.length === 0) return '';
+  if (d.length === 1) return d[0];
+  if (d.length === 2) return d[0] + ' and ' + d[1];
+  return d.slice(0, -1).join(', ') + ', and ' + d[d.length - 1];
+}
+
+function buildLinkageNarrative(code) {
+  var sessionDate = document.getElementById('sessionDate').value;
+  var missing = [];
+  var narrative = '';
+
+  if (code === 'U3') {
+    var sessionLength = document.getElementById('sessionLength').value;
+    var refGiven = window._u3RefState;
+    var refDetails = document.getElementById('u3ReferralDetails').value.trim();
+    if (!sessionDate) missing.push('Session Date');
+    if (!sessionLength) missing.push('Session Length');
+    if (refGiven === undefined || refGiven === null) missing.push('Referrals Given (Yes/No)');
+    if (refGiven && !refDetails) missing.push('Referral Details');
+    if (missing.length) return {missing: missing};
+    narrative = 'Peer Recovery Supporter conducted a successful initiation contact with the Peer at the Peer\'s home on ' + formatDateSlash(sessionDate) + ', for a duration of ' + sessionLength + ', following the Peer\'s recent hospitalization. This contact was documented as a Service Note with both Location Type and Location Code recorded as Home. '
+      + (refGiven ? ('The following referral(s) were provided to the Peer during this contact: ' + refDetails + '.') : 'No referrals were provided during this contact.');
+  }
+
+  else if (code === 'U4') {
+    var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
+    var outcome = document.getElementById('u4Outcome').value.trim();
+    if (!count) missing.push('Number of Attempts');
+    var dates = [];
+    for (var i = 1; i <= count; i++) {
+      var v = document.getElementById('u4Date' + i) ? document.getElementById('u4Date' + i).value : '';
+      if (!v) missing.push('Attempt ' + i + ' Date');
+      dates.push(v);
+    }
+    if (missing.length) return {missing: missing};
+    var countWord = {1: 'One', 2: 'Two', 3: 'Three'}[count];
+    var lastDate = formatDateSlash(dates[dates.length - 1]);
+    narrative = countWord + ' unsuccessful outreach attempt' + (count > 1 ? 's' : '') + ' by phone on ' + joinDatesList(dates) + '.'
+      + (outcome ? (' On ' + lastDate + ', ' + outcome + '.') : '');
+  }
+
+  else if (code === 'U5') {
+    var connectedDate = document.getElementById('u5ConnectedDate').value;
+    var dischargeDate = document.getElementById('u5DischargeDate').value;
+    var apptDate = document.getElementById('u5ApptDate').value;
+    var attestationDate = document.getElementById('u5AttestationDate').value;
+    var method = document.getElementById('u5Method').value;
+    if (!connectedDate) missing.push('Initially Connected Date');
+    if (!dischargeDate) missing.push('Discharge Date');
+    if (!apptDate) missing.push('Follow-Up Appointment Date');
+    if (!attestationDate) missing.push('Attestation Completion Date');
+    if (!method) missing.push('Attestation Method');
+    if (missing.length) return {missing: missing};
+    var daysAfter = daysBetween(dischargeDate, apptDate);
+    var daysAfterText = (daysAfter !== null) ? (daysAfter + ' day' + (daysAfter === 1 ? '' : 's') + ' after discharge') : 'within 7 days of discharge';
+    var methodText = (method === 'tookmember')
+      ? ('by taking the member to the appointment on ' + formatDateSlash(apptDate) + ', ' + daysAfterText)
+      : ('confirming that the member attended the appointment on ' + formatDateSlash(apptDate) + ', ' + daysAfterText);
+    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member attended follow-up appointment within 7 days. Provider completed attestation on ' + formatDateSlash(attestationDate) + ' ' + methodText + '.';
+  }
+
+  else if (code === 'U6') {
+    var connectedDate = document.getElementById('u6ConnectedDate').value;
+    var contactDate = document.getElementById('u6ContactDate').value;
+    var count = parseInt(document.getElementById('u6Count').value, 10) || 0;
+    if (!connectedDate) missing.push('Initially Connected Date');
+    if (!contactDate) missing.push('Successful Initial Community Contact Date');
+    if (!count) missing.push('Number of Follow-Up Contacts');
+    var dates = [];
+    for (var i = 1; i <= count; i++) {
+      var v = document.getElementById('u6Followup' + i) ? document.getElementById('u6Followup' + i).value : '';
+      if (!v) missing.push('Follow-Up ' + i + ' Date');
+      dates.push(v);
+    }
+    if (missing.length) return {missing: missing};
+    var countWord = {1: 'one', 2: '2', 3: '3'}[count] || count;
+    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member initiated in peer support relationship but did not successfully link with a provider within 7 days. Provider had successful initial community contact with the member on ' + formatDateSlash(contactDate) + ' and ' + countWord + ' more follow-up' + (count > 1 ? 's' : '') + ' on ' + joinDatesList(dates) + '.';
+  }
+
+  else if (code === 'U7') {
+    var connectedDate = document.getElementById('u7ConnectedDate').value;
+    var attestationDate = document.getElementById('u7AttestationDate').value;
+    var attended = document.getElementById('u7Attended').value.trim();
+    var total = document.getElementById('u7Total').value.trim();
+    if (!connectedDate) missing.push('Initially Connected Date');
+    if (!attestationDate) missing.push('Attestation Date');
+    if (!attended) missing.push('Appointments Attended');
+    if (!total) missing.push('Appointments Scheduled (Total)');
+    if (missing.length) return {missing: missing};
+    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member was successfully engaged in MH treatment as evidenced by attending more than 50% of scheduled appointments within 60 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence by attending ' + attended + ' out of ' + total + ' appointments.';
+  }
+
+  else if (code === 'U8') {
+    var connectedDate = document.getElementById('u8ConnectedDate').value;
+    var contactDate = document.getElementById('u8ContactDate').value;
+    var count = parseInt(document.getElementById('u8Count').value, 10) || 0;
+    if (!connectedDate) missing.push('Initially Connected Date');
+    if (!contactDate) missing.push('Successful Initial Community Contact Date');
+    if (!count) missing.push('Number of Follow-Up Contacts');
+    var dates = [];
+    for (var i = 1; i <= count; i++) {
+      var v = document.getElementById('u8Followup' + i) ? document.getElementById('u8Followup' + i).value : '';
+      if (!v) missing.push('Follow-Up ' + i + ' Date');
+      dates.push(v);
+    }
+    if (missing.length) return {missing: missing};
+    var countWord = {1: 'one', 2: '2', 3: '3'}[count] || count;
+    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member was successfully linked to initial appointment within 7 days but did not sustain MH treatment adherence within 60 days. Provider had successful initial community contact with the member on ' + formatDateSlash(contactDate) + ', and ' + countWord + ' more follow-up' + (count > 1 ? 's' : '') + ' with member between days 8-30 on ' + joinDatesList(dates) + '.';
+  }
+
+  else if (code === 'U9') {
+    var connectedDate = document.getElementById('u9ConnectedDate').value;
+    var attestationDate = document.getElementById('u9AttestationDate').value;
+    var detail = document.getElementById('u9Detail').value.trim();
+    if (!connectedDate) missing.push('Initially Connected Date');
+    if (!attestationDate) missing.push('Attestation Date');
+    if (!detail) missing.push('Attendance Detail');
+    if (missing.length) return {missing: missing};
+    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member remains successfully engaged in MH treatment as evidenced by attending more than 50% of scheduled appointments within 90 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence by attending ' + detail + '.';
+  }
+
+  else if (code === 'G') {
+    var gType = document.getElementById('gType').value;
+    var gOtherType = document.getElementById('gOtherType').value.trim();
+    var gDate = document.getElementById('gDate').value;
+    var gDetails = document.getElementById('gDetails').value.trim();
+    var docChips = Array.from(document.querySelectorAll('#gDocChips .chip.selected')).map(function(c){ return c.textContent; });
+    if (!gType) missing.push('Referral Type');
+    if (gType === 'other' && !gOtherType) missing.push('Describe Referral Type');
+    if (!gDate) missing.push('Referral Date');
+    if (!gDetails) missing.push('Referral Details');
+    if (docChips.length === 0) missing.push('Documentation Method');
+    if (missing.length) return {missing: missing};
+    var typeText = (gType === 'other') ? gOtherType : gType;
+    narrative = 'Provided ' + typeText + ' assistance, on ' + formatDateSlash(gDate) + ', through a referral to ' + gDetails + '. Documented by ' + docChips.join(' and ') + '.';
+  }
+
+  if (missing.length) return {missing: missing};
+
+  return {narrative: narrative};
+}
+
+async function generateLinkageNote(code) {
+  var result = buildLinkageNarrative(code);
+  var errorEl = document.getElementById('errorMsg');
+  if (result.missing) {
+    errorEl.textContent = 'Please complete the following before generating: ' + result.missing.join(', ') + '.';
+    errorEl.className = 'error-msg visible';
+    return;
+  }
+  errorEl.className = 'error-msg';
+
+  document.getElementById('dataOutputHeader').textContent = LINKAGE_TITLES[code] + ' — Narrative';
+  document.getElementById('dataOutput').innerText = result.narrative;
+  document.getElementById('assessmentOutput').innerText = '';
+  document.getElementById('planOutput').innerText = '';
+  document.getElementById('assessOutputCard').style.display = 'none';
+  document.getElementById('planOutputCard').style.display = 'none';
+  document.getElementById('qaPanel').style.display = 'none';
+  var copyAllBtn = document.getElementById('copyAllBtn');
+  copyAllBtn.setAttribute('data-label', 'Copy Linkage Note');
+  copyAllBtn.textContent = 'Copy Linkage Note';
+
+  var attestCheckbox = document.getElementById('reviewAttestation');
+  attestCheckbox.disabled = false;
+  attestCheckbox.checked = false;
+  document.getElementById('reviewAttestationLabel').innerHTML = '<strong>I confirm that I have reviewed this note, verified that it accurately reflects the linkage activity as it occurred, and made any necessary corrections. I understand that as the Peer Recovery Supporter of record, I am responsible for the accuracy and completeness of this documentation.</strong>';
+  toggleCopyButtons();
+
+  document.getElementById('outputSection').className = 'output-section visible';
+  document.getElementById('outputSection').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+
 function toggleChip(el) { el.classList.toggle('selected'); }
 
 function getSelectedChips() {
@@ -766,10 +1265,7 @@ function runQAChecks(descText, assessText, planText) {
   // 1. Date of service present
   check('Date of service is documented', !!document.getElementById('sessionDate').value);
 
-  // 2. Client ID / full identifying info documented
-  check('Client ID is documented', !!document.getElementById('clientId').value.trim());
-
-  // 3. Correct mode of service selected (In-Person or Telehealth)
+  // 2. Correct mode of service selected (In-Person or Telehealth)
   var sessionType = document.getElementById('sessionType').value;
   check('Mode of service is selected (In-Person or Telehealth)', !!sessionType);
 
@@ -815,14 +1311,13 @@ function runQAChecks(descText, assessText, planText) {
   var foundGeneric = genericPhrases.find(function(p){ return fullNoteText.indexOf(p) > -1; });
   check('Note is individualized to the Peer, not generic', !foundGeneric);
 
-  // 13. Not copy/pasted from previous session for this client
-  var clientId = document.getElementById('clientId').value.trim();
-  var storageKey = 'thrive_dap_last_note_' + clientId;
+  // 13. Not copy/pasted from previous session
+  var storageKey = 'thrive_dap_last_note';
   var prevNote = '';
   try { prevNote = localStorage.getItem(storageKey) || ''; } catch(e) {}
   var isDuplicate = prevNote && prevNote === fullNoteText;
   check('Description, Assessment, and Plan are not copy/pasted from a previous session', !isDuplicate);
-  try { if (clientId) localStorage.setItem(storageKey, fullNoteText); } catch(e) {}
+  try { localStorage.setItem(storageKey, fullNoteText); } catch(e) {}
 
   // 14. Next appointment / plan for follow-up reflected
   var nextAppt = document.getElementById('nextApptTimeframe').value;
@@ -894,13 +1389,18 @@ function copySection(id, btn) {
 
 function copyAll() {
   var d = document.getElementById('dataOutput').innerText;
-  var a = document.getElementById('assessmentOutput').innerText;
-  var p = document.getElementById('planOutput').innerText;
-  var full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT OF PROGRESS\n\n' + a + '\n\nPLANS TO FOLLOW UP\n\n' + p;
+  var full;
+  if (getLinkageCode()) {
+    full = d;
+  } else {
+    var a = document.getElementById('assessmentOutput').innerText;
+    var p = document.getElementById('planOutput').innerText;
+    full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT OF PROGRESS\n\n' + a + '\n\nPLANS TO FOLLOW UP\n\n' + p;
+  }
   navigator.clipboard.writeText(full).then(function(){
     var btn = document.querySelector('.copy-all-btn');
     btn.textContent = 'Full Note Copied!';
-    setTimeout(function(){ btn.textContent = 'Copy Full Note (All Sections)'; }, 2500);
+    setTimeout(function(){ btn.textContent = btn.getAttribute('data-label') || 'Copy Full Note (All Sections)'; }, 2500);
   });
 }
 
@@ -932,6 +1432,26 @@ function resetForm() {
   document.getElementById('loadingBlock').className = 'loading';
   document.getElementById('errorMsg').className = 'error-msg';
   document.getElementById('generateBtn').disabled = true;
+  // Reset linkage note state
+  document.getElementById('linkageCodeField').style.display = 'none';
+  document.getElementById('linkageDetailsCard').style.display = 'none';
+  document.getElementById('standardDapSections').style.display = 'block';
+  document.getElementById('standardSessionInfoBlock').style.display = 'block';
+  document.getElementById('generateBtn').textContent = 'Generate DAP Progress Note';
+  document.getElementById('assessOutputCard').style.display = 'block';
+  document.getElementById('planOutputCard').style.display = 'block';
+  document.getElementById('qaPanel').style.display = 'block';
+  document.getElementById('dataOutputHeader').textContent = 'D — Description of Session';
+  var copyAllBtnReset = document.getElementById('copyAllBtn');
+  copyAllBtnReset.setAttribute('data-label', 'Copy Full Note (All Sections)');
+  copyAllBtnReset.textContent = 'Copy Full Note (All Sections)';
+  document.getElementById('u4DatesRow').innerHTML = '';
+  document.getElementById('u6DatesRow').innerHTML = '';
+  document.getElementById('u8DatesRow').innerHTML = '';
+  document.getElementById('u3RefYes').className = 'toggle-btn';
+  document.getElementById('u3RefNo').className = 'toggle-btn';
+  document.getElementById('u3ReferralDetailsField').style.display = 'none';
+  window._u3RefState = null;
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -958,13 +1478,25 @@ function runDemo() {
 }
 
 async function generateNote() {
+  var linkageCode = getLinkageCode();
+  if (linkageCode) {
+    generateLinkageNote(linkageCode);
+    return;
+  }
+  // Restore standard three-section output layout in case a prior linkage note hid it
+  document.getElementById('assessOutputCard').style.display = 'block';
+  document.getElementById('planOutputCard').style.display = 'block';
+  document.getElementById('qaPanel').style.display = 'block';
+  document.getElementById('dataOutputHeader').textContent = 'D — Description of Session';
+  var copyAllBtn = document.getElementById('copyAllBtn');
+  copyAllBtn.setAttribute('data-label', 'Copy Full Note (All Sections)');
+  copyAllBtn.textContent = 'Copy Full Note (All Sections)';
   // Always show PHI pre-screen before sending anything
   var phiWarnings = scanForPHI();
   showPhiScreen(phiWarnings);
 }
 
 async function runGenerateNote() {
-  var clientId = document.getElementById('clientId').value.trim();
   var sessionDate = document.getElementById('sessionDate').value;
   var program = document.getElementById('program').value;
   var sessionLength = document.getElementById('sessionLength').value;
@@ -983,7 +1515,6 @@ async function runGenerateNote() {
   var planNextSteps = document.getElementById('planNextSteps').value.trim();
 
   var missing = [];
-  if (!clientId) missing.push('Client ID');
   if (!sessionDate) missing.push('Session Date');
   if (!program) missing.push('Program');
   if (!sessionLength) missing.push('Session Length');
