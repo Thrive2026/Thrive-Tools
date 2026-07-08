@@ -439,6 +439,17 @@ select{cursor:pointer;}
         </div>
       </div>
 
+      <div class="field" id="linkageEngagementField" style="display:none;">
+        <label class="field-label">Member Response / Engagement This Contact <span class="required-star">*</span></label>
+        <div class="field-hint">Briefly describe how the member responded or engaged during this contact — receptive, hesitant, needed encouragement, enthusiastic, etc. This grounds the Assessment section of the note.</div>
+        <textarea id="linkageEngagement" placeholder="e.g. Member was receptive to the referral and asked clarifying questions about scheduling" rows="2"></textarea>
+      </div>
+      <div class="field" id="linkagePlanNextField" style="display:none;">
+        <label class="field-label">Next Step / Case Status <span class="required-star">*</span></label>
+        <div class="field-hint">What happens next — another follow-up planned, case closed, referred back to community team, etc. This grounds the Plan section of the note.</div>
+        <textarea id="linkagePlanNext" placeholder="e.g. Provider will continue monitoring appointment adherence and follow up in 30 days" rows="2"></textarea>
+      </div>
+
     </div>
   </div>
 
@@ -810,7 +821,9 @@ function scanForPHI() {
     {id: 'concernDescription', label: 'Concerning Behavior Description'},
     {id: 'providerResponse', label: 'Provider Response'},
     {id: 'itpModDetail', label: 'ITP Modification Detail'},
-    {id: 'planNextSteps', label: 'Next Steps'}
+    {id: 'planNextSteps', label: 'Next Steps'},
+    {id: 'linkageEngagement', label: 'Member Response / Engagement This Contact'},
+    {id: 'linkagePlanNext', label: 'Next Step / Case Status'}
   ];
 
   // Pattern definitions — high confidence PHI only
@@ -876,7 +889,9 @@ function showPhiScreen(warnings) {
     {id: 'concernDescription', label: 'Concerning Behavior Description'},
     {id: 'providerResponse',   label: 'PRS Response to Concern'},
     {id: 'itpModDetail',       label: 'ITP Modification Detail'},
-    {id: 'planNextSteps',      label: 'Next Steps'}
+    {id: 'planNextSteps',      label: 'Next Steps'},
+    {id: 'linkageEngagement',  label: 'Member Response / Engagement This Contact'},
+    {id: 'linkagePlanNext',    label: 'Next Step / Case Status'}
   ];
 
   var flaggedIds = warnings.map(function(w){ return w.fieldId; });
@@ -923,7 +938,12 @@ function phiScreenUpdate() {
 
 function proceedFromPhiScreen() {
   closePhiScreen();
-  runGenerateNote();
+  var linkageCode = getLinkageCode();
+  if (linkageCode) {
+    runGenerateLinkageNote(linkageCode);
+  } else {
+    runGenerateNote();
+  }
 }
 
 var concernActive = null;
@@ -1021,6 +1041,15 @@ var LINKAGE_TITLES = {
   G: 'G-Code — Resource Referral'
 };
 
+// Codes that need the shared "Member Response / Engagement" + "Next Step / Case Status" fields
+// to properly populate Assessment and Plan sections. U1/U2 are excluded (Jotform-only workflow).
+var CODES_NEEDING_SHARED_FIELDS = ['U3','U4','U5','U6','U7','U8','U9','G'];
+
+// Codes that use the top-level Session Date / Session Length fields directly.
+// U4-U9 and G collect their own dates within their blocks and don't rely on these.
+var CODES_USING_SESSION_DATE = ['U1','U2','U3'];
+var CODES_USING_SESSION_LENGTH = ['U3'];
+
 function handleProgramChange() {
   var program = document.getElementById('program').value;
   var linkageField = document.getElementById('linkageCodeField');
@@ -1051,6 +1080,9 @@ function handleLinkageCode() {
   var generateBtn = document.getElementById('generateBtn');
   var blockIdMap = {U1:'u1Block', U2:'u2Block', U3:'u3Block', U4:'u4Block', U5:'u5Block', U6:'u6Block', U7:'u7Block', U8:'u8Block', U9:'u9Block', G:'gBlock'};
 
+  var engagementField = document.getElementById('linkageEngagementField');
+  var planNextField = document.getElementById('linkagePlanNextField');
+
   if (code) {
     linkageCard.style.display = 'block';
     standardSections.style.display = 'none';
@@ -1059,11 +1091,17 @@ function handleLinkageCode() {
     document.getElementById(blockIdMap[code]).style.display = 'block';
     document.getElementById('linkageCardTitle').textContent = LINKAGE_TITLES[code] + ' — Details';
     generateBtn.textContent = 'Generate Linkage Note';
+
+    var showShared = CODES_NEEDING_SHARED_FIELDS.indexOf(code) > -1;
+    engagementField.style.display = showShared ? 'block' : 'none';
+    planNextField.style.display = showShared ? 'block' : 'none';
   } else {
     linkageCard.style.display = 'none';
     standardSections.style.display = 'block';
     standardSessionInfo.style.display = 'block';
     generateBtn.textContent = 'Generate DAP Progress Note';
+    engagementField.style.display = 'none';
+    planNextField.style.display = 'none';
   }
 }
 
@@ -1280,12 +1318,23 @@ function buildLinkageNarrative(code) {
     narrative = 'Provided ' + typeText + ' assistance, on ' + formatDateSlash(gDate) + ', through a referral to ' + gDetails + '. Documented by ' + docChips.join(' and ') + '.';
   }
 
+  // Shared fields that ground Assessment/Plan for full-DAP linkage note generation.
+  var engagement = '', planNext = '';
+  if (CODES_NEEDING_SHARED_FIELDS.indexOf(code) > -1) {
+    engagement = document.getElementById('linkageEngagement').value.trim();
+    planNext = document.getElementById('linkagePlanNext').value.trim();
+    if (!engagement) missing.push('Member Response / Engagement This Contact');
+    if (!planNext) missing.push('Next Step / Case Status');
+  }
+
   if (missing.length) return {missing: missing};
 
-  return {narrative: narrative};
+  return {narrative: narrative, engagement: engagement, planNext: planNext};
 }
 
-async function generateLinkageNote(code) {
+var LINKAGE_SYSTEM_PROMPT = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate a DAP-format progress note for a BH Linkage contact documented under Ohio Medicaid U-code / G-code billing rules (OAC 5122-27-04, 5160-27-14).\n\nTHIS IS A PEER SUPPORT / LINKAGE NOTE — NOT A CLINICAL NOTE. Use peer support values and language throughout: lived experience, mutuality, hope, self-determination. Never use clinical, diagnostic, or treatment terminology outside PRS scope.\n\nFORMAT: Output exactly three sections, each header on its own line in normal sentence case, followed by a paragraph (no bullet points): Description, Assessment, Plan. No preamble, no closing remarks.\n\nTERMINOLOGY — MANDATORY:\n- Refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS."\n- Refer to the person receiving services as "Peer" — never "the client," "the consumer," "the patient."\n- Third-person past tense throughout. Never first person (I, me, my, we). Never present tense for session events.\n\nDESCRIPTION SECTION: Open by stating the specific linkage milestone/contact type this note documents (e.g., initial connection, successful initiation, outreach attempt, follow-up, attestation) using the facts provided below. Then describe what occurred during the contact — outreach method, referrals given, dates, and any relevant context — in full peer-support narrative form, not a bare data dump.\n\nASSESSMENT SECTION: Open with an explicit statement of whether the Medicaid linkage benchmark for this code was met (e.g., successful engagement within 7 days, sustained treatment adherence within 60/90 days) — this is the core regulatory and billing-support requirement. If member response/engagement detail is provided, ground the assessment in that specific detail rather than generic engagement language. Note any barriers, Peer response, or engagement level observed.\n\nPLAN SECTION: State the next step in the linkage pathway — next outreach attempt, next follow-up window, or case status — specific enough that another PRS could pick up the case. If a next step/case status detail is provided, use it directly as the basis for this section rather than inventing a generic next step.\n\nPROHIBITED LANGUAGE: Never use "goal met/not met," "transported/drove/picked up," "clinical," "clinician," "diagnosis," "intervention," or generic filler like "services were rendered" or "session was productive." Never state raw session duration as a standalone fact outside its role in describing the contact.\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan with headers in normal sentence case. No commentary.';
+
+async function runGenerateLinkageNote(code) {
   var result = buildLinkageNarrative(code);
   var errorEl = document.getElementById('errorMsg');
   if (result.missing) {
@@ -1295,26 +1344,59 @@ async function generateLinkageNote(code) {
   }
   errorEl.className = 'error-msg';
 
-  document.getElementById('dataOutputHeader').textContent = LINKAGE_TITLES[code] + ' — Narrative';
-  document.getElementById('dataOutput').innerText = result.narrative;
-  document.getElementById('assessmentOutput').innerText = '';
-  document.getElementById('planOutput').innerText = '';
-  document.getElementById('assessOutputCard').style.display = 'none';
-  document.getElementById('planOutputCard').style.display = 'none';
-  document.getElementById('remarksOutputCard').style.display = 'none';
-  document.getElementById('qaPanel').style.display = 'none';
-  var copyAllBtn = document.getElementById('copyAllBtn');
-  copyAllBtn.setAttribute('data-label', 'Copy Linkage Note');
-  copyAllBtn.textContent = 'Copy Linkage Note';
+  var userContent = 'Generate a DAP-format note for the following BH Linkage contact:\n\n'
+    + 'LINKAGE CODE: ' + code + ' — ' + LINKAGE_TITLES[code] + '\n\n'
+    + 'CONTACT FACTS:\n' + result.narrative + '\n\n'
+    + (result.engagement ? ('MEMBER RESPONSE / ENGAGEMENT THIS CONTACT:\n' + result.engagement + '\n\n') : '')
+    + (result.planNext ? ('NEXT STEP / CASE STATUS:\n' + result.planNext + '\n\n') : '')
+    + 'Use these facts as the factual basis for the note, but write it in full DAP narrative form (Description, Assessment, Plan) per the system instructions — do not just repeat the facts verbatim as a single block. Ground the Assessment section in the member response/engagement detail provided, and ground the Plan section in the next step/case status detail provided.';
 
-  var attestCheckbox = document.getElementById('reviewAttestation');
-  attestCheckbox.disabled = false;
-  attestCheckbox.checked = false;
-  document.getElementById('reviewAttestationLabel').innerHTML = '<strong>I confirm that I have reviewed this note, verified that it accurately reflects the linkage activity as it occurred, and made any necessary corrections. I understand that as the Peer Recovery Supporter of record, I am responsible for the accuracy and completeness of this documentation.</strong>';
-  toggleCopyButtons();
+  document.getElementById('loadingBlock').className = 'loading visible';
+  document.getElementById('outputSection').className = 'output-section';
+  document.getElementById('generateBtn').disabled = true;
 
-  document.getElementById('outputSection').className = 'output-section visible';
-  document.getElementById('outputSection').scrollIntoView({behavior:'smooth', block:'start'});
+  try {
+    var response = await fetch('/functions/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({system: LINKAGE_SYSTEM_PROMPT, messages: [{role: 'user', content: userContent}]})
+    });
+    var data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'API error');
+
+    var fullText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+    var sections = fullText.split(/\n(?=\s*(DESCRIPTION|ASSESSMENT|PLAN)\s*\n)/i);
+    var descText = '', assessText = '', planText = '';
+    for (var i = 0; i < sections.length; i++) {
+      var s = sections[i].trim();
+      if (/^DESCRIPTION/i.test(s)) descText = s.replace(/^DESCRIPTION\s*/i, '').trim();
+      else if (/^ASSESSMENT/i.test(s)) assessText = s.replace(/^ASSESSMENT\s*/i, '').trim();
+      else if (/^PLAN/i.test(s)) planText = s.replace(/^PLANS?\s*/i, '').trim();
+    }
+    if (!descText && !assessText && !planText) {
+      var dm = fullText.match(/(DESCRIPTION)([\s\S]*?)(?=\nASSESSMENT|\nPLAN|$)/i);
+      var am = fullText.match(/(ASSESSMENT)([\s\S]*?)(?=\nPLAN|$)/i);
+      var pm = fullText.match(/(PLANS?)([\s\S]*?)$/i);
+      descText = dm ? dm[2].trim() : fullText;
+      assessText = am ? am[2].trim() : '';
+      planText = pm ? pm[2].trim() : '';
+    }
+    document.getElementById('dataOutput').innerText = descText || fullText;
+    document.getElementById('assessmentOutput').innerText = assessText;
+    document.getElementById('planOutput').innerText = planText;
+    document.getElementById('remarksOutputCard').style.display = 'none';
+
+    runQAChecks(descText, assessText, planText);
+
+    document.getElementById('loadingBlock').className = 'loading';
+    document.getElementById('outputSection').className = 'output-section visible';
+    document.getElementById('outputSection').scrollIntoView({behavior:'smooth',block:'start'});
+  } catch(err) {
+    document.getElementById('loadingBlock').className = 'loading';
+    errorEl.textContent = 'Error generating note: ' + err.message + '. Please check your connection and try again.';
+    errorEl.className = 'error-msg visible';
+  }
+  document.getElementById('generateBtn').disabled = false;
 }
 
 
@@ -1411,13 +1493,17 @@ function hasRepeatedPhrase(text) {
 function runQAChecks(descText, assessText, planText) {
   var fullNoteText = (descText + ' ' + assessText + ' ' + planText).toLowerCase();
   var results = [];
+  var linkageCode = getLinkageCode();
+  var isLinkage = !!linkageCode;
 
   function check(label, passed) {
     results.push({label: label, passed: passed});
   }
 
-  // 1. Date of service present
-  check('Date of service is documented', !!document.getElementById('sessionDate').value);
+  // 1. Date of service present (only checked for codes that actually use the top-level Session Date field)
+  if (!isLinkage || CODES_USING_SESSION_DATE.indexOf(linkageCode) > -1) {
+    check('Date of service is documented', !!document.getElementById('sessionDate').value);
+  }
 
   // 2. Correct mode of service selected (In-Person or Telehealth)
   var sessionType = document.getElementById('sessionType').value;
@@ -1433,21 +1519,35 @@ function runQAChecks(descText, assessText, planText) {
   }
   check('Session location/modality is documented', locationOk);
 
-  // 5. Session length within 8 minutes - 4 hours (using sessionLength select as proxy)
-  var sessionLength = document.getElementById('sessionLength').value;
-  check('Session duration is documented and billable', !!sessionLength);
+  // 5. Session length documented (only checked for codes that actually collect duration)
+  if (!isLinkage || CODES_USING_SESSION_LENGTH.indexOf(linkageCode) > -1) {
+    var sessionLength = document.getElementById('sessionLength').value;
+    check('Session duration is documented and billable', !!sessionLength);
+  }
 
-  // 6. At least one goal addressed
-  var goalsAddressed = document.getElementById('goalsAddressed').value.trim();
-  check('At least one treatment plan goal is addressed', !!goalsAddressed);
+  // 6/6b. Goal checks — standard DAP notes only, not linkage notes (no ITP goal field in linkage flow)
+  if (!isLinkage) {
+    var goalsAddressed = document.getElementById('goalsAddressed').value.trim();
+    check('At least one treatment plan goal is addressed', !!goalsAddressed);
 
-  // 6b. Progress toward the specific goal is documented
-  var goalProgress = document.getElementById('goalProgress').value;
-  var goalProgressDetail = document.getElementById('goalProgressDetail').value.trim();
-  var progressDetailOk = !!goalProgress && (!!goalProgressDetail || !goalProgressNeedsDetail());
-  check('Progress toward the specific goal is documented on the form', progressDetailOk);
+    var goalProgress = document.getElementById('goalProgress').value;
+    var goalProgressDetail = document.getElementById('goalProgressDetail').value.trim();
+    var progressDetailOk = !!goalProgress && (!!goalProgressDetail || !goalProgressNeedsDetail());
+    check('Progress toward the specific goal is documented on the form', progressDetailOk);
+  } else {
+    // Linkage-specific equivalent: benchmark status must appear in Assessment
+    var benchmarkTerms = ['engaged', 'linked', 'attended', 'adherence', 'sustained', 'attestation', 'benchmark'];
+    var hasBenchmarkLanguage = benchmarkTerms.some(function(t){ return assessText.toLowerCase().indexOf(t) > -1; });
+    check('Assessment states whether the linkage benchmark was met', hasBenchmarkLanguage);
 
-  // 7. Description of session properly documented (not empty, reasonable length)
+    // Shared field checks for codes that require them
+    if (CODES_NEEDING_SHARED_FIELDS.indexOf(linkageCode) > -1) {
+      check('Member response/engagement is documented', !!document.getElementById('linkageEngagement').value.trim());
+      check('Next step/case status is documented', !!document.getElementById('linkagePlanNext').value.trim());
+    }
+  }
+
+  // 7. Description of session properly documented
   check('Description of Session is documented', descText && descText.trim().length > 40);
 
   // 8. Assessment of Progress documented
@@ -1491,14 +1591,14 @@ function runQAChecks(descText, assessText, planText) {
   var nextAppt = document.getElementById('nextApptTimeframe').value;
   check('Plan includes anticipated focus or next appointment', !!nextAppt || (planText && planText.trim().length > 20));
 
-  // 17. If safety concern flagged, provider response documented
-  if (concernActive === true) {
+  // 17. If safety concern flagged (standard notes only — linkage flow has no concern toggle)
+  if (!isLinkage && concernActive === true) {
     var providerResponse = document.getElementById('providerResponse').value.trim();
     check('Safety concern includes documented provider response', !!providerResponse);
   }
 
-  // 18. If ITP modification recommended, detail is documented
-  if (itpModActive === true) {
+  // 18. If ITP modification recommended (standard notes only)
+  if (!isLinkage && itpModActive === true) {
     var itpDetail = document.getElementById('itpModDetail').value.trim();
     check('Recommended ITP modification includes a description', !!itpDetail);
   }
@@ -1563,16 +1663,11 @@ function copySection(id, btn) {
 
 function copyAll() {
   var d = document.getElementById('dataOutput').innerText;
-  var full;
-  if (getLinkageCode()) {
-    full = d;
-  } else {
-    var a = document.getElementById('assessmentOutput').innerText;
-    var p = document.getElementById('planOutput').innerText;
-    full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT\n\n' + a + '\n\nPLAN\n\n' + p;
-    if (document.getElementById('remarksOutputCard').style.display !== 'none') {
-      full += '\n\nREMARKS — RECOMMENDED ITP MODIFICATION\n\n' + document.getElementById('remarksOutput').innerText;
-    }
+  var a = document.getElementById('assessmentOutput').innerText;
+  var p = document.getElementById('planOutput').innerText;
+  var full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT\n\n' + a + '\n\nPLAN\n\n' + p;
+  if (document.getElementById('remarksOutputCard').style.display !== 'none') {
+    full += '\n\nREMARKS — RECOMMENDED ITP MODIFICATION\n\n' + document.getElementById('remarksOutput').innerText;
   }
   navigator.clipboard.writeText(full).then(function(){
     var btn = document.querySelector('.copy-all-btn');
@@ -1644,6 +1739,8 @@ function resetForm() {
   document.getElementById('u3RefYes').className = 'toggle-btn';
   document.getElementById('u3RefNo').className = 'toggle-btn';
   document.getElementById('u3ReferralDetailsField').style.display = 'none';
+  document.getElementById('linkageEngagementField').style.display = 'none';
+  document.getElementById('linkagePlanNextField').style.display = 'none';
   window._u3RefState = null;
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -1674,18 +1771,30 @@ function runDemo() {
 
 async function generateNote() {
   var linkageCode = getLinkageCode();
-  if (linkageCode) {
-    generateLinkageNote(linkageCode);
-    return;
-  }
-  // Restore standard three-section output layout in case a prior linkage note hid it
+
+  // Always restore full three-section DAP layout — linkage notes are full DAP notes now too
   document.getElementById('assessOutputCard').style.display = 'block';
   document.getElementById('planOutputCard').style.display = 'block';
   document.getElementById('qaPanel').style.display = 'block';
-  document.getElementById('dataOutputHeader').textContent = 'Description of Session';
+  document.getElementById('dataOutputHeader').textContent = linkageCode
+    ? (LINKAGE_TITLES[linkageCode] + ' — Description')
+    : 'Description of Session';
   var copyAllBtn = document.getElementById('copyAllBtn');
   copyAllBtn.setAttribute('data-label', 'Copy Full Note (All Sections)');
   copyAllBtn.textContent = 'Copy Full Note (All Sections)';
+
+  var errorEl = document.getElementById('errorMsg');
+
+  if (linkageCode) {
+    var result = buildLinkageNarrative(linkageCode);
+    if (result.missing) {
+      errorEl.textContent = 'Please complete the following before generating: ' + result.missing.join(', ') + '.';
+      errorEl.className = 'error-msg visible';
+      return;
+    }
+  }
+  errorEl.className = 'error-msg';
+
   // Always show PHI pre-screen before sending anything
   var phiWarnings = scanForPHI();
   showPhiScreen(phiWarnings);
