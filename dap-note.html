@@ -101,7 +101,7 @@ select{cursor:pointer;}
 
 <div class="phi-banner">
   <div class="phi-icon">&#9888;&#65039;</div>
-  <p><strong>HIPAA Notice:</strong> Do NOT enter any Protected Health Information (PHI) in this tool &mdash; no names, dates of birth, Social Security numbers, or any other identifying information. You will be required to attest to this before generating a note.</p>
+  <p><strong>HIPAA Notice:</strong> Do NOT enter any Protected Health Information (PHI) in this tool &mdash; no names, dates of birth, Social Security numbers, or any other identifying information. <strong>The one exception is the Client Number field below</strong>, which is used only to link internal analytics data back to the client record and is never sent to the AI or included anywhere in the generated note. You will be required to attest to this before generating a note.</p>
 </div>
 
 <div class="main">
@@ -109,6 +109,13 @@ select{cursor:pointer;}
   <div class="section-card">
     <div class="section-header"><div class="step">1</div><h2>Session Information</h2></div>
     <div class="section-body">
+      <div class="two-col">
+        <div class="field">
+          <label class="field-label">Client Number <span class="required-star">*</span></label>
+          <div class="field-hint">Pimsy client/case number. This is the one identifying field in this tool &mdash; used only to link internal structured data back to the client. Never sent to the AI and never appears in the generated note.</div>
+          <input type="text" id="clientNumber" placeholder="e.g. B-C-2000"/>
+        </div>
+      </div>
       <div class="two-col">
         <div class="field">
           <label class="field-label">Session Date <span class="required-star">*</span></label>
@@ -123,8 +130,9 @@ select{cursor:pointer;}
             <option value="">Select program...</option>
             <option value="Community Peer Support">Community Peer Support</option>
             <option value="BH Linkage">BH Linkage</option>
+            <option value="Courts and Dockets">Courts &amp; Dockets</option>
+            <option value="Jail">Jail</option>
             <option value="Hospital / ThriveED">Hospital / ThriveED</option>
-            <option value="Courts and Dockets / Jail">Courts &amp; Dockets / Jail</option>
           </select>
         </div>
       </div>
@@ -168,6 +176,7 @@ select{cursor:pointer;}
               <option value="">Select type...</option>
               <option value="In-Person">In-Person</option>
               <option value="Telehealth">Telehealth</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div class="field" id="locationField" style="display:none;">
@@ -178,6 +187,7 @@ select{cursor:pointer;}
               <option value="Thrive office">Thrive Office</option>
               <option value="community location (coffee shop, library, etc.)">Community Location (coffee shop, library, etc.)</option>
               <option value="Peer's place of employment">Peer's Place of Employment</option>
+              <option value="hospital">Hospital</option>
               <option value="medical/behavioral health appointment">Medical / Behavioral Health Appointment</option>
               <option value="court / legal setting">Court / Legal Setting</option>
               <option value="shelter or transitional housing">Shelter or Transitional Housing</option>
@@ -185,6 +195,11 @@ select{cursor:pointer;}
               <option value="other community setting">Other Community Setting</option>
             </select>
           </div>
+        </div>
+        <div class="field" id="otherContactField" style="display:none;">
+          <label class="field-label">Describe Contact Method <span class="required-star">*</span></label>
+          <div class="field-hint">Use this when the contact wasn't a live in-person or telehealth session — e.g. text message, email, left voicemail, contacted through another provider, etc.</div>
+          <input type="text" id="otherContactDetail" placeholder="e.g. Contacted member via text message to confirm appointment"/>
         </div>
         <div id="telehealthFields" style="display:none;">
           <div class="field">
@@ -459,7 +474,7 @@ select{cursor:pointer;}
     <div class="section-body">
       <div class="field">
         <label class="field-label">Treatment Plan Goals Worked On <span class="required-star">*</span></label>
-        <div class="field-hint">Copy the goal language directly from Peer's treatment plan as it appears in Pimsy. Write 'Peer will...' not 'Client will...' The note will reference this exact language per CARF and ODBH standards.</div>
+        <div class="field-hint">Doesn't need to be copied word-for-word from Pimsy &mdash; write it in your own words, but keep it the same goal concept as what's in Peer's treatment plan. Write 'Peer will...' not 'Client will...'</div>
         <textarea id="goalsAddressed" placeholder="e.g. Peer will identify three coping strategies to manage symptoms of depression by next quarterly review..." rows="4" oninput="updateCharCounter('goalsAddressed','goalsAddressedCounter',30)"></textarea>
         <div class="char-counter" id="goalsAddressedCounter"></div>
       </div>
@@ -507,7 +522,7 @@ select{cursor:pointer;}
       </div>
       <div class="field">
         <label class="field-label">Stage of Change <span class="required-star">*</span></label>
-        <div class="field-hint">Select the stage that best reflects where Peer is in their recovery at this session.</div>
+        <div class="field-hint">Select the stage that matches what Peer actually said or did <strong>this session</strong> — not where they've been overall. Quick guide: <strong>Pre-contemplation</strong> = not yet acknowledging a need to change; <strong>Contemplation</strong> = aware of the issue but ambivalent, weighing pros/cons; <strong>Preparation</strong> = has decided to act and is planning specifics; <strong>Action</strong> = actively doing the new behavior now; <strong>Maintenance</strong> = sustaining a change already made for some time. Make sure the stage you pick doesn't contradict the behaviors described in your Session Narrative below.</div>
         <select id="stageOfChange">
           <option value="">Select stage...</option>
           <option value="Pre-contemplation: client is not yet considering change">Pre-contemplation</option>
@@ -539,16 +554,21 @@ select{cursor:pointer;}
       </div>
       <div class="field">
         <label class="field-label">Type of Peer Support Provided <span class="required-star">*</span></label>
-        <div class="field-hint">Select all that apply.</div>
+        <div class="field-hint">Select all that apply. These are AOC-aligned peer support interventions — not clinical or therapeutic interventions.</div>
         <div class="chips" id="supportTypeChips">
           <div class="chip" onclick="toggleChip(this)">Shared Lived Experience</div>
-          <div class="chip" onclick="toggleChip(this)">Skill Building</div>
+          <div class="chip" onclick="toggleChip(this)">Recovery Coaching</div>
+          <div class="chip" onclick="toggleChip(this)">Self-Advocacy Coaching</div>
           <div class="chip" onclick="toggleChip(this)">Problem Solving</div>
-          <div class="chip" onclick="toggleChip(this)">Advocacy</div>
-          <div class="chip" onclick="toggleChip(this)">Resource Linkage</div>
+          <div class="chip" onclick="toggleChip(this)">Independent Living Skills</div>
+          <div class="chip" onclick="toggleChip(this)">Wellness Planning</div>
+          <div class="chip" onclick="toggleChip(this)">Resource Navigation</div>
+          <div class="chip" onclick="toggleChip(this)">Recovery Planning</div>
+          <div class="chip" onclick="toggleChip(this)">Communication Skill Building</div>
+          <div class="chip" onclick="toggleChip(this)">Strengths-Based Coaching</div>
           <div class="chip" onclick="toggleChip(this)">Emotional Support</div>
           <div class="chip" onclick="toggleChip(this)">Accompaniment</div>
-          <div class="chip" onclick="toggleChip(this)">Psychoeducation</div>
+          <div class="chip" onclick="toggleChip(this)">Information Sharing</div>
           <div class="chip" onclick="toggleChip(this)">Goal Setting</div>
           <div class="chip" onclick="toggleChip(this)">Motivational Support</div>
         </div>
@@ -556,7 +576,7 @@ select{cursor:pointer;}
       <div class="field">
         <label class="field-label">Session Narrative <span class="required-star">*</span></label>
         <div class="field-hint">Describe how the session developed — what Peer shared, how they responded, what was worked on. Include any significant life changes or events since the last contact (new job, housing change, health event, etc.) if relevant. If you accompanied the client somewhere or attended a support group, describe the peer support work that occurred, not just where you went.</div>
-        <textarea id="sessionFlow" placeholder="e.g. Peer expressed frustration with delays on the housing application but remained engaged throughout the session. Explored coping strategies for managing stress during this transition. Peer identified walking as a tool they felt confident using and discussed barriers to consistency..." rows="5" oninput="updateCharCounter('sessionFlow','sessionFlowCounter',40)"></textarea>
+        <textarea id="sessionFlow" placeholder="e.g. Peer expressed frustration with delays on the housing application but remained engaged throughout the session. Explored coping strategies for managing stress during this transition. Peer identified walking as a tool they felt confident using and discussed barriers to consistency..." rows="5" oninput="updateCharCounter('sessionFlow','sessionFlowCounter',80)"></textarea>
         <div class="char-counter" id="sessionFlowCounter"></div>
       </div>
       <div class="field">
@@ -616,23 +636,23 @@ select{cursor:pointer;}
         <input type="date" id="nextApptTimeframe"/>
       </div>
       <div class="field">
-        <label class="field-label">Does this session suggest a need to modify the ITP/goal? <span class="required-star">*</span></label>
-        <div class="field-hint">Most sessions will be "No." Only select "Yes" if you think the treatment plan or goal itself needs to be revisited.</div>
+        <label class="field-label">Do New Goals Need to Be Added at the Next Treatment Plan Update? <span class="required-star">*</span></label>
+        <div class="field-hint">Most sessions will be "No." Select "Yes" only if you noticed something this session suggesting Peer's needs have grown beyond the current plan.</div>
         <div class="toggle-options" style="display:flex;gap:10px;">
           <button type="button" class="toggle-btn" id="itpModYes" onclick="setItpMod(true)">Yes</button>
           <button type="button" class="toggle-btn" id="itpModNo" onclick="setItpMod(false)">No</button>
         </div>
       </div>
       <div class="field" id="itpModDetailField" style="display:none;">
-        <label class="field-label">Describe the recommended ITP modification <span class="required-star">*</span></label>
-        <div class="field-hint">This flags the note for director/clinical review as a separate Remarks section — it does not modify Pimsy directly.</div>
-                <textarea id="itpModDetail" placeholder="e.g. Recommend adding a housing-stability objective given recurring barriers over the last three sessions" rows="2" oninput="updateCharCounter('itpModDetail','itpModDetailCounter',20)"></textarea>
+        <label class="field-label">Briefly describe what you observed <span class="required-star">*</span></label>
+        <div class="field-hint">Describe the pattern or barrier factually &mdash; not a recommended change. This flags the note for supervisor/clinical review as a separate section below; it does not modify Pimsy directly and does not require or imply that the plan will change.</div>
+                <textarea id="itpModDetail" placeholder="e.g. Peer has raised housing instability as a barrier in each of the last three sessions" rows="2" oninput="updateCharCounter('itpModDetail','itpModDetailCounter',20)"></textarea>
         <div class="char-counter" id="itpModDetailCounter"></div>
       </div>
       <div class="field">
         <label class="field-label">Next Steps &amp; Follow-Up <span class="required-star">*</span></label>
         <div class="field-hint">What happens next? Include referrals, tasks Peer agreed to, or areas to continue. Be specific enough that another Peer Supporter could pick up this case.</div>
-        <textarea id="planNextSteps" placeholder="e.g. Peer agreed to contact the benefits office before next session and will bring documentation to the next appointment. PRS will follow up on application status and continue exploring coping strategies aligned with Peer's treatment plan goals..." rows="4" oninput="updateCharCounter('planNextSteps','planNextStepsCounter',40)"></textarea>
+        <textarea id="planNextSteps" placeholder="e.g. Peer agreed to contact the benefits office before next session and will bring documentation to the next appointment. PRS will follow up on application status and continue exploring coping strategies aligned with Peer's treatment plan goals..." rows="4" oninput="updateCharCounter('planNextSteps','planNextStepsCounter',25)"></textarea>
         <div class="char-counter" id="planNextStepsCounter"></div>
       </div>
     </div>
@@ -684,6 +704,8 @@ select{cursor:pointer;}
             <option value="Incorrect session information">Incorrect session information</option>
             <option value="Missing or incorrect billing information">Missing or incorrect billing information</option>
             <option value="Prohibited language used">Prohibited language used</option>
+            <option value="Documentation outside peer support scope">Documentation outside peer support scope</option>
+            <option value="Reads as clinical/therapeutic rather than peer support">Reads as clinical/therapeutic rather than peer support</option>
             <option value="Supervisor correction required">Supervisor correction required</option>
             <option value="Other">Other</option>
           </select>
@@ -742,7 +764,7 @@ select{cursor:pointer;}
 
     <div class="output-card output-card-remarks" id="remarksOutputCard" style="display:none;">
       <div class="output-header output-header-remarks">
-        <h3>&#9888;&#65039; Remarks &mdash; Recommended ITP Modification</h3>
+        <h3>&#9888;&#65039; Flagged for Clinical / Supervisor Review</h3>
         <button class="copy-btn" id="copyRemarksBtn" onclick="copySection('remarksOutput', this)" disabled style="opacity:0.4;cursor:not-allowed;">Copy</button>
       </div>
       <div class="output-body" id="remarksOutput" contenteditable="true"></div>
@@ -795,7 +817,7 @@ select{cursor:pointer;}
       <div style="background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:12px 14px;margin-bottom:18px;">
         <div style="display:flex;align-items:flex-start;gap:9px;">
           <input type="checkbox" id="phiScreenAttest" onchange="phiScreenUpdate()" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;cursor:pointer;"/>
-          <label for="phiScreenAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;"><strong>I confirm</strong> that no Protected Health Information has been entered &mdash; no names, dates of birth, Social Security numbers, addresses, or other identifying information.</label>
+          <label for="phiScreenAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;"><strong>I confirm</strong> that no Protected Health Information has been entered &mdash; no names, dates of birth, Social Security numbers, addresses, or other identifying information, other than the Client Number field, which is not sent to the AI.</label>
         </div>
       </div>
       <div style="display:flex;gap:10px;">
@@ -808,6 +830,64 @@ select{cursor:pointer;}
 </div>
 
 <script>
+
+// ── ANALYTICS LOGGING (Supabase) ──
+// Fill in your Supabase project URL and anon key below. The anon key should only
+// have INSERT permission on this table (row-level security) — no SELECT/UPDATE/DELETE —
+// so this tool can write data but cannot read it back. Reads happen only through the
+// restricted analytics hub, using a separate service-role connection.
+const SUPABASE_URL = 'https://fussjixekyhwuromauff.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1c3NqaXhla3lod3Vyb21hdWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjMzNzYsImV4cCI6MjA5ODI5OTM3Nn0.3yfRu5LMDlIasvc0cu_GOcXAquji6ZYUkp3dgxk1j2M';
+const SUPABASE_TABLE = 'dap_note_analytics';
+
+async function logNoteAnalytics(payload) {
+  // Analytics logging must never block or interrupt the note-generation workflow.
+  // Any failure here is swallowed silently in the UI — staff should never see or be
+  // delayed by this. Console logging below is for verification only (dev tools / F12);
+  // it never surfaces as an alert, banner, or anything visible in the normal UI.
+  if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') return;
+  try {
+    var response = await fetch(SUPABASE_URL + '/rest/v1/' + SUPABASE_TABLE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (response.ok) {
+      console.log('[DAP analytics] logged successfully', payload);
+    } else {
+      var errText = await response.text().catch(function(){ return '(no response body)'; });
+      console.warn('[DAP analytics] insert failed \u2014 status ' + response.status + ': ' + errText, payload);
+    }
+  } catch (e) {
+    console.warn('[DAP analytics] request failed \u2014 ' + e.message, payload);
+  }
+}
+
+function getSelectedOptionText(selectId) {
+  var el = document.getElementById(selectId);
+  if (!el || el.selectedIndex < 0) return null;
+  return el.options[el.selectedIndex].textContent.trim();
+}
+
+// Recovery Context is derived automatically rather than staff-entered. This is
+// intentionally backend-only logic — it never appears as a question in the form.
+// It looks at which topics were covered this session and gives the model enough
+// signal to implicitly ground medical necessity, without staff having to type
+// anything separate or the note ever stating it overtly.
+function deriveRecoveryContext(topicChips) {
+  var mhSuTopics = topicChips.filter(function(t) {
+    return t === 'Mental Health' || t === 'Substance Use / Recovery';
+  });
+  if (mhSuTopics.length > 0) {
+    return 'This session directly touched on: ' + mhSuTopics.join(' and ') + '.';
+  }
+  return 'No Mental Health or Substance Use topic was explicitly selected this session \u2014 ground medical necessity in the broader recovery context implied by the treatment goal and the topics actually covered (e.g., housing, employment, social support) as factors affecting the Peer\'s recovery, without an explicit MH/SU statement.';
+}
 
 // ── PHI SCANNER ──
 function scanForPHI() {
@@ -947,7 +1027,6 @@ function proceedFromPhiScreen() {
 }
 
 var concernActive = null;
-var itpModActive = null;
 
 function setConcern(val) {
   concernActive = val;
@@ -956,11 +1035,17 @@ function setConcern(val) {
   document.getElementById('concernBlock').className = 'conditional-block' + (val ? ' visible' : '');
 }
 
+var itpModActive = null;
+
 function setItpMod(val) {
   itpModActive = val;
   document.getElementById('itpModYes').className = 'toggle-btn' + (val ? ' active-yes' : '');
   document.getElementById('itpModNo').className = 'toggle-btn' + (!val ? ' active-no' : '');
   document.getElementById('itpModDetailField').style.display = val ? 'block' : 'none';
+}
+
+function isGoalReviewFlagged() {
+  return itpModActive === true;
 }
 
 function goalProgressNeedsDetail() {
@@ -1010,8 +1095,10 @@ function handleSessionType() {
   var type = document.getElementById('sessionType').value;
   var locField = document.getElementById('locationField');
   var telehealthFields = document.getElementById('telehealthFields');
+  var otherContactField = document.getElementById('otherContactField');
   locField.style.display = 'none';
   telehealthFields.style.display = 'none';
+  otherContactField.style.display = 'none';
   document.querySelectorAll('input[name="telehealthModality"]').forEach(function(r){ r.checked = false; });
   document.getElementById('modalityPhoneLabel').style.borderColor = '#dde0f0';
   document.getElementById('modalityPhoneLabel').style.background = '#fafbff';
@@ -1022,6 +1109,8 @@ function handleSessionType() {
     document.getElementById('locationLabel').textContent = 'Meeting Location';
   } else if (type === 'Telehealth') {
     telehealthFields.style.display = 'block';
+  } else if (type === 'Other') {
+    otherContactField.style.display = 'block';
   }
 }
 
@@ -1040,6 +1129,8 @@ var LINKAGE_TITLES = {
   U9: 'U9 — Remains Engaged in MH Treatment (90-Day)',
   G: 'G-Code — Resource Referral'
 };
+
+var LINKAGE_SYSTEM_PROMPT = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate a DAP-format progress note for a BH Linkage contact documented under Ohio Medicaid U-code / G-code billing rules (OAC 5122-27-04, 5160-27-14).\n\nTHIS IS A PEER SUPPORT / LINKAGE NOTE — NOT A CLINICAL NOTE. Use peer support values and language throughout: lived experience, mutuality, hope, self-determination. Never use clinical, diagnostic, or treatment terminology outside PRS scope.\n\nSCOPE OF PRACTICE — PEER SUPPORT VS. CLINICAL (CRITICAL — this is a leading cause of claim denials): Peer Recovery Supporters are not clinicians. Every activity documented must describe peer support activity, never clinical or therapeutic treatment. This is about the substance of what is described, not just which words appear — avoiding a banned word while still describing a clinical activity is still out of scope. Do NOT describe PRS as: processing trauma therapeutically, challenging or restructuring the member\'s thoughts, administering or interpreting a clinical assessment, delivering formal psychoeducation content, teaching a specific therapeutic technique or modality, diagnosing or assessing symptoms, or creating/implementing a treatment plan. If what happened sounds clinical, describe only the peer support framing of it (listening, validating, sharing lived experience, connecting to resources).\n\nFORMAT: Output exactly three sections, each header on its own line in normal sentence case, followed by a paragraph (no bullet points): Description, Assessment, Plan. No preamble, no closing remarks.\n\nTERMINOLOGY — MANDATORY:\n- Refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS."\n- Refer to the person receiving services as "Peer" — never "the client," "the consumer," "the patient."\n- Third-person past tense throughout. Never first person (I, me, my, we). Never present tense for session events.\n\nDESCRIPTION SECTION: Open by stating the specific linkage milestone/contact type this note documents (e.g., initial connection, successful initiation, outreach attempt, follow-up, attestation) using the facts provided below. Then describe what occurred during the contact — outreach method, referrals given, dates, and any relevant context — in full peer-support narrative form, not a bare data dump.\n\nASSESSMENT SECTION: Open with an explicit statement of whether the Medicaid linkage benchmark for this code was met (e.g., successful engagement within 7 days, sustained treatment adherence within 60/90 days) — this is the core regulatory and billing-support requirement. If member response/engagement detail is provided, ground the assessment in that specific detail rather than generic engagement language. Note any barriers, Peer response, or engagement level observed.\n\nPLAN SECTION: State the next step in the linkage pathway — next outreach attempt, next follow-up window, or case status — specific enough that another PRS could pick up the case. If a next step/case status detail is provided, use it directly as the basis for this section rather than inventing a generic next step.\n\nPROHIBITED LANGUAGE: Never use "goal met/not met," "transported/drove/picked up," "clinical," "clinician," "diagnosis," "intervention," "psychoeducation" (use "recovery education/support"), "motivational interviewing" (use "motivational support"), "emotional regulation techniques" (use "recovery coping skills"), "mindfulness instruction" (use "wellness strategies"), "teaching" (use "shared information," "explored," or "discussed"), or generic filler like "services were rendered" or "session was productive." Never use clinical technique phrases even without a banned word present, such as "processed trauma," "cognitive restructuring," "administered a [clinical tool]," or "implemented a treatment." Never use literary or AI-sounding phrasing such as "deepening integration" or "[X] functioning as a barrier." Never state raw session duration as a standalone fact outside its role in describing the contact.\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan with headers in normal sentence case. No commentary.';
 
 // Codes that need the shared "Member Response / Engagement" + "Next Step / Case Status" fields
 // to properly populate Assessment and Plan sections. U1/U2 are excluded (Jotform-only workflow).
@@ -1175,6 +1266,8 @@ function buildLinkageNarrative(code) {
   var sessionDate = document.getElementById('sessionDate').value;
   var missing = [];
   var narrative = '';
+
+  if (!document.getElementById('clientNumber').value.trim()) missing.push('Client Number');
 
   if (code === 'U1') {
     var u1Details = document.getElementById('u1Details').value.trim();
@@ -1332,8 +1425,6 @@ function buildLinkageNarrative(code) {
   return {narrative: narrative, engagement: engagement, planNext: planNext};
 }
 
-var LINKAGE_SYSTEM_PROMPT = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate a DAP-format progress note for a BH Linkage contact documented under Ohio Medicaid U-code / G-code billing rules (OAC 5122-27-04, 5160-27-14).\n\nTHIS IS A PEER SUPPORT / LINKAGE NOTE — NOT A CLINICAL NOTE. Use peer support values and language throughout: lived experience, mutuality, hope, self-determination. Never use clinical, diagnostic, or treatment terminology outside PRS scope.\n\nFORMAT: Output exactly three sections, each header on its own line in normal sentence case, followed by a paragraph (no bullet points): Description, Assessment, Plan. No preamble, no closing remarks.\n\nTERMINOLOGY — MANDATORY:\n- Refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS."\n- Refer to the person receiving services as "Peer" — never "the client," "the consumer," "the patient."\n- Third-person past tense throughout. Never first person (I, me, my, we). Never present tense for session events.\n\nDESCRIPTION SECTION: Open by stating the specific linkage milestone/contact type this note documents (e.g., initial connection, successful initiation, outreach attempt, follow-up, attestation) using the facts provided below. Then describe what occurred during the contact — outreach method, referrals given, dates, and any relevant context — in full peer-support narrative form, not a bare data dump.\n\nASSESSMENT SECTION: Open with an explicit statement of whether the Medicaid linkage benchmark for this code was met (e.g., successful engagement within 7 days, sustained treatment adherence within 60/90 days) — this is the core regulatory and billing-support requirement. If member response/engagement detail is provided, ground the assessment in that specific detail rather than generic engagement language. Note any barriers, Peer response, or engagement level observed.\n\nPLAN SECTION: State the next step in the linkage pathway — next outreach attempt, next follow-up window, or case status — specific enough that another PRS could pick up the case. If a next step/case status detail is provided, use it directly as the basis for this section rather than inventing a generic next step.\n\nPROHIBITED LANGUAGE: Never use "goal met/not met," "transported/drove/picked up," "clinical," "clinician," "diagnosis," "intervention," or generic filler like "services were rendered" or "session was productive." Never state raw session duration as a standalone fact outside its role in describing the contact.\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan with headers in normal sentence case. No commentary.';
-
 async function runGenerateLinkageNote(code) {
   var result = buildLinkageNarrative(code);
   var errorEl = document.getElementById('errorMsg');
@@ -1386,7 +1477,24 @@ async function runGenerateLinkageNote(code) {
     document.getElementById('planOutput').innerText = planText;
     document.getElementById('remarksOutputCard').style.display = 'none';
 
-    runQAChecks(descText, assessText, planText);
+    var linkageQaResult = runQAChecks(descText, assessText, planText);
+    logNoteAnalytics({
+      client_number: document.getElementById('clientNumber').value.trim(),
+      note_type: 'linkage',
+      program: 'BH Linkage',
+      linkage_code: code,
+      session_date: document.getElementById('sessionDate').value || null,
+      session_type: document.getElementById('sessionType').value || null,
+      topics: null,
+      support_type: null,
+      presentation: null,
+      stage_of_change: null,
+      goal_progress_status: null,
+      concern_flagged: null,
+      itp_flagged: null,
+      qa_pass_count: linkageQaResult ? linkageQaResult.passCount : null,
+      qa_fail_count: linkageQaResult ? linkageQaResult.failCount : null
+    });
 
     document.getElementById('loadingBlock').className = 'loading';
     document.getElementById('outputSection').className = 'output-section visible';
@@ -1507,7 +1615,7 @@ function runQAChecks(descText, assessText, planText) {
 
   // 2. Correct mode of service selected (In-Person or Telehealth)
   var sessionType = document.getElementById('sessionType').value;
-  check('Mode of service is selected (In-Person or Telehealth)', !!sessionType);
+  check('Mode of service is selected (In-Person, Telehealth, or Other)', !!sessionType);
 
   // 4. Session location documented
   var locationOk = false;
@@ -1516,6 +1624,8 @@ function runQAChecks(descText, assessText, planText) {
   } else if (sessionType === 'Telehealth') {
     var modality = document.querySelector('input[name="telehealthModality"]:checked');
     locationOk = !!modality;
+  } else if (sessionType === 'Other') {
+    locationOk = !!document.getElementById('otherContactDetail').value.trim();
   }
   check('Session location/modality is documented', locationOk);
 
@@ -1534,6 +1644,14 @@ function runQAChecks(descText, assessText, planText) {
     var goalProgressDetail = document.getElementById('goalProgressDetail').value.trim();
     var progressDetailOk = !!goalProgress && (!!goalProgressDetail || !goalProgressNeedsDetail());
     check('Progress toward the specific goal is documented on the form', progressDetailOk);
+
+
+
+    // Measurable progress marker check: looks for a concrete action/outcome verb near progress language,
+    // not just a status statement like "peer made progress."
+    var measurableMarkers = ['completed', 'attended', 'identified', 'contacted', 'scheduled', 'applied', 'enrolled', 'connected with', 'practiced', 'utilized', 'obtained', 'submitted', 'reached out', 'signed up', 'followed up'];
+    var hasMeasurableMarker = measurableMarkers.some(function(t){ return assessText.toLowerCase().indexOf(t) > -1; });
+    check('Progress described in Assessment includes a measurable action or outcome', hasMeasurableMarker);
   } else {
     // Linkage-specific equivalent: benchmark status must appear in Assessment
     var benchmarkTerms = ['engaged', 'linked', 'attended', 'adherence', 'sustained', 'attestation', 'benchmark'];
@@ -1562,12 +1680,23 @@ function runQAChecks(descText, assessText, planText) {
   check('Assessment reflects Recovery, Resilience, or Wellness', hasRecoveryLanguage);
 
   // 11. Note avoids clinical language / uses peer support terminology
-  var clinicalTerms = ['clinician', 'clinical', 'diagnosis', 'symptom management', 'therapeutic', 'treatment modality', 'intervention', 'this writer', 'the patient', 'the client'];
+  var clinicalTerms = ['clinician', 'clinical', 'diagnosis', 'symptom management', 'therapeutic', 'treatment modality', 'intervention', 'psychoeducation', 'motivational interviewing', 'emotional regulation technique', 'mindfulness instruction', 'this writer', 'the patient', 'the client'];
   var foundClinicalTerm = clinicalTerms.find(function(t){ return fullNoteText.indexOf(t) > -1; });
   check('Note avoids clinical language and uses peer support terminology', !foundClinicalTerm);
 
+  // 11b. Note avoids clinical/therapeutic scope-of-practice language (denial-reason-driven check)
+  // Catches phrases describing clinical techniques even when no single "banned word" is present.
+  var scopeCreepPhrases = ['processed trauma', 'trauma processing', 'cognitive distortion', 'cognitive restructuring', 'thought record', 'behavioral intervention', 'therapeutic technique', 'treatment intervention', 'clinical intervention', 'conducted therapy', 'provided therapy', 'administered a', 'symptom assessment', 'assessed symptoms', 'diagnostic impression', 'implemented a treatment', 'therapeutic alliance', 'exposure therapy', 'cognitive behavioral technique', 'dialectical behavior technique', 'challenged peer\'s thoughts', 'restructured peer\'s', 'explored thought patterns'];
+  var foundScopeCreep = scopeCreepPhrases.find(function(p){ return fullNoteText.indexOf(p) > -1; });
+  check('Note stays within peer support scope (no clinical/therapeutic intervention language)', !foundScopeCreep);
+
+  // 11c. Note avoids literary/AI-sounding phrasing (agency documentation review finding)
+  var literaryPhrases = ['deepening integration', 'functioning as a barrier'];
+  var foundLiteraryPhrase = literaryPhrases.find(function(p){ return fullNoteText.indexOf(p) > -1; });
+  check('Note avoids literary or AI-sounding phrasing', !foundLiteraryPhrase);
+
   // 12. Note is individualized, not generic/templated
-  var genericPhrases = ['support was provided', 'services were rendered', 'session was productive', 'peer was cooperative', 'peer was compliant', 'no issues reported', 'session was uneventful'];
+  var genericPhrases = ['support was provided', 'services were rendered', 'session was productive', 'peer was cooperative', 'peer was compliant', 'no issues reported', 'session was uneventful', 'relapse prevention was reviewed', 'discussed relapse prevention'];
   var foundGeneric = genericPhrases.find(function(p){ return fullNoteText.indexOf(p) > -1; });
   check('Note is individualized to the Peer, not generic', !foundGeneric);
 
@@ -1597,10 +1726,10 @@ function runQAChecks(descText, assessText, planText) {
     check('Safety concern includes documented provider response', !!providerResponse);
   }
 
-  // 18. If ITP modification recommended (standard notes only)
-  if (!isLinkage && itpModActive === true) {
+  // 18. If flagged for review (standard notes only)
+  if (!isLinkage && isGoalReviewFlagged()) {
     var itpDetail = document.getElementById('itpModDetail').value.trim();
-    check('Recommended ITP modification includes a description', !!itpDetail);
+    check('Flagged review note includes a description of what was observed', !!itpDetail);
   }
 
   // Render results
@@ -1633,6 +1762,7 @@ function runQAChecks(descText, assessText, planText) {
     gateMsg.textContent = '';
   }
   toggleCopyButtons();
+  return { failCount: failCount, passCount: results.length - failCount, totalChecks: results.length };
 }
 
 function rerunQAChecks() {
@@ -1667,7 +1797,7 @@ function copyAll() {
   var p = document.getElementById('planOutput').innerText;
   var full = 'DESCRIPTION\n\n' + d + '\n\nASSESSMENT\n\n' + a + '\n\nPLAN\n\n' + p;
   if (document.getElementById('remarksOutputCard').style.display !== 'none') {
-    full += '\n\nREMARKS — RECOMMENDED ITP MODIFICATION\n\n' + document.getElementById('remarksOutput').innerText;
+    full += '\n\nFLAGGED FOR CLINICAL / SUPERVISOR REVIEW\n\n' + document.getElementById('remarksOutput').innerText;
   }
   navigator.clipboard.writeText(full).then(function(){
     var btn = document.querySelector('.copy-all-btn');
@@ -1696,6 +1826,7 @@ function resetForm() {
   if (kb) kb.remove();
   document.getElementById('locationField').style.display = 'none';
   document.getElementById('telehealthFields').style.display = 'none';
+  document.getElementById('otherContactField').style.display = 'none';
   concernActive = null;
   document.getElementById('toggleYes').className = 'toggle-btn';
   document.getElementById('toggleNo').className = 'toggle-btn';
@@ -1709,9 +1840,9 @@ function resetForm() {
   document.getElementById('goalProgressDetailStar').style.display = 'none';
   document.getElementById('goalProgressDetailOptionalTag').style.display = 'inline';
   document.getElementById('goalProgressDetailHint').textContent = 'Only required for "Difficulty / setback" or "Too early to assess." For progress made or maintained, feel free to leave this blank — your Session Narrative in the next section can carry the supporting detail.';
-  updateCharCounter('sessionFlow', 'sessionFlowCounter', 40);
+  updateCharCounter('sessionFlow', 'sessionFlowCounter', 80);
   updateCharCounter('goalsAddressed', 'goalsAddressedCounter', 30);
-  updateCharCounter('planNextSteps', 'planNextStepsCounter', 40);
+  updateCharCounter('planNextSteps', 'planNextStepsCounter', 25);
   updateCharCounter('concernDescription', 'concernDescriptionCounter', 30);
   updateCharCounter('providerResponse', 'providerResponseCounter', 30);
   updateCharCounter('itpModDetail', 'itpModDetailCounter', 20);
@@ -1820,12 +1951,14 @@ async function runGenerateNote() {
   var nextApptTimeframe = document.getElementById('nextApptTimeframe').value;
   var planNextSteps = document.getElementById('planNextSteps').value.trim();
 
-  var MIN_NARRATIVE = 40; // Session Narrative, Next Steps — main narrative fields
+  var MIN_SESSION_NARRATIVE = 80; // Session Narrative — main narrative field, raised to force real detail
+  var MIN_NEXT_STEPS = 25;        // Next Steps
   var MIN_SAFETY = 30;    // Concerning Behavior Description, Provider Response
   var MIN_SHORT = 20;     // Progress Detail, ITP Modification Detail — short supporting fields
   var MIN_GOAL = 30;      // Treatment Plan Goals Worked On — roughly one full sentence
 
   var missing = [];
+  if (!document.getElementById('clientNumber').value.trim()) missing.push('Client Number');
   if (!sessionDate) missing.push('Session Date');
   if (!program) missing.push('Program');
   if (!sessionLength) missing.push('Session Length');
@@ -1833,6 +1966,9 @@ async function runGenerateNote() {
   if (sessionType === 'Telehealth') {
     var modality = document.querySelector('input[name="telehealthModality"]:checked');
     if (!modality) missing.push('Telehealth Modality (Phone or Video)');
+  } else if (sessionType === 'Other') {
+    var otherContactDetailVal = document.getElementById('otherContactDetail').value.trim();
+    if (!otherContactDetailVal) missing.push('Describe Contact Method');
   }
   if (!goals) missing.push('Goals Addressed');
   else if (goals.length < MIN_GOAL) missing.push('Goals Addressed (needs more detail — at least ' + MIN_GOAL + ' characters, roughly one full sentence)');
@@ -1845,17 +1981,18 @@ async function runGenerateNote() {
   if (!stageOfChange) missing.push('Stage of Change');
   if (topicChips.length === 0) missing.push('Topics Covered');
   if (supportTypeChips.length === 0) missing.push('Type of Peer Support Provided');
+
   if (!sessionFlow) missing.push('Session Narrative');
-  else if (sessionFlow.length < MIN_NARRATIVE) missing.push('Session Narrative (needs more detail — at least ' + MIN_NARRATIVE + ' characters)');
+  else if (sessionFlow.length < MIN_SESSION_NARRATIVE) missing.push('Session Narrative (needs more detail — at least ' + MIN_SESSION_NARRATIVE + ' characters)');
   if (!nextApptTimeframe) missing.push('Next Appointment Timeframe');
-  if (itpModActive === null) missing.push('ITP Modification Recommendation (Yes/No)');
-  if (itpModActive) {
+  if (itpModActive === null) missing.push('New Goals Needed (Yes/No)');
+  if (isGoalReviewFlagged()) {
     var itpDetailVal = document.getElementById('itpModDetail').value.trim();
     if (!itpDetailVal) missing.push('ITP Modification Detail');
     else if (itpDetailVal.length < MIN_SHORT) missing.push('ITP Modification Detail (needs a bit more detail — at least ' + MIN_SHORT + ' characters)');
   }
   if (!planNextSteps) missing.push('Next Steps');
-  else if (planNextSteps.length < MIN_NARRATIVE) missing.push('Next Steps (needs more detail — at least ' + MIN_NARRATIVE + ' characters)');
+  else if (planNextSteps.length < MIN_NEXT_STEPS) missing.push('Next Steps (needs more detail — at least ' + MIN_NEXT_STEPS + ' characters)');
   if (concernActive === null) missing.push('Concerning Behavior (Yes/No)');
   if (concernActive && concernTypeChips.length === 0) missing.push('Type of Concern');
   if (concernActive) {
@@ -1890,6 +2027,9 @@ async function runGenerateNote() {
     if (modality) locationLine += '\nTelehealth modality: ' + modality.value;
     if (provLoc) locationLine += '\nProvider location: ' + provLoc;
     if (cliLoc) locationLine += '\nClient location: ' + cliLoc;
+  } else if (sessionType === 'Other') {
+    var otherDetail = document.getElementById('otherContactDetail').value.trim();
+    if (otherDetail) locationLine = '\nContact method: ' + otherDetail;
   }
   var quoteLine = clientQuote ? ('\nCLIENT DIRECT QUOTE: "' + clientQuote + '"') : '';
 
@@ -1906,6 +2046,7 @@ async function runGenerateNote() {
     + 'STAGE OF CHANGE: ' + stageOfChange + '\n\n'
     + 'TOPICS COVERED THIS SESSION: ' + topicChips.join(', ') + '\n\n'
     + 'TYPE OF PEER SUPPORT PROVIDED: ' + supportTypeChips.join(', ') + '\n\n'
+    + 'RECOVERY CONTEXT THIS SESSION (derived automatically from topics covered — weave in implicitly, do not state overtly):\n' + deriveRecoveryContext(topicChips) + '\n\n'
     + 'SESSION NARRATIVE:\n' + sessionFlow + '\n'
     + quoteLine + '\n\n'
     + concernSection + '\n\n'
@@ -1913,7 +2054,7 @@ async function runGenerateNote() {
     + 'NEXT STEPS AND FOLLOW-UP:\n' + planNextSteps + '\n\n'
     + 'Format the output with three clearly labeled sections, in normal sentence case (not all capital letters): Description, Assessment, Plan. Output the three sections only — no preamble or closing remarks.';
 
-  var systemPrompt = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate DAP progress notes for Peer Recovery Supporters (PRS) that are compliant with CARF standards, ODBH requirements, OhioMHAS guidelines, and Ohio Medicaid billing documentation standards.\n\nTHIS IS A PEER SUPPORT NOTE — NOT A CLINICAL NOTE. The language, tone, and framing must reflect peer support values: lived experience, mutuality, hope, and self-determination. Do not use clinical assessment language, diagnostic framing, or treatment terminology that falls outside the PRS scope of practice.\n\nFORMAT: Each section header must appear on its own line, exactly as written, in normal sentence case with no extra text on the same line: Description, Assessment, Plan. Do not write section headers in all capital letters. Each header is immediately followed by a line break, then the paragraph content. Write narrative content in paragraph format — no bullet points. Section order: Description then Assessment then Plan. Do not combine sections.\n\nNOTE LENGTH: Session length is provided as context to calibrate how much detail the note should contain — a longer session warrants a fuller note, a brief contact warrants a shorter one. Use it only to judge depth and thoroughness. Never state the session length, duration, or time range anywhere in the note text itself (e.g., do not write "during this one-to-two-hour session" or similar) — duration is recorded separately in Pimsy. Write enough to fully document what occurred and justify the service billed, but do not pad.\n\nVOICE AND TENSE: Write exclusively in third-person past tense throughout. Never use present tense for session events. Never use first person: no I, me, my, or we.\n\nTERMINOLOGY — MANDATORY:\n- Always refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS" for all subsequent references in the note.\n- Always refer to the person receiving services as "Peer" — never "the client," "the consumer," or "the patient."\n- Correct examples: "Peer Recovery Supporter explored..." / "Peer expressed..." / "PRS assisted Peer in identifying..." / "Peer shared that..."\n- Never use: "clinician," "clinical," "This writer," "the worker," "staff," "provider," or "therapist."\n\nUse peer support action language: Peer Recovery Supporter / PRS explored / encouraged / assisted Peer with / validated / shared lived experience / advocated for / accompanied Peer to / walked alongside Peer in.\n\nPERSON-FIRST LANGUAGE: Use "Peer" not "the addict." Use "Peer expressed feelings of anxiety" not "Peer is anxious." Strengths-based, recovery-oriented framing throughout.\n\nTENETS OF PEER SUPPORT — WEAVE THESE IN NATURALLY:\n1. LIVED EXPERIENCE: When relevant, document that PRS drew upon personal lived experience to inspire hope, normalize the Peer\'s experience, or model recovery. Keep it natural — not formulaic.\n2. FOSTERING INDEPENDENCE: Document how the interaction built the Peer\'s own capacity and self-determination. The note should show what the Peer was supported to do FOR THEMSELVES — not what the PRS did FOR the Peer. What did the Peer leave with — skills, tools, ideas, confidence, a plan they made?\n3. MUTUALITY: Reflect a peer-to-peer connection, not a provider-patient dynamic.\n4. HOPE: Reflect that the interaction offered hope and reinforced that recovery is self-determined and possible.\n\nSDOH AND BASIC NEEDS — CONNECT TO RECOVERY: When housing, benefits, employment, food, legal matters, or other basic needs are addressed, the note must connect that work to recovery. Never document SDOH as a standalone errand. State what the need was, what was done, and how addressing it directly supports the Peer\'s recovery. WRONG: "PRS assisted Peer in completing a housing application." RIGHT: "PRS assisted Peer in completing a housing application, recognizing that housing instability has been a significant barrier to Peer\'s sustained recovery and a source of ongoing stress that has impacted Peer\'s wellbeing."\n\nTRANSPORTATION AND ACCOMPANIMENT: Transportation is never the service. Never write: transported / drove / picked up / gave a ride / in the car / during the drive. If accompaniment occurred, state it briefly as context, then immediately describe the peer support work that happened.\n\nSUPPORT GROUP ATTENDANCE: The meeting is never the service. Document the peer support work that occurred before, during, or after — what PRS explored, validated, or built upon with the Peer around the experience.\n\nINDIVIDUALIZATION: This note must be specific to this Peer and this session. It should not be interchangeable with another chart. Reflect the Peer\'s specific situation, strengths, and what was actually discussed. If a direct quote was provided, it must appear in the Description section.\n\nDESCRIPTION SECTION: Begin this section by directly referencing the identified treatment plan goal, using the goal language provided — this must be the very first content in the section, before any other detail (before session setting, presentation, or narrative). After that, describe what happened in the session — how it opened, what topics were covered, how the Peer presented and engaged, what was shared, what peer support was provided, and how the session developed. Integrate any direct quote naturally. If the session occurred in a specific setting or involved accompaniment, note it briefly then focus on the peer support work. This section answers: what did the PRS and Peer do together, in service of that goal?\n\nASSESSMENT SECTION: Begin the Assessment section with an explicit statement of the Peer\'s progress, lack of progress, or setback toward the specific named goal this session, using the Progress Toward Goal input as the basis — this is the core regulatory requirement (OAC 5122-27-04 / 5160-27-14) and must not be skipped or softened into generic strengths language. If a separate supporting detail was provided, use it directly. If no separate detail was provided, ground the progress statement in specific, concrete facts drawn from the Session Narrative rather than restating the status generically. If the Session Narrative mentions any significant life change or event since the last contact (e.g. new job, housing change, health event, relationship change), note it briefly immediately after the progress statement. Then reference Stage of Change and explain what it means for where the Peer is in their recovery journey. Note observable signs of progress, engagement, or areas that continue to need support. This section answers: how is the Peer doing relative to their goals, and what does that mean?\n\nPLAN SECTION: State what happens next, tied back to the same goal named in Description — do not introduce a different or new goal that has not been reflected in the ITP. Use the exact treatment plan goal language provided. Include any tasks the Peer agreed to, referrals made, or follow-up the PRS will complete. Reference the next appointment date provided — state it as a single sentence (e.g., PRS and Peer are scheduled to meet on [date].). Be specific enough that another PRS could pick up the case.\n\nMEDICAL NECESSITY: The note must demonstrate that the service was necessary, individualized to this Peer\'s needs and goals, and that the Peer\'s response to the support was documented.\n\nCOMPLETE PROHIBITED LANGUAGE — NEVER USE:\nGeneric filler: "Support was provided" / "Services were rendered" / "The session went well" / "Session was productive" / "Peer was cooperative" / "Peer was compliant" / "Peer was receptive" / "No issues reported" / "Session was uneventful" / "Worked on recovery" / "Discussed recovery" / "Interventions were used" / "Techniques were applied" / "Progress was made" / "Peer is doing well" / "PRS checked in with Peer" / "PRS met with Peer to provide support"\nClinical/scope terms: "clinical" / "clinician" / "diagnosis" / "symptom management" / "therapeutic" / "treatment modality" / "intervention" / "psychoeducation" (use "PRS shared information about..." instead)\nTransportation: "transported" / "drove" / "driving" / "picked up" / "dropped off" / "gave a ride" / "in the car" / "during the drive" / "on the way to"\nGoal status: "goal met" / "goal not met" / "goal was achieved" / "goal was completed" — describe what was actively worked on instead\nFirst person: I / me / my / we\nPresent tense for session events\nStated session duration or time range anywhere in the note text\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan sections with their headers in normal sentence case (not all capital letters). No preamble. No closing remarks. No commentary.';
+  var systemPrompt = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate DAP progress notes for Peer Recovery Supporters (PRS) that are compliant with CARF standards, ODBH requirements, OhioMHAS guidelines, and Ohio Medicaid billing documentation standards.\n\nTHIS IS A PEER SUPPORT NOTE — NOT A CLINICAL NOTE. The language, tone, and framing must reflect peer support values: lived experience, mutuality, hope, and self-determination. Do not use clinical assessment language, diagnostic framing, or treatment terminology that falls outside the PRS scope of practice.\n\nSCOPE OF PRACTICE — PEER SUPPORT VS. CLINICAL (CRITICAL — this is a leading cause of claim denials): Peer Recovery Supporters are not clinicians. Every activity documented in this note must describe peer support activity — grounded in lived experience, mutual relationship, and self-determination — never clinical or therapeutic treatment. This is about the substance of what is described, not just which words appear; avoiding a banned word while still describing a clinical activity is still out of scope and still a denial risk. Do NOT describe PRS as: processing trauma or difficult past experiences in a therapeutic sense, challenging or restructuring the Peer\'s thoughts or beliefs, administering or interpreting any clinical assessment or symptom inventory, delivering formal psychoeducation content, teaching or implementing a specific therapeutic technique or modality (e.g., CBT, DBT, motivational interviewing as a clinical intervention), diagnosing or assessing symptoms, or creating or implementing a treatment plan. These are outside PRS scope no matter how they are phrased.\n\nCONTRASTIVE EXAMPLES — SCOPE OF PRACTICE:\nWRONG (clinical/out of scope): "PRS processed Peer\'s trauma related to childhood experiences." RIGHT (peer support): "PRS listened as Peer shared about a difficult past experience and offered support and validation."\nWRONG: "PRS provided psychoeducation on the neurobiology of addiction." RIGHT: "PRS shared information about how addiction can affect the brain and body, drawing on personal lived experience to normalize Peer\'s experience."\nWRONG: "PRS challenged Peer\'s cognitive distortions about their self-worth." RIGHT: "PRS validated Peer\'s feelings and shared a different perspective from personal recovery experience."\nWRONG: "PRS implemented a relapse prevention intervention." RIGHT: "PRS helped Peer identify personal warning signs and connected Peer with additional recovery resources."\nWRONG: "PRS assessed Peer\'s symptoms of depression." RIGHT: "PRS noticed Peer seemed low in mood and checked in about how Peer was doing."\nIf what actually happened in the session sounds like the clinical column above, describe only the peer support framing of it (listening, validating, sharing lived experience, connecting to resources) — do not describe the clinical-sounding version even if that reads as a more literal description of the input.\n\nFORMAT: Each section header must appear on its own line, exactly as written, in normal sentence case with no extra text on the same line: Description, Assessment, Plan. Do not write section headers in all capital letters. Each header is immediately followed by a line break, then the paragraph content. Write narrative content in paragraph format — no bullet points. Section order: Description then Assessment then Plan. Do not combine sections.\n\nNOTE LENGTH: Session length is provided as context to calibrate how much detail the note should contain — a longer session warrants a fuller note, a brief contact warrants a shorter one. Use it only to judge depth and thoroughness. Never state the session length, duration, or time range anywhere in the note text itself (e.g., do not write "during this one-to-two-hour session" or similar) — duration is recorded separately in Pimsy. Write enough to fully document what occurred and justify the service billed, but do not pad.\n\nVOICE AND TENSE: Write exclusively in third-person past tense throughout. Never use present tense for session events. Never use first person: no I, me, my, or we.\n\nTERMINOLOGY — MANDATORY:\n- Always refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS" for all subsequent references in the note.\n- Always refer to the person receiving services as "Peer" — never "the client," "the consumer," or "the patient."\n- Correct examples: "Peer Recovery Supporter explored..." / "Peer expressed..." / "PRS assisted Peer in identifying..." / "Peer shared that..."\n- Never use: "clinician," "clinical," "This writer," "the worker," "staff," "provider," or "therapist."\n\nUse peer support action language: Peer Recovery Supporter / PRS explored / encouraged / assisted Peer with / validated / shared lived experience / advocated for / accompanied Peer to / walked alongside Peer in.\n\nAVOID LITERARY OR AI-SOUNDING PHRASING: This note must sound like a peer support worker wrote it, not like generated prose. Never use: "deepening integration," "thought patterns" (describe what Peer actually said instead), or constructions like "[X] functioning as a barrier" (write "X was a barrier" or "X made it harder for Peer to..." instead). If a sentence sounds like it belongs in a novel or a therapy textbook rather than a shift note, rewrite it in plainer, more direct language. Peer-centered phrases like "walked alongside Peer" or "accompanied Peer" are encouraged, not prohibited — they reflect peer support values and should be used naturally.\n\nPERSON-FIRST LANGUAGE: Use "Peer" not "the addict." Use "Peer expressed feelings of anxiety" not "Peer is anxious." Strengths-based, recovery-oriented framing throughout.\n\nAOC-APPROVED LANGUAGE SUBSTITUTIONS (MANDATORY — this table comes directly from an agency documentation review and reflects the terms that have caused real problems): Never write the term on the left; always use the term on the right instead.\nMotivational Interviewing → Motivational Support\nPsychoeducation → Recovery education/support\nTeaching → Shared information, explored, discussed\nEmotional regulation techniques → Recovery coping skills\nMindfulness instruction → Wellness strategies\nExplored thought patterns → "Peer discussed..." or "PRS supported Peer in recognizing..."\n\nTENETS OF PEER SUPPORT — WEAVE THESE IN NATURALLY:\n1. LIVED EXPERIENCE: When relevant, document that PRS drew upon personal lived experience to inspire hope, normalize the Peer\'s experience, or model recovery. Keep it natural — not formulaic.\n2. FOSTERING INDEPENDENCE: Document how the interaction built the Peer\'s own capacity and self-determination. The note should show what the Peer was supported to do FOR THEMSELVES — not what the PRS did FOR the Peer. What did the Peer leave with — skills, tools, ideas, confidence, a plan they made?\n3. MUTUALITY: Reflect a peer-to-peer connection, not a provider-patient dynamic.\n4. HOPE: Reflect that the interaction offered hope and reinforced that recovery is self-determined and possible.\n\nSDOH AND BASIC NEEDS — CONNECT TO RECOVERY: When housing, benefits, employment, food, legal matters, or other basic needs are addressed, the note must connect that work to recovery. Never document SDOH as a standalone errand. State what the need was, what was done, and how addressing it directly supports the Peer\'s recovery. WRONG: "PRS assisted Peer in completing a housing application." RIGHT: "PRS assisted Peer in completing a housing application, recognizing that housing instability has been a significant barrier to Peer\'s sustained recovery and a source of ongoing stress that has impacted Peer\'s wellbeing."\n\nTRANSPORTATION AND ACCOMPANIMENT: Transportation is never the service. Never write: transported / drove / picked up / gave a ride / in the car / during the drive. If accompaniment occurred, state it briefly as context, then immediately describe the peer support work that happened.\n\nMENTAL HEALTH TOPIC LINKAGE: If Mental Health is among the topics covered, do not let the note describe life stressors in isolation. Explicitly connect stressors discussed back to emotional wellness, recovery functioning, or the Peer\'s mental health goal — for example, "PRS supported the Peer in identifying how current stressors were impacting emotional wellness and recovery." A note that discusses stress, conflict, or life circumstances without linking them back to mental health functioning is incomplete.\n\nRELAPSE PREVENTION SPECIFICITY: Never write generic filler like "relapse prevention was reviewed" or "discussed relapse prevention" without saying what that actually involved. If relapse prevention came up, specify what was actually discussed, drawing on the Session Narrative — e.g. specific triggers identified, coping strategies reviewed, recovery supports strengthened, high-risk situations explored, or a recovery plan developed. If the Session Narrative does not contain enough specific detail to do this, describe only what is actually known rather than inventing specifics.\n\nSUPPORT GROUP ATTENDANCE: The meeting is never the service. Document the peer support work that occurred before, during, or after — what PRS explored, validated, or built upon with the Peer around the experience.\n\nINDIVIDUALIZATION: This note must be specific to this Peer and this session. It should not be interchangeable with another chart. Reflect the Peer\'s specific situation, strengths, and what was actually discussed. If a direct quote was provided, it must appear in the Description section.\n\nDESCRIPTION SECTION: Begin this section by directly referencing the identified treatment plan goal, using the goal concept provided — it does not need to be verbatim or word-for-word, just the same underlying goal — this must be the very first content in the section, before any other detail (before session setting, presentation, or narrative). After that, describe what happened in the session — how it opened, what topics were covered, how the Peer presented and engaged, what was shared, what peer support was provided, and how the session developed. Integrate any direct quote naturally. If the session occurred in a specific setting or involved accompaniment, note it briefly then focus on the peer support work. This section answers: what did the PRS and Peer do together, in service of that goal — and everything described must stay within peer support scope of practice as defined above.\n\nASSESSMENT SECTION: Begin the Assessment section with an explicit statement of the Peer\'s progress, lack of progress, or setback toward the specific named goal this session, using the Progress Toward Goal input as the basis — this is the core regulatory requirement (OAC 5122-27-04 / 5160-27-14) and must not be skipped or softened into generic strengths language. Progress must be measurable, not just descriptive — tie it to an observable action, behavior, or outcome, not a vague characterization. WRONG: "Peer made progress." RIGHT: "Peer identified one housing option and agreed to contact the provider before the next session." Measurable markers include things like: completed an application, attended a meeting or appointment, identified a specific coping skill, contacted a provider or resource, moved to the next Stage of Change, practiced a specific skill discussed in a prior session. If a separate supporting detail was provided, use it directly. If no separate detail was provided, ground the progress statement in specific, concrete facts drawn from the Session Narrative rather than restating the status generically. If the Session Narrative mentions any significant life change or event since the last contact (e.g. new job, housing change, health event, relationship change), note it briefly immediately after the progress statement. Then reference Stage of Change and explain what it means for where the Peer is in their recovery journey, making sure the stage selected is actually consistent with the behaviors described elsewhere in the note — do not let the stage and the narrative contradict each other. Note observable signs of progress, engagement, or areas that continue to need support. This section answers: how is the Peer doing relative to their goals, and what does that mean, in concrete and measurable terms?\n\nPLAN SECTION: State what happens next — tasks the Peer agreed to, referrals made, or follow-up the PRS will complete. Plan does not need to stay limited to the same goal addressed in Description; Peer and PRS may reasonably plan to focus on a different goal or need at the next contact, and it is fine to reflect that here. If the same goal carries into the Plan, use the same goal concept provided — it does not need to be word-for-word. Reference the next appointment date provided — state it as a single sentence (e.g., PRS and Peer are scheduled to meet on [date].). Be specific enough that another PRS could pick up the case.\n\nMEDICAL NECESSITY: Do not write an overt, bolted-on medical necessity statement or checklist (e.g., never write something that reads like "Peer requires PRS support because..." as a standalone clinical justification). Medical necessity should be established implicitly, by naturally grounding the session\'s peer support work in the fact that it addresses challenges connected to the Peer\'s mental health and/or substance use recovery — not just general life circumstances. Use the Recovery Context input provided to inform this, but weave it into the Description or Assessment as part of the ordinary narrative, not as a separate declaration. A reader should come away understanding that this contact mattered because of an ongoing mental health or substance use recovery need — without the note ever sounding like a clinical assessment, diagnosis, or justification paragraph. There is a fine line between peer support and clinical language here: describe the human and recovery impact, never a diagnosis or clinical rationale.\n\nCOMPLETE PROHIBITED LANGUAGE — NEVER USE:\nGeneric filler: "Support was provided" / "Services were rendered" / "The session went well" / "Session was productive" / "Peer was cooperative" / "Peer was compliant" / "Peer was receptive" / "No issues reported" / "Session was uneventful" / "Worked on recovery" / "Discussed recovery" / "Interventions were used" / "Techniques were applied" / "Progress was made" / "Peer is doing well" / "PRS checked in with Peer" / "PRS met with Peer to provide support" / "Relapse prevention was reviewed" (without specifics)\nClinical/scope terms: "clinical" / "clinician" / "diagnosis" / "symptom management" / "therapeutic" / "treatment modality" / "intervention" / "psychoeducation" (use "recovery education/support" instead) / "motivational interviewing" (use "motivational support" instead) / "emotional regulation techniques" (use "recovery coping skills" instead) / "mindfulness instruction" (use "wellness strategies" instead) / "teaching" (use "shared information," "explored," or "discussed" instead)\nClinical technique phrases (even without a banned word present): "processed trauma" / "cognitive distortion" / "cognitive restructuring" / "thought record" / "behavioral intervention" / "therapeutic technique" / "treatment intervention" / "clinical intervention" / "conducted therapy" / "provided therapy" / "administered a [any clinical tool]" / "symptom assessment" / "assessed symptoms" / "diagnostic impression" / "implemented a treatment" / "explored thought patterns" (use "Peer discussed..." or "PRS supported Peer in recognizing..." instead)\nLiterary/AI-sounding phrasing: "deepening integration" / "[X] functioning as a barrier"\nTransportation: "transported" / "drove" / "driving" / "picked up" / "dropped off" / "gave a ride" / "in the car" / "during the drive" / "on the way to"\nGoal status: "goal met" / "goal not met" / "goal was achieved" / "goal was completed" — describe what was actively worked on instead\nFirst person: I / me / my / we\nPresent tense for session events\nStated session duration or time range anywhere in the note text\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan sections with their headers in normal sentence case (not all capital letters). No preamble. No closing remarks. No commentary.';
 
   document.getElementById('loadingBlock').className = 'loading visible';
   document.getElementById('outputSection').className = 'output-section';
@@ -1956,7 +2097,7 @@ async function runGenerateNote() {
     document.getElementById('planOutput').innerText = planText;
 
     var remarksCard = document.getElementById('remarksOutputCard');
-    if (itpModActive) {
+    if (isGoalReviewFlagged()) {
       document.getElementById('remarksOutput').innerText = document.getElementById('itpModDetail').value.trim();
       remarksCard.style.display = 'block';
     } else {
@@ -1964,7 +2105,24 @@ async function runGenerateNote() {
       remarksCard.style.display = 'none';
     }
 
-    runQAChecks(descText, assessText, planText);
+    var standardQaResult = runQAChecks(descText, assessText, planText);
+    logNoteAnalytics({
+      client_number: document.getElementById('clientNumber').value.trim(),
+      note_type: 'standard',
+      program: program,
+      linkage_code: null,
+      session_date: sessionDate || null,
+      session_type: sessionType || null,
+      topics: topicChips,
+      support_type: supportTypeChips,
+      presentation: chips,
+      stage_of_change: getSelectedOptionText('stageOfChange'),
+      goal_progress_status: getSelectedOptionText('goalProgress'),
+      concern_flagged: concernActive,
+      itp_flagged: isGoalReviewFlagged(),
+      qa_pass_count: standardQaResult ? standardQaResult.passCount : null,
+      qa_fail_count: standardQaResult ? standardQaResult.failCount : null
+    });
 
     document.getElementById('loadingBlock').className = 'loading';
     document.getElementById('outputSection').className = 'output-section visible';
@@ -1979,8 +2137,8 @@ async function runGenerateNote() {
 
 // Initialize character counters on page load
 updateCharCounter('goalsAddressed', 'goalsAddressedCounter', 30);
-updateCharCounter('sessionFlow', 'sessionFlowCounter', 40);
-updateCharCounter('planNextSteps', 'planNextStepsCounter', 40);
+updateCharCounter('sessionFlow', 'sessionFlowCounter', 80);
+updateCharCounter('planNextSteps', 'planNextStepsCounter', 25);
 updateCharCounter('concernDescription', 'concernDescriptionCounter', 30);
 updateCharCounter('providerResponse', 'providerResponseCounter', 30);
 updateCharCounter('itpModDetail', 'itpModDetailCounter', 20);
