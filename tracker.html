@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Flagged Notes Tracker — Thrive Peer Recovery Services</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a1a2e;min-height:100vh;}
+.header{background:#fff;border-bottom:4px solid #4B5EA6;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.header-text h1{font-size:18px;font-weight:700;color:#4B5EA6;}
+.header-text p{font-size:12px;color:#888;margin-top:2px;}
+.who{font-size:13px;color:#2d2d4e;text-align:right;}
+.who strong{color:#4B5EA6;}
+.signout-btn{background:none;border:1.5px solid #dde0f0;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:#666;cursor:pointer;margin-left:12px;}
+.signout-btn:hover{border-color:#E8417A;color:#E8417A;}
+.main{max-width:1100px;margin:32px auto;padding:0 20px 60px;}
+
+/* login */
+.login-wrap{max-width:400px;margin:80px auto;background:#fff;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.1);padding:32px;}
+.login-wrap h2{font-size:18px;font-weight:700;color:#4B5EA6;margin-bottom:6px;}
+.login-wrap p{font-size:13px;color:#888;margin-bottom:20px;line-height:1.5;}
+.login-wrap label{display:block;font-size:13px;font-weight:600;color:#2d2d4e;margin-bottom:6px;margin-top:14px;}
+.login-wrap input{width:100%;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;color:#1a1a2e;font-family:inherit;background:#fafbff;}
+.login-wrap input:focus{outline:none;border-color:#4B5EA6;background:#fff;}
+.login-btn{width:100%;margin-top:20px;padding:12px;background:#4B5EA6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;}
+.login-btn:hover{background:#3a4d8f;}
+.login-btn:disabled{background:#b0b8d8;cursor:not-allowed;}
+.login-error{margin-top:14px;font-size:13px;color:#8B1A1A;background:#FDECEA;border:1.5px solid #f5c6c6;border-radius:8px;padding:10px 12px;display:none;}
+.login-error.visible{display:block;}
+
+/* filters */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-tab{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid #dde0f0;background:#fff;color:#555;}
+.filter-tab.active{background:#4B5EA6;border-color:#4B5EA6;color:#fff;}
+.filter-spacer{flex:1;}
+.refresh-btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid #4B5EA6;background:#fff;color:#4B5EA6;}
+.refresh-btn:hover{background:#EEF1FB;}
+
+/* cards */
+.note-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:14px;overflow:hidden;border-left:5px solid #dde0f0;}
+.note-card.concern{border-left-color:#E8417A;}
+.note-card.itp{border-left-color:#F5C518;}
+.note-card.reviewed{opacity:0.6;}
+.note-top{padding:16px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.note-meta{font-size:13px;color:#2d2d4e;line-height:1.7;}
+.note-meta .client{font-weight:700;font-size:14px;color:#1a1a2e;}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;margin-right:6px;margin-top:4px;}
+.badge-concern{background:#FDECEA;color:#8B1A1A;}
+.badge-itp{background:#FFF8E6;color:#7A5200;}
+.badge-reviewed{background:#F0FAF2;color:#1A5A2A;}
+.concern-types{margin-top:6px;}
+.concern-types span{display:inline-block;background:#f4f5f7;color:#555;font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;margin-right:5px;margin-top:4px;}
+.note-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
+.mark-btn{padding:8px 18px;background:#4B5EA6;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.mark-btn:hover{background:#3a4d8f;}
+.mark-btn:disabled{background:#b0b8d8;cursor:not-allowed;}
+.reviewed-note{font-size:11px;color:#1A5A2A;text-align:right;}
+.empty-state{text-align:center;padding:60px 20px;color:#888;}
+.empty-state p{font-size:14px;}
+.loading-state{text-align:center;padding:40px;color:#4B5EA6;font-size:13px;}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ── SUPABASE CONFIG ──
+// Same project as dap-note.html, but the tracker authenticates as a logged-in
+// reviewer rather than using the anon insert-only key, so RLS scopes reads
+// and updates to what that reviewer is allowed to see.
+const SUPABASE_URL = 'https://fussjixekyhwuromauff.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1c3NqaXhla3lod3Vyb21hdWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjMzNzYsImV4cCI6MjA5ODI5OTM3Nn0.3yfRu5LMDlIasvc0cu_GOcXAquji6ZYUkp3dgxk1j2M';
+const TABLE = 'dap_note_analytics';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentReviewer = null; // { name, role, divisions }
+let currentFilter = 'unreviewed'; // 'unreviewed' | 'concern' | 'itp' | 'all'
+let allNotes = [];
+
+const app = document.getElementById('app');
+
+// ── RENDER: LOGIN ──
+function renderLogin(errorMsg) {
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-text">
+        <h1>Flagged Notes Tracker</h1>
+        <p>Thrive Peer Recovery Services &nbsp;&middot;&nbsp; Supervisor / Clinical Review</p>
+      </div>
+    </div>
+    <div class="login-wrap">
+      <h2>Sign In</h2>
+      <p>Access is restricted to clinical/community leadership and division directors. Contact Brandon if you need an account.</p>
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" placeholder="you@thrivepeerrecoveryservices.com"/>
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••"/>
+      <button class="login-btn" id="loginBtn">Sign In</button>
+      <div class="login-error ${errorMsg ? 'visible' : ''}" id="loginError">${errorMsg || ''}</div>
+    </div>
+  `;
+  document.getElementById('loginBtn').onclick = handleLogin;
+  document.getElementById('loginPassword').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') handleLogin();
+  });
+}
+
+async function handleLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+
+  var { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password });
+  if (error) {
+    renderLogin('Sign-in failed: ' + error.message);
+    return;
+  }
+
+  var reviewerLookup = await supabase.from('reviewers').select('name, role, divisions').eq('id', data.user.id).single();
+  if (reviewerLookup.error || !reviewerLookup.data) {
+    renderLogin('Signed in, but no reviewer profile is set up for this account yet. Contact Brandon to be added to the reviewers table.');
+    await supabase.auth.signOut();
+    return;
+  }
+
+  currentReviewer = reviewerLookup.data;
+  await loadAndRenderDashboard();
+}
+
+async function handleSignOut() {
+  await supabase.auth.signOut();
+  currentReviewer = null;
+  renderLogin();
+}
+
+// ── RENDER: DASHBOARD ──
+async function loadAndRenderDashboard() {
+  renderShell(true);
+  var { data, error } = await supabase
+    .from(TABLE)
+    .select('*')
+    .or('concern_flagged.eq.true,itp_flagged.eq.true')
+    .order('session_date', { ascending: false });
+
+  if (error) {
+    app.innerHTML += '<div class="main"><div class="empty-state"><p>Error loading notes: ' + error.message + '</p></div></div>';
+    return;
+  }
+
+  allNotes = data || [];
+  renderShell(false);
+}
+
+function renderShell(loading) {
+  var scopeLabel = currentReviewer.role === 'org_wide' ? 'All Divisions' : (currentReviewer.divisions || []).join(', ');
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-text">
+        <h1>Flagged Notes Tracker</h1>
+        <p>Thrive Peer Recovery Services &nbsp;&middot;&nbsp; Supervisor / Clinical Review</p>
+      </div>
+      <div class="who">
+        Signed in as <strong>${currentReviewer.name}</strong><br/>
+        <span style="font-size:11px;color:#888;">Scope: ${scopeLabel}</span>
+        <button class="signout-btn" id="signOutBtn">Sign Out</button>
+      </div>
+    </div>
+    <div class="main">
+      <div class="filter-bar">
+        <div class="filter-tab" data-filter="unreviewed">Needs Review</div>
+        <div class="filter-tab" data-filter="concern">Concern Flags</div>
+        <div class="filter-tab" data-filter="itp">ITP Flags</div>
+        <div class="filter-tab" data-filter="all">All (incl. Reviewed)</div>
+        <div class="filter-spacer"></div>
+        <button class="refresh-btn" id="refreshBtn">&#8635; Refresh</button>
+      </div>
+      <div id="notesList">${loading ? '<div class="loading-state">Loading flagged notes...</div>' : ''}</div>
+    </div>
+  `;
+  document.getElementById('signOutBtn').onclick = handleSignOut;
+  document.getElementById('refreshBtn').onclick = loadAndRenderDashboard;
+  document.querySelectorAll('.filter-tab').forEach(function(tab){
+    tab.onclick = function(){ currentFilter = tab.getAttribute('data-filter'); renderNotesList(); };
+  });
+  if (!loading) renderNotesList();
+}
+
+function renderNotesList() {
+  document.querySelectorAll('.filter-tab').forEach(function(tab){
+    tab.classList.toggle('active', tab.getAttribute('data-filter') === currentFilter);
+  });
+
+  var filtered = allNotes.filter(function(n){
+    if (currentFilter === 'unreviewed') return !n.reviewed;
+    if (currentFilter === 'concern') return n.concern_flagged;
+    if (currentFilter === 'itp') return n.itp_flagged;
+    return true; // 'all'
+  });
+
+  var listEl = document.getElementById('notesList');
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="empty-state"><p>Nothing here. ' + (currentFilter === 'unreviewed' ? 'All caught up \u2014 no unreviewed flags in your scope.' : 'No notes match this filter.') + '</p></div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(renderNoteCard).join('');
+  filtered.forEach(function(note){
+    var btn = document.getElementById('markBtn_' + note.id);
+    if (btn) btn.onclick = function(){ markReviewed(note.id); };
+  });
+}
+
+function renderNoteCard(note) {
+  var cardClass = 'note-card' + (note.reviewed ? ' reviewed' : (note.concern_flagged ? ' concern' : ' itp'));
+  var badges = '';
+  if (note.concern_flagged) badges += '<span class="badge badge-concern">Concern Flag</span>';
+  if (note.itp_flagged) badges += '<span class="badge badge-itp">ITP Flag</span>';
+  if (note.reviewed) badges += '<span class="badge badge-reviewed">Reviewed</span>';
+
+  var concernTypesHtml = '';
+  if (note.concern_type && note.concern_type.length) {
+    concernTypesHtml = '<div class="concern-types">' + note.concern_type.map(function(t){ return '<span>' + escapeHtml(t) + '</span>'; }).join('') + '</div>';
+  }
+
+  var dateStr = note.session_date ? new Date(note.session_date + 'T00:00:00').toLocaleDateString() : '—';
+  var codeLabel = note.linkage_code ? (' &middot; ' + escapeHtml(note.linkage_code)) : '';
+
+  var actionsHtml = note.reviewed
+    ? '<div class="reviewed-note">Reviewed by ' + escapeHtml(note.reviewed_by || '—') + '<br/>' + (note.reviewed_date ? new Date(note.reviewed_date).toLocaleString() : '') + '</div>'
+    : '<button class="mark-btn" id="markBtn_' + note.id + '">Mark Reviewed</button>';
+
+  return `
+    <div class="${cardClass}">
+      <div class="note-top">
+        <div class="note-meta">
+          <span class="client">${escapeHtml(note.client_number || 'No client #')}</span> &middot; ${escapeHtml(note.program || '—')}${codeLabel}<br/>
+          Session date: ${dateStr}<br/>
+          ${badges}
+          ${concernTypesHtml}
+        </div>
+        <div class="note-actions">
+          ${actionsHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function markReviewed(noteId) {
+  var btn = document.getElementById('markBtn_' + noteId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  var { error } = await supabase
+    .from(TABLE)
+    .update({
+      reviewed: true,
+      reviewed_by: currentReviewer.name,
+      reviewed_date: new Date().toISOString()
+    })
+    .eq('id', noteId);
+
+  if (error) {
+    alert('Could not mark as reviewed: ' + error.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Mark Reviewed'; }
+    return;
+  }
+
+  await loadAndRenderDashboard();
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+// ── INIT: check for existing session ──
+(async function init() {
+  var { data } = await supabase.auth.getSession();
+  if (data && data.session) {
+    var reviewerLookup = await supabase.from('reviewers').select('name, role, divisions').eq('id', data.session.user.id).single();
+    if (!reviewerLookup.error && reviewerLookup.data) {
+      currentReviewer = reviewerLookup.data;
+      await loadAndRenderDashboard();
+      return;
+    }
+  }
+  renderLogin();
+})();
+</script>
+</body>
+</html>
