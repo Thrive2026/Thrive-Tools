@@ -75,7 +75,7 @@ const SUPABASE_URL = 'https://fussjixekyhwuromauff.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1c3NqaXhla3lod3Vyb21hdWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjMzNzYsImV4cCI6MjA5ODI5OTM3Nn0.3yfRu5LMDlIasvc0cu_GOcXAquji6ZYUkp3dgxk1j2M';
 const TABLE = 'dap_note_analytics';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentReviewer = null; // { name, role, divisions }
 let currentFilter = 'unreviewed'; // 'unreviewed' | 'concern' | 'itp' | 'all'
@@ -116,16 +116,16 @@ async function handleLogin() {
   btn.disabled = true;
   btn.textContent = 'Signing in...';
 
-  var { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password });
+  var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
   if (error) {
     renderLogin('Sign-in failed: ' + error.message);
     return;
   }
 
-  var reviewerLookup = await supabase.from('reviewers').select('name, role, divisions').eq('id', data.user.id).single();
+  var reviewerLookup = await sb.from('reviewers').select('name, role, divisions').eq('id', data.user.id).single();
   if (reviewerLookup.error || !reviewerLookup.data) {
     renderLogin('Signed in, but no reviewer profile is set up for this account yet. Contact Brandon to be added to the reviewers table.');
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
     return;
   }
 
@@ -134,7 +134,7 @@ async function handleLogin() {
 }
 
 async function handleSignOut() {
-  await supabase.auth.signOut();
+  await sb.auth.signOut();
   currentReviewer = null;
   renderLogin();
 }
@@ -142,7 +142,7 @@ async function handleSignOut() {
 // ── RENDER: DASHBOARD ──
 async function loadAndRenderDashboard() {
   renderShell(true);
-  var { data, error } = await supabase
+  var { data, error } = await sb
     .from(TABLE)
     .select('*')
     .or('concern_flagged.eq.true,itp_flagged.eq.true')
@@ -256,7 +256,7 @@ async function markReviewed(noteId) {
   var btn = document.getElementById('markBtn_' + noteId);
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
-  var { error } = await supabase
+  var { error } = await sb
     .from(TABLE)
     .update({
       reviewed: true,
@@ -282,9 +282,9 @@ function escapeHtml(str) {
 
 // ── INIT: check for existing session ──
 (async function init() {
-  var { data } = await supabase.auth.getSession();
+  var { data } = await sb.auth.getSession();
   if (data && data.session) {
-    var reviewerLookup = await supabase.from('reviewers').select('name, role, divisions').eq('id', data.session.user.id).single();
+    var reviewerLookup = await sb.from('reviewers').select('name, role, divisions').eq('id', data.session.user.id).single();
     if (!reviewerLookup.error && reviewerLookup.data) {
       currentReviewer = reviewerLookup.data;
       await loadAndRenderDashboard();
