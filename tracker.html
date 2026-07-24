@@ -9,6 +9,8 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a1a2e;min-height:100vh;}
 .header{background:#fff;border-bottom:4px solid #4B5EA6;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.header-left{display:flex;align-items:center;gap:16px;}
+.header img{height:48px;width:auto;}
 .header-text h1{font-size:18px;font-weight:700;color:#4B5EA6;}
 .header-text p{font-size:12px;color:#888;margin-top:2px;}
 .who{font-size:13px;color:#2d2d4e;text-align:right;}
@@ -87,9 +89,12 @@ const app = document.getElementById('app');
 function renderLogin(errorMsg) {
   app.innerHTML = `
     <div class="header">
-      <div class="header-text">
-        <h1>Flagged Notes Tracker</h1>
-        <p>Thrive Peer Recovery Services &nbsp;&middot;&nbsp; Supervisor / Clinical Review</p>
+      <div class="header-left">
+        <img src="/thrive-icon.png" alt="Thrive Peer Recovery Services"/>
+        <div class="header-text">
+          <h1>Flagged Notes Tracker</h1>
+          <p>Thrive Peer Recovery Services &nbsp;&middot;&nbsp; Supervisor / Clinical Review</p>
+        </div>
       </div>
     </div>
     <div class="login-wrap">
@@ -161,9 +166,12 @@ function renderShell(loading) {
   var scopeLabel = currentReviewer.role === 'org_wide' ? 'All Divisions' : (currentReviewer.divisions || []).join(', ');
   app.innerHTML = `
     <div class="header">
-      <div class="header-text">
-        <h1>Flagged Notes Tracker</h1>
-        <p>Thrive Peer Recovery Services &nbsp;&middot;&nbsp; Supervisor / Clinical Review</p>
+      <div class="header-left">
+        <img src="/thrive-icon.png" alt="Thrive Peer Recovery Services"/>
+        <div class="header-text">
+          <h1>Flagged Notes Tracker</h1>
+          <p>Thrive Peer Recovery Services &nbsp;&middot;&nbsp; Supervisor / Clinical Review</p>
+        </div>
       </div>
       <div class="who">
         Signed in as <strong>${currentReviewer.name}</strong><br/>
