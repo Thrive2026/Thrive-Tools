@@ -52,16 +52,43 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a1a2e;mi
 .badge-concern{background:#FDECEA;color:#8B1A1A;}
 .badge-itp{background:#FFF8E6;color:#7A5200;}
 .badge-reviewed{background:#F0FAF2;color:#1A5A2A;}
+.badge-rejected{background:#FDECEA;color:#8B1A1A;}
+.badge-escalated{background:#F3E8FF;color:#6B21A8;}
+.reject-reason-box{font-size:11px;color:#8B1A1A;background:#FDECEA;border-radius:6px;padding:6px 10px;margin-top:6px;}
 .concern-types{margin-top:6px;}
 .concern-types span{display:inline-block;background:#f4f5f7;color:#555;font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;margin-right:5px;margin-top:4px;}
 .note-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
 .mark-btn{padding:8px 18px;background:#4B5EA6;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .mark-btn:hover{background:#3a4d8f;}
 .mark-btn:disabled{background:#b0b8d8;cursor:not-allowed;}
+.action-row{display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+.action-btn{padding:7px 16px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.action-btn.approve{background:#1A7A3A;color:#fff;}
+.action-btn.approve:hover{background:#146030;}
+.action-btn.reject{background:#E8417A;color:#fff;}
+.action-btn.reject:hover{background:#c92f63;}
+.action-btn.escalate{background:#6B21A8;color:#fff;}
+.action-btn.escalate:hover{background:#551a86;}
+.action-btn:disabled{background:#b0b8d8;cursor:not-allowed;}
+.escalated-tag{font-size:11px;font-weight:700;color:#6B21A8;margin-top:4px;}
 .reviewed-note{font-size:11px;color:#1A5A2A;text-align:right;}
 .empty-state{text-align:center;padding:60px 20px;color:#888;}
 .empty-state p{font-size:14px;}
 .loading-state{text-align:center;padding:40px;color:#4B5EA6;font-size:13px;}
+.view-toggle{background:none;border:1.5px solid #dde0f0;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:600;color:#4B5EA6;cursor:pointer;margin-top:8px;}
+.view-toggle:hover{background:#EEF1FB;}
+.note-content{display:none;border-top:1px solid #eee;padding:16px 20px;background:#fafbff;}
+.note-content.visible{display:block;}
+.note-content h4{font-size:12px;font-weight:700;color:#4B5EA6;margin-bottom:4px;margin-top:14px;}
+.note-content h4:first-child{margin-top:0;}
+.note-content p{font-size:13px;color:#2d2d2d;line-height:1.6;white-space:pre-wrap;}
+.email-block{border-top:1px solid #eee;margin-top:16px;padding-top:14px;}
+.email-block label{display:block;font-size:11px;font-weight:600;color:#2d2d4e;margin-bottom:5px;}
+.email-block textarea{width:100%;border:1.5px solid #dde0f0;border-radius:6px;padding:8px 10px;font-size:12px;font-family:inherit;resize:vertical;min-height:50px;margin-bottom:8px;}
+.email-btn{padding:7px 16px;background:#4B5EA6;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
+.email-btn:hover{background:#3a4d8f;}
+.email-btn:disabled{background:#b0b8d8;cursor:not-allowed;}
+.email-hint{font-size:11px;color:#888;margin-top:6px;}
 </style>
 </head>
 <body>
@@ -182,6 +209,7 @@ function renderShell(loading) {
     <div class="main">
       <div class="filter-bar">
         <div class="filter-tab" data-filter="unreviewed">Needs Review</div>
+        <div class="filter-tab" data-filter="escalated">Escalated</div>
         <div class="filter-tab" data-filter="concern">Concern Flags</div>
         <div class="filter-tab" data-filter="itp">ITP Flags</div>
         <div class="filter-tab" data-filter="all">All (incl. Reviewed)</div>
@@ -206,6 +234,7 @@ function renderNotesList() {
 
   var filtered = allNotes.filter(function(n){
     if (currentFilter === 'unreviewed') return !n.reviewed;
+    if (currentFilter === 'escalated') return n.escalated;
     if (currentFilter === 'concern') return n.concern_flagged;
     if (currentFilter === 'itp') return n.itp_flagged;
     return true; // 'all'
@@ -219,9 +248,127 @@ function renderNotesList() {
 
   listEl.innerHTML = filtered.map(renderNoteCard).join('');
   filtered.forEach(function(note){
-    var btn = document.getElementById('markBtn_' + note.id);
-    if (btn) btn.onclick = function(){ markReviewed(note.id); };
+    var approveBtn = document.getElementById('approveBtn_' + note.id);
+    if (approveBtn) approveBtn.onclick = function(){ resolveNote(note.id, 'approved'); };
+
+    var rejectBtn = document.getElementById('rejectBtn_' + note.id);
+    if (rejectBtn) rejectBtn.onclick = function(){ rejectNote(note); };
+
+    var escalateBtn = document.getElementById('escalateBtn_' + note.id);
+    if (escalateBtn) escalateBtn.onclick = function(){ escalateNote(note.id); };
+
+    var toggleBtn = document.getElementById('viewToggle_' + note.id);
+    var contentDiv = document.getElementById('noteContent_' + note.id);
+    if (toggleBtn && contentDiv) {
+      toggleBtn.onclick = function(){
+        var nowVisible = contentDiv.classList.toggle('visible');
+        toggleBtn.textContent = nowVisible ? 'Hide Note' : 'View Note & Contact Provider';
+      };
+    }
+
+    var emailBtn = document.getElementById('emailBtn_' + note.id);
+    if (emailBtn) {
+      emailBtn.onclick = function(){ emailProvider(note); };
+    }
   });
+}
+
+async function resolveNote(noteId, outcome) {
+  var btn = document.getElementById(outcome === 'approved' ? 'approveBtn_' + noteId : 'rejectBtn_' + noteId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  var { error } = await sb
+    .from(TABLE)
+    .update({
+      reviewed: true,
+      reviewed_by: currentReviewer.name,
+      reviewed_date: new Date().toISOString(),
+      review_outcome: outcome
+    })
+    .eq('id', noteId);
+
+  if (error) {
+    alert('Could not save: ' + error.message);
+    if (btn) { btn.disabled = false; btn.textContent = outcome === 'approved' ? 'Approve' : 'Reject'; }
+    return;
+  }
+  await loadAndRenderDashboard();
+}
+
+async function rejectNote(note) {
+  var reason = prompt('Why is this note being rejected? (This will be logged and can be included in the email to the provider.)');
+  if (reason === null) return; // cancelled
+  reason = reason.trim();
+
+  var btn = document.getElementById('rejectBtn_' + note.id);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  var { error } = await sb
+    .from(TABLE)
+    .update({
+      reviewed: true,
+      reviewed_by: currentReviewer.name,
+      reviewed_date: new Date().toISOString(),
+      review_outcome: 'rejected',
+      reject_reason: reason || null
+    })
+    .eq('id', note.id);
+
+  if (error) {
+    alert('Could not save: ' + error.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Reject'; }
+    return;
+  }
+
+  if (note.provider_email) {
+    var wantsEmail = confirm('Note marked as rejected. Send an email to ' + (note.provider_name || 'the provider') + ' now?');
+    if (wantsEmail) {
+      emailProvider(Object.assign({}, note, { _rejectReason: reason }));
+    }
+  }
+
+  await loadAndRenderDashboard();
+}
+
+async function escalateNote(noteId) {
+  var btn = document.getElementById('escalateBtn_' + noteId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  var { error } = await sb
+    .from(TABLE)
+    .update({
+      escalated: true,
+      escalated_by: currentReviewer.name,
+      escalated_date: new Date().toISOString()
+    })
+    .eq('id', noteId);
+
+  if (error) {
+    alert('Could not escalate: ' + error.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Escalate'; }
+    return;
+  }
+  await loadAndRenderDashboard();
+}
+
+function emailProvider(note) {
+  var msgEl = document.getElementById('emailMsg_' + note.id);
+  var msg = msgEl ? msgEl.value.trim() : '';
+  var subject = 'Follow-up needed: ' + (note.client_number || 'note') + ' (' + (note.program || '') + ')';
+  var flagType = note.concern_flagged ? 'a concern flag' : 'an ITP flag';
+  var dateStr = note.session_date ? new Date(note.session_date + 'T00:00:00').toLocaleDateString() : 'an unspecified date';
+  var reasonLine = note._rejectReason ? ('This note was reviewed and needs revision. Reason: ' + note._rejectReason + '\n\n') : '';
+  var body = 'Hi ' + (note.provider_name || '') + ',\n\n'
+    + 'I was reviewing the flagged notes tracker and wanted to follow up on the note for client ' + (note.client_number || '(no client number)')
+    + ' in ' + (note.program || 'your program') + ', session date ' + dateStr + ', which has ' + flagType + '.\n\n'
+    + reasonLine
+    + (msg ? (msg + '\n\n') : '')
+    + 'Could you take another look at this note in Pimsy when you get a chance?\n\n'
+    + 'Thanks,\n' + (currentReviewer ? currentReviewer.name : '');
+  var mailto = 'mailto:' + encodeURIComponent(note.provider_email)
+    + '?subject=' + encodeURIComponent(subject)
+    + '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
 }
 
 function renderNoteCard(note) {
@@ -229,7 +376,9 @@ function renderNoteCard(note) {
   var badges = '';
   if (note.concern_flagged) badges += '<span class="badge badge-concern">Concern Flag</span>';
   if (note.itp_flagged) badges += '<span class="badge badge-itp">ITP Flag</span>';
-  if (note.reviewed) badges += '<span class="badge badge-reviewed">Reviewed</span>';
+  if (note.escalated) badges += '<span class="badge badge-escalated">Escalated</span>';
+  if (note.reviewed && note.review_outcome === 'approved') badges += '<span class="badge badge-reviewed">Approved</span>';
+  if (note.reviewed && note.review_outcome === 'rejected') badges += '<span class="badge badge-rejected">Rejected</span>';
 
   var concernTypesHtml = '';
   if (note.concern_type && note.concern_type.length) {
@@ -238,49 +387,68 @@ function renderNoteCard(note) {
 
   var dateStr = note.session_date ? new Date(note.session_date + 'T00:00:00').toLocaleDateString() : '—';
   var codeLabel = note.linkage_code ? (' &middot; ' + escapeHtml(note.linkage_code)) : '';
+  var providerLine = note.provider_name ? ('PRS: ' + escapeHtml(note.provider_name) + '<br/>') : '';
 
-  var actionsHtml = note.reviewed
-    ? '<div class="reviewed-note">Reviewed by ' + escapeHtml(note.reviewed_by || '—') + '<br/>' + (note.reviewed_date ? new Date(note.reviewed_date).toLocaleString() : '') + '</div>'
-    : '<button class="mark-btn" id="markBtn_' + note.id + '">Mark Reviewed</button>';
+  var reasonHtml = (note.review_outcome === 'rejected' && note.reject_reason)
+    ? '<div class="reject-reason-box">Reject reason: ' + escapeHtml(note.reject_reason) + '</div>' : '';
+  var escalatedNoteHtml = note.escalated
+    ? '<div class="escalated-tag">Escalated by ' + escapeHtml(note.escalated_by || '—') + (note.escalated_date ? (' on ' + new Date(note.escalated_date).toLocaleDateString()) : '') + '</div>' : '';
+
+  var actionsHtml;
+  if (note.reviewed) {
+    actionsHtml = '<div class="reviewed-note">' + (note.review_outcome === 'rejected' ? 'Rejected' : 'Approved') + ' by ' + escapeHtml(note.reviewed_by || '—')
+      + '<br/>' + (note.reviewed_date ? new Date(note.reviewed_date).toLocaleString() : '') + '</div>' + reasonHtml;
+  } else {
+    actionsHtml = '<div class="action-row">'
+      + '<button class="action-btn approve" id="approveBtn_' + note.id + '">Approve</button>'
+      + '<button class="action-btn reject" id="rejectBtn_' + note.id + '">Reject</button>'
+      + (note.escalated ? '' : '<button class="action-btn escalate" id="escalateBtn_' + note.id + '">Escalate</button>')
+      + '</div>' + escalatedNoteHtml;
+  }
+
+  var hasNoteText = note.description_text || note.assessment_text || note.plan_text;
+  var noteContentHtml = hasNoteText ? `
+    <h4>Description of Session</h4>
+    <p>${escapeHtml(note.description_text || '—')}</p>
+    <h4>Assessment of Progress</h4>
+    <p>${escapeHtml(note.assessment_text || '—')}</p>
+    <h4>Plans for Follow-Up</h4>
+    <p>${escapeHtml(note.plan_text || '—')}</p>
+  ` : '<p style="font-size:12px;color:#888;">No note content was logged for this entry.</p>';
+
+  var emailBlockHtml = note.provider_email ? `
+    <div class="email-block">
+      <label>Message to ${escapeHtml(note.provider_name || 'provider')} (optional)</label>
+      <textarea id="emailMsg_${note.id}" placeholder="e.g. Can you take another look at the Assessment section on this one?"></textarea>
+      <button class="email-btn" id="emailBtn_${note.id}">Email Provider</button>
+      <div class="email-hint">Opens your email client addressed to the PRS. Note content itself is not included in the email &mdash; reference only, per PHI handling policy.</div>
+    </div>
+  ` : '<div class="email-block"><p style="font-size:12px;color:#888;">No provider email on file for this note.</p></div>';
 
   return `
     <div class="${cardClass}">
       <div class="note-top">
         <div class="note-meta">
           <span class="client">${escapeHtml(note.client_number || 'No client #')}</span> &middot; ${escapeHtml(note.program || '—')}${codeLabel}<br/>
+          ${providerLine}
           Session date: ${dateStr}<br/>
           ${badges}
           ${concernTypesHtml}
+          <br/><button class="view-toggle" id="viewToggle_${note.id}">View Note &amp; Contact Provider</button>
         </div>
         <div class="note-actions">
           ${actionsHtml}
         </div>
       </div>
+      <div class="note-content" id="noteContent_${note.id}">
+        ${noteContentHtml}
+        ${emailBlockHtml}
+      </div>
     </div>
   `;
 }
 
-async function markReviewed(noteId) {
-  var btn = document.getElementById('markBtn_' + noteId);
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
-  var { error } = await sb
-    .from(TABLE)
-    .update({
-      reviewed: true,
-      reviewed_by: currentReviewer.name,
-      reviewed_date: new Date().toISOString()
-    })
-    .eq('id', noteId);
-
-  if (error) {
-    alert('Could not mark as reviewed: ' + error.message);
-    if (btn) { btn.disabled = false; btn.textContent = 'Mark Reviewed'; }
-    return;
-  }
-
-  await loadAndRenderDashboard();
-}
 
 function escapeHtml(str) {
   var div = document.createElement('div');
