@@ -321,7 +321,7 @@ async function rejectNote(note) {
   }
 
   if (note.provider_email) {
-    var wantsEmail = confirm('Note marked as rejected. Send an email to ' + (note.provider_name || 'the provider') + ' now?');
+    var wantsEmail = confirm('Note marked as rejected. Send an email to ' + (note.provider_email || 'the provider') + ' now?');
     if (wantsEmail) {
       emailProvider(Object.assign({}, note, { _rejectReason: reason }));
     }
@@ -358,7 +358,7 @@ function emailProvider(note) {
   var flagType = note.concern_flagged ? 'a concern flag' : 'an ITP flag';
   var dateStr = note.session_date ? new Date(note.session_date + 'T00:00:00').toLocaleDateString() : 'an unspecified date';
   var reasonLine = note._rejectReason ? ('This note was reviewed and needs revision. Reason: ' + note._rejectReason + '\n\n') : '';
-  var body = 'Hi ' + (note.provider_name || '') + ',\n\n'
+  var body = 'Hi,\n\n'
     + 'I was reviewing the flagged notes tracker and wanted to follow up on the note for client ' + (note.client_number || '(no client number)')
     + ' in ' + (note.program || 'your program') + ', session date ' + dateStr + ', which has ' + flagType + '.\n\n'
     + reasonLine
@@ -387,7 +387,7 @@ function renderNoteCard(note) {
 
   var dateStr = note.session_date ? new Date(note.session_date + 'T00:00:00').toLocaleDateString() : '—';
   var codeLabel = note.linkage_code ? (' &middot; ' + escapeHtml(note.linkage_code)) : '';
-  var providerLine = note.provider_name ? ('PRS: ' + escapeHtml(note.provider_name) + '<br/>') : '';
+  var providerLine = note.provider_email ? ('PRS: ' + escapeHtml(note.provider_email) + '<br/>') : '';
 
   var reasonHtml = (note.review_outcome === 'rejected' && note.reject_reason)
     ? '<div class="reject-reason-box">Reject reason: ' + escapeHtml(note.reject_reason) + '</div>' : '';
@@ -418,7 +418,7 @@ function renderNoteCard(note) {
 
   var emailBlockHtml = note.provider_email ? `
     <div class="email-block">
-      <label>Message to ${escapeHtml(note.provider_name || 'provider')} (optional)</label>
+      <label>Message to provider (optional)</label>
       <textarea id="emailMsg_${note.id}" placeholder="e.g. Can you take another look at the Assessment section on this one?"></textarea>
       <button class="email-btn" id="emailBtn_${note.id}">Email Provider</button>
       <div class="email-hint">Opens your email client addressed to the PRS. Note content itself is not included in the email &mdash; reference only, per PHI handling policy.</div>
