@@ -111,14 +111,14 @@ select{cursor:pointer;}
       <div class="two-col">
         <div class="field">
           <label class="field-label">Your Email <span class="required-star">*</span></label>
-          <div class="field-hint">The PRS completing this note. Used only for internal tracking (e.g. so a supervisor reviewing a flagged note knows who to follow up with) &mdash; never sent to the AI and never appears in the generated note.</div>
+          <div class="field-hint">Never sent to the AI or included in the generated note.</div>
           <input type="text" id="providerEmail" placeholder="e.g. jsmith@thrivepeerrecoveryservices.com"/>
         </div>
       </div>
       <div class="two-col">
         <div class="field">
           <label class="field-label">Client Number <span class="required-star" id="clientNumberStar">*</span></label>
-          <div class="field-hint" id="clientNumberHint">Pimsy client/case number. This is the one identifying field in this tool &mdash; used only to link internal structured data back to the client. Never sent to the AI and never appears in the generated note.</div>
+          <div class="field-hint" id="clientNumberHint">Pimsy client/case number.</div>
           <input type="text" id="clientNumber" placeholder="e.g. B-C-2000"/>
         </div>
       </div>
@@ -145,7 +145,7 @@ select{cursor:pointer;}
       <div class="two-col" id="linkageCodeField" style="display:none;">
         <div class="field">
           <label class="field-label">Linkage Note Type <span class="required-star">*</span></label>
-          <div class="field-hint">Select the U-code or referral type this contact documents. This changes the question set below.</div>
+          <div class="field-hint">Select the U-code or referral type this contact documents.</div>
           <select id="linkageCode" onchange="handleLinkageCode()">
             <option value="">Select linkage note type...</option>
             <option value="standard">Standard Peer Support Contact (DAP Note)</option>
@@ -196,6 +196,7 @@ select{cursor:pointer;}
               <option value="hospital">Hospital</option>
               <option value="medical/behavioral health appointment">Medical / Behavioral Health Appointment</option>
               <option value="court / legal setting">Court / Legal Setting</option>
+              <option value="jail / correctional facility">Jail / Correctional Facility</option>
               <option value="shelter or transitional housing">Shelter or Transitional Housing</option>
               <option value="recovery community center">Recovery Community Center</option>
               <option value="other community setting">Other Community Setting</option>
@@ -204,13 +205,13 @@ select{cursor:pointer;}
         </div>
         <div class="field" id="otherContactField" style="display:none;">
           <label class="field-label">Describe Contact Method <span class="required-star">*</span></label>
-          <div class="field-hint">Use this when the contact wasn't a live in-person or telehealth session — e.g. text message, email, left voicemail, contacted through another provider, etc.</div>
+          <div class="field-hint">For contacts that weren't live in-person or telehealth — text, email, voicemail, etc.</div>
           <input type="text" id="otherContactDetail" placeholder="e.g. Contacted member via text message to confirm appointment"/>
         </div>
         <div id="telehealthFields" style="display:none;">
           <div class="field">
             <label class="field-label">Telehealth Modality <span class="required-star">*</span></label>
-            <div class="field-hint">Required for Medicaid billing — select the technology used.</div>
+            <div class="field-hint">Required for Medicaid billing.</div>
             <div style="display:flex;gap:12px;margin-top:4px;">
               <label id="modalityPhoneLabel" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#2d2d4e;cursor:pointer;padding:10px 18px;border:1.5px solid #dde0f0;border-radius:8px;background:#fafbff;flex:1;justify-content:center;">
                 <input type="radio" name="telehealthModality" value="telephone (audio only)" id="modalityPhone" onchange="handleModalityChange()" style="accent-color:#4B5EA6;width:15px;height:15px;"> &#128222; Phone (Audio Only)
@@ -223,7 +224,7 @@ select{cursor:pointer;}
           <div class="two-col">
             <div class="field">
               <label class="field-label">Provider Location During Session <span class="required-star">*</span></label>
-              <div class="field-hint">Required for telehealth billing — where the PRS was physically located during the session.</div>
+              <div class="field-hint">Required for telehealth billing.</div>
               <select id="providerLocation">
                 <option value="">Select provider location...</option>
                 <option value="Thrive office">Thrive Office</option>
@@ -251,10 +252,10 @@ select{cursor:pointer;}
   <div class="section-card" id="linkageDetailsCard" style="display:none;">
     <div class="section-header"><div class="step">L</div><h2 id="linkageCardTitle">Linkage Note Details</h2></div>
     <div class="section-body">
-      <div class="field-hint" id="linkageFollowupHint" style="display:none;margin-bottom:14px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">This is a follow-up/attestation note documenting the outcome of a linkage process that was already conducted and documented separately (e.g. an attestation call, a records check, a referral sent). It does not represent a new live conversation, so Session Type / Telehealth / In-Person no longer applies &mdash; the note will describe the outcome factually rather than as a session.</div>
+      <div class="field-hint" id="linkageFollowupHint" style="display:none;margin-bottom:14px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">This documents the outcome of a linkage process already conducted separately &mdash; not a new live conversation. Session Type no longer applies.</div>
 
       <div id="u1Block" style="display:none;">
-        <div class="field-hint" style="margin-bottom:12px;">Per agency workflow, U1 (initial connection) is documented on the U1 Jotform, not through this tool. Use the U1 Jotform to submit this contact. You may still generate a brief narrative below to paste into the legacy note if needed.</div>
+        <div class="field-hint" style="margin-bottom:12px;">U1 is documented on the U1 Jotform, not through this tool. You may still generate a brief narrative below if needed.</div>
         <div class="field">
           <label class="field-label">Brief Description of Initial Connection <span class="required-star">*</span></label>
           <div class="field-hint">How and when the member was initially connected (e.g. referral source, method of contact).</div>
@@ -263,7 +264,7 @@ select{cursor:pointer;}
       </div>
 
       <div id="u2Block" style="display:none;">
-        <div class="field-hint" style="margin-bottom:12px;">Per agency workflow, U2 (initial engagement) is documented on the U2 Jotform, not through this tool. Use the U2 Jotform to submit this contact. You may still generate a brief narrative below to paste into the legacy note if needed.</div>
+        <div class="field-hint" style="margin-bottom:12px;">U2 is documented on the U2 Jotform, not through this tool. You may still generate a brief narrative below if needed.</div>
         <div class="field">
           <label class="field-label">Brief Description of Initial Engagement <span class="required-star">*</span></label>
           <div class="field-hint">What occurred during this initial engagement contact.</div>
@@ -272,7 +273,7 @@ select{cursor:pointer;}
       </div>
 
       <div id="u3Block" style="display:none;">
-        <div class="field-hint" style="margin-bottom:12px;">Per ODBH requirements, U3 is documented as a Service Note with both Location Type and Location Code recorded as Home, and must reflect a contact of 8 minutes or more. Use the Session Length field above to reflect duration.</div>
+        <div class="field-hint" style="margin-bottom:12px;">Per ODBH requirements: document as a Service Note with Location Type/Code as Home, 8+ minutes. Use Session Length above.</div>
         <div class="field">
           <label class="field-label">Were referrals given during this contact? <span class="required-star">*</span></label>
           <div class="toggle-options" style="display:inline-flex;">
@@ -464,12 +465,12 @@ select{cursor:pointer;}
 
       <div class="field" id="linkageEngagementField" style="display:none;">
         <label class="field-label">Member Response / Engagement This Contact <span class="required-star">*</span></label>
-        <div class="field-hint">Briefly describe how the member responded or engaged during this contact — receptive, hesitant, needed encouragement, enthusiastic, etc. This grounds the Assessment section of the note.</div>
+        <div class="field-hint">Briefly describe how the member responded or engaged — receptive, hesitant, needed encouragement, enthusiastic, etc.</div>
         <textarea id="linkageEngagement" placeholder="e.g. Member was receptive to the referral and asked clarifying questions about scheduling" rows="2"></textarea>
       </div>
       <div class="field" id="linkagePlanNextField" style="display:none;">
         <label class="field-label">Next Step / Case Status <span class="required-star">*</span></label>
-        <div class="field-hint">What happens next — another follow-up planned, case closed, referred back to community team, etc. This grounds the Plan section of the note.</div>
+        <div class="field-hint">What happens next — another follow-up planned, case closed, referred back to community team, etc.</div>
         <textarea id="linkagePlanNext" placeholder="e.g. Provider will continue monitoring appointment adherence and follow up in 30 days" rows="2"></textarea>
       </div>
 
@@ -482,7 +483,7 @@ select{cursor:pointer;}
     <div class="section-body">
       <div class="field">
         <label class="field-label">Primary Service Focus This Session <span class="required-star">*</span></label>
-        <div class="field-hint">Must match the diagnosis/service being billed for this contact. This grounds how the note opens and is checked against the billing diagnosis category — a mismatch here (e.g. SUD diagnosis billed but note opens as "mental health peer support") is a leading cause of claim denials.</div>
+        <div class="field-hint">Must match the diagnosis/service being billed for this contact — mismatches are a leading cause of claim denials.</div>
         <select id="serviceFocus">
           <option value="">Select service focus...</option>
           <option value="substance use">Substance Use (SUD)</option>
@@ -492,13 +493,13 @@ select{cursor:pointer;}
       </div>
       <div class="field">
         <label class="field-label">Treatment Plan Goals Worked On <span class="required-star">*</span></label>
-        <div class="field-hint">Doesn't need to be copied word-for-word from Pimsy &mdash; write it in your own words, but keep it the same goal concept as what's in Peer's treatment plan. Write 'Peer will...' not 'Client will...' If this goal is about housing, employment, or another basic need, briefly note how it connects to Peer's recovery or mental health &mdash; Medicaid is paying for the recovery/MH service, so every goal must tie back to that, even when the day-to-day work is on something like housing.</div>
+        <div class="field-hint">Write it in your own words — same goal concept as Peer's treatment plan. Use 'Peer will...' not 'Client will...' If this goal is about housing, employment, or another basic need, briefly note how it connects to Peer's recovery or mental health.</div>
         <textarea id="goalsAddressed" placeholder="e.g. Peer will identify three coping strategies to manage symptoms of depression by next quarterly review..." rows="4" oninput="updateCharCounter('goalsAddressed','goalsAddressedCounter',30)"></textarea>
         <div class="char-counter" id="goalsAddressedCounter"></div>
       </div>
       <div class="field">
         <label class="field-label">Progress Toward This Goal <span class="required-star">*</span></label>
-        <div class="field-hint">Core regulatory requirement (OAC 5122-27-04 / 5160-27-14) — every note must explicitly state progress, or lack of progress, toward the specific goal above.</div>
+        <div class="field-hint">Required — state progress, or lack of progress, toward the goal above (OAC 5122-27-04 / 5160-27-14).</div>
         <select id="goalProgress" onchange="handleGoalProgressChange()">
           <option value="">Select progress status...</option>
           <option value="made clear progress toward">Progress made</option>
@@ -509,7 +510,7 @@ select{cursor:pointer;}
       </div>
       <div class="field">
         <label class="field-label">Briefly describe the progress (or lack of progress) <span class="required-star" id="goalProgressDetailStar" style="display:none;">*</span> <span style="font-size:11px;font-weight:400;color:#888;" id="goalProgressDetailOptionalTag">(optional — the Session Narrative below can support this)</span></label>
-        <div class="field-hint" id="goalProgressDetailHint">Only required for "Difficulty / setback" or "Too early to assess." For progress made or maintained, feel free to leave this blank — your Session Narrative in the next section can carry the supporting detail.</div>
+        <div class="field-hint" id="goalProgressDetailHint">Only required for "Difficulty / setback" or "Too early to assess."</div>
         <textarea id="goalProgressDetail" placeholder="e.g. Peer independently identified two coping strategies and used one successfully this week..." rows="2" oninput="updateCharCounter('goalProgressDetail','goalProgressDetailCounter', goalProgressNeedsDetail() ? 20 : 0)"></textarea>
         <div class="char-counter" id="goalProgressDetailCounter"></div>
       </div>
@@ -540,7 +541,7 @@ select{cursor:pointer;}
       </div>
       <div class="field">
         <label class="field-label">Stage of Change <span class="required-star">*</span></label>
-        <div class="field-hint">Select the stage that matches what Peer actually said or did <strong>this session</strong> — not where they've been overall. Quick guide: <strong>Pre-contemplation</strong> = not yet acknowledging a need to change; <strong>Contemplation</strong> = aware of the issue but ambivalent, weighing pros/cons; <strong>Preparation</strong> = has decided to act and is planning specifics; <strong>Action</strong> = actively doing the new behavior now; <strong>Maintenance</strong> = sustaining a change already made for some time. Make sure the stage you pick doesn't contradict the behaviors described in your Session Narrative below.</div>
+        <div class="field-hint">Select the stage that matches what Peer actually said or did <strong>this session</strong>. <strong>Pre-contemplation</strong> = not yet acknowledging a need to change; <strong>Contemplation</strong> = aware but ambivalent; <strong>Preparation</strong> = planning to act; <strong>Action</strong> = actively changing now; <strong>Maintenance</strong> = sustaining a change already made.</div>
         <select id="stageOfChange">
           <option value="">Select stage...</option>
           <option value="Pre-contemplation: client is not yet considering change">Pre-contemplation</option>
@@ -572,7 +573,7 @@ select{cursor:pointer;}
       </div>
       <div class="field">
         <label class="field-label">Type of Peer Support Provided <span class="required-star">*</span></label>
-        <div class="field-hint">Select all that apply. These are AOC-aligned peer support interventions — not clinical or therapeutic interventions.</div>
+        <div class="field-hint">Select all that apply — peer support interventions, not clinical or therapeutic ones.</div>
         <div class="chips" id="supportTypeChips">
           <div class="chip" onclick="toggleChip(this)">Active Listening</div>
           <div class="chip" onclick="toggleChip(this)">Shared Lived Experience</div>
@@ -594,13 +595,13 @@ select{cursor:pointer;}
       </div>
       <div class="field">
         <label class="field-label">Session Narrative <span class="required-star">*</span></label>
-        <div class="field-hint">Describe how the session developed — what Peer shared, how they responded, what was worked on. Include any significant life changes or events since the last contact (new job, housing change, health event, etc.) if relevant. If you accompanied the client somewhere or attended a support group, describe the peer support work that occurred, not just where you went.</div>
+        <div class="field-hint">Describe how the session developed — what Peer shared, how they responded, what was worked on. If you accompanied Peer somewhere or attended a group, describe the peer support work itself, not just where you went.</div>
         <textarea id="sessionFlow" placeholder="e.g. Peer expressed frustration with delays on the housing application but remained engaged throughout the session. Explored coping strategies for managing stress during this transition. Peer identified walking as a tool they felt confident using and discussed barriers to consistency..." rows="5" oninput="updateCharCounter('sessionFlow','sessionFlowCounter',250)"></textarea>
         <div class="char-counter" id="sessionFlowCounter"></div>
       </div>
       <div class="field">
         <label class="field-label">Client Direct Quote <span style="font-size:11px;font-weight:400;color:#888;">(optional but recommended)</span></label>
-        <div class="field-hint">A direct quote anchors the note to this specific Peer and is strongly encouraged for CARF compliance.</div>
+        <div class="field-hint">Strongly encouraged for CARF compliance.</div>
         <input type="text" id="clientQuote" placeholder="e.g. I feel like things are finally starting to come together. (Use quotes exactly as spoken)"/>
       </div>
     </div>
@@ -652,12 +653,12 @@ select{cursor:pointer;}
     <div class="section-body">
       <div class="field">
         <label class="field-label">Next Appointment Date or Timeframe <span class="required-star">*</span></label>
-        <div class="field-hint">Enter a specific date if one is set, or a specific timeframe if not (e.g. "within 2 weeks," "next 30 days," "TBD pending appointment confirmation"). Still be as specific as the plan actually is &mdash; avoid vague open-ended entries.</div>
+        <div class="field-hint">Enter a specific date, or a timeframe if no date is set yet (e.g. "within 2 weeks").</div>
         <input type="text" id="nextApptTimeframe" placeholder="e.g. 8/1/2026, or &quot;within 2 weeks&quot;"/>
       </div>
       <div class="field">
         <label class="field-label">Do New Goals Need to Be Added at the Next Treatment Plan Update? <span class="required-star">*</span></label>
-        <div class="field-hint">Most sessions will be "No." Select "Yes" only if you noticed something this session suggesting Peer's needs have grown beyond the current plan.</div>
+        <div class="field-hint">Select "Yes" only if something this session suggests Peer's needs have grown beyond the current plan.</div>
         <div class="toggle-options" style="display:inline-flex;">
           <button type="button" class="toggle-btn" id="itpModYes" onclick="setItpMod(true)">Yes</button>
           <button type="button" class="toggle-btn" id="itpModNo" onclick="setItpMod(false)">No</button>
@@ -665,13 +666,13 @@ select{cursor:pointer;}
       </div>
       <div class="field" id="itpModDetailField" style="display:none;">
         <label class="field-label">Briefly describe what you observed <span class="required-star">*</span></label>
-        <div class="field-hint">Describe the pattern or barrier factually &mdash; not a recommended change. This flags the note for supervisor/clinical review as a separate section below; it does not modify Pimsy directly and does not require or imply that the plan will change.</div>
+        <div class="field-hint">Describe the pattern or barrier factually &mdash; not a recommended change.</div>
                 <textarea id="itpModDetail" placeholder="e.g. Peer has raised housing instability as a barrier in each of the last three sessions" rows="2" oninput="updateCharCounter('itpModDetail','itpModDetailCounter',20)"></textarea>
         <div class="char-counter" id="itpModDetailCounter"></div>
       </div>
       <div class="field">
         <label class="field-label">Next Steps &amp; Follow-Up <span class="required-star">*</span></label>
-        <div class="field-hint">What happens next? Include referrals, tasks Peer agreed to, or areas to continue. Be specific enough that another Peer Supporter could pick up this case.</div>
+        <div class="field-hint">What happens next? Include referrals, tasks Peer agreed to, or areas to continue.</div>
         <textarea id="planNextSteps" placeholder="e.g. Peer agreed to contact the benefits office before next session and will bring documentation to the next appointment. PRS will follow up on application status and continue exploring coping strategies aligned with Peer's treatment plan goals..." rows="4" oninput="updateCharCounter('planNextSteps','planNextStepsCounter',25)"></textarea>
         <div class="char-counter" id="planNextStepsCounter"></div>
       </div>
@@ -1085,7 +1086,7 @@ function handleGoalProgressChange() {
   document.getElementById('goalProgressDetailOptionalTag').style.display = needsDetail ? 'none' : 'inline';
   document.getElementById('goalProgressDetailHint').textContent = needsDetail
     ? 'Required for this status — briefly describe what you observed that supports it.'
-    : 'Only required for "Difficulty / setback" or "Too early to assess." For progress made or maintained, feel free to leave this blank — your Session Narrative in the next section can carry the supporting detail.';
+    : 'Only required for "Difficulty / setback" or "Too early to assess."';
   updateCharCounter('goalProgressDetail', 'goalProgressDetailCounter', needsDetail ? 20 : 0);
 }
 
@@ -1928,7 +1929,7 @@ function resetForm() {
   document.getElementById('remarksOutput').innerText = '';
   document.getElementById('goalProgressDetailStar').style.display = 'none';
   document.getElementById('goalProgressDetailOptionalTag').style.display = 'inline';
-  document.getElementById('goalProgressDetailHint').textContent = 'Only required for "Difficulty / setback" or "Too early to assess." For progress made or maintained, feel free to leave this blank — your Session Narrative in the next section can carry the supporting detail.';
+  document.getElementById('goalProgressDetailHint').textContent = 'Only required for "Difficulty / setback" or "Too early to assess."';
   updateCharCounter('sessionFlow', 'sessionFlowCounter', 250);
   updateCharCounter('goalsAddressed', 'goalsAddressedCounter', 30);
   updateCharCounter('planNextSteps', 'planNextStepsCounter', 25);
