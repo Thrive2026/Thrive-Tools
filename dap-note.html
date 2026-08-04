@@ -117,6 +117,19 @@ select{cursor:pointer;}
       </div>
       <div class="two-col">
         <div class="field">
+          <label class="field-label">Program <span class="required-star">*</span></label>
+          <select id="program" onchange="handleProgramChange()">
+            <option value="">Select program...</option>
+            <option value="Community Peer Support">Community Peer Support</option>
+            <option value="BH Linkage">BH Linkage</option>
+            <option value="Courts and Dockets">Courts &amp; Dockets</option>
+            <option value="Jail">Jail</option>
+            <option value="Hospital / ThriveED">Hospital / ThriveED</option>
+          </select>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="field">
           <label class="field-label">Client Number <span class="required-star" id="clientNumberStar">*</span></label>
           <div class="field-hint" id="clientNumberHint">Pimsy client/case number.</div>
           <input type="text" id="clientNumber" placeholder="e.g. B-C-2000"/>
@@ -127,19 +140,6 @@ select{cursor:pointer;}
           <label class="field-label">Session Date <span class="required-star">*</span></label>
           <div class="field-hint">Captured in Pimsy &mdash; not included in note text</div>
           <input type="date" id="sessionDate"/>
-        </div>
-      </div>
-      <div class="two-col">
-        <div class="field">
-          <label class="field-label">Program <span class="required-star">*</span></label>
-          <select id="program" onchange="handleProgramChange()">
-            <option value="">Select program...</option>
-            <option value="Community Peer Support">Community Peer Support</option>
-            <option value="BH Linkage">BH Linkage</option>
-            <option value="Courts and Dockets">Courts &amp; Dockets</option>
-            <option value="Jail">Jail</option>
-            <option value="Hospital / ThriveED">Hospital / ThriveED</option>
-          </select>
         </div>
       </div>
       <div class="two-col" id="linkageCodeField" style="display:none;">
@@ -1164,6 +1164,7 @@ function handleProgramChange() {
     document.getElementById('linkageCode').value = '';
     handleLinkageCode();
   }
+  updateClientNumberRequirement();
 }
 
 function getLinkageCode() {
@@ -1202,15 +1203,7 @@ function handleLinkageCode() {
 
     // U1, U2, and G-code contacts often happen before a Pimsy chart exists (e.g. hospital
     // referrals) — make Client Number optional for these codes only.
-    var cnStar = document.getElementById('clientNumberStar');
-    var cnHint = document.getElementById('clientNumberHint');
-    if (CODES_NO_CLIENT_NUMBER.indexOf(code) > -1) {
-      cnStar.style.display = 'none';
-      cnHint.textContent = 'Pimsy client/case number, if a chart has been created. Optional for this contact type — a chart may not exist yet (e.g. hospital referral). Never sent to the AI and never appears in the generated note.';
-    } else {
-      cnStar.style.display = 'inline';
-      cnHint.textContent = 'Pimsy client/case number. This is the one identifying field in this tool — used only to link internal structured data back to the client. Never sent to the AI and never appears in the generated note.';
-    }
+    updateClientNumberRequirement();
   } else {
     linkageCard.style.display = 'none';
     standardSections.style.display = 'block';
@@ -1219,8 +1212,27 @@ function handleLinkageCode() {
     generateBtn.textContent = 'Generate DAP Progress Note';
     engagementField.style.display = 'none';
     planNextField.style.display = 'none';
-    document.getElementById('clientNumberStar').style.display = 'inline';
-    document.getElementById('clientNumberHint').textContent = 'Pimsy client/case number. This is the one identifying field in this tool — used only to link internal structured data back to the client. Never sent to the AI and never appears in the generated note.';
+    updateClientNumberRequirement();
+  }
+}
+
+// Hospital/ThriveED contacts are often first contact during a crisis (bedside/ED) —
+// a Pimsy chart may not exist yet, so Client Number is optional for this program the
+// same way it's optional for U1/U2/G-code BH Linkage contacts.
+var PROGRAMS_NO_CLIENT_NUMBER = ['Hospital / ThriveED'];
+
+function updateClientNumberRequirement() {
+  var code = getLinkageCode();
+  var program = document.getElementById('program').value;
+  var cnStar = document.getElementById('clientNumberStar');
+  var cnHint = document.getElementById('clientNumberHint');
+  var optional = (code && CODES_NO_CLIENT_NUMBER.indexOf(code) > -1) || (!code && PROGRAMS_NO_CLIENT_NUMBER.indexOf(program) > -1);
+  if (optional) {
+    cnStar.style.display = 'none';
+    cnHint.textContent = 'If a chart has been created. Optional for this contact type — a chart may not exist yet.';
+  } else {
+    cnStar.style.display = 'inline';
+    cnHint.textContent = 'Pimsy client/case number.';
   }
 }
 
@@ -1962,6 +1974,7 @@ function resetForm() {
   document.getElementById('linkageEngagementField').style.display = 'none';
   document.getElementById('linkagePlanNextField').style.display = 'none';
   window._u3RefState = null;
+  updateClientNumberRequirement();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -2046,7 +2059,8 @@ async function runGenerateNote() {
 
   var missing = [];
   if (!document.getElementById('providerEmail').value.trim()) missing.push('Your Email');
-  if (CODES_NO_CLIENT_NUMBER.indexOf(getLinkageCode()) === -1 && !document.getElementById('clientNumber').value.trim()) missing.push('Client Number');
+  var clientNumberOptional = (CODES_NO_CLIENT_NUMBER.indexOf(getLinkageCode()) > -1) || (!getLinkageCode() && PROGRAMS_NO_CLIENT_NUMBER.indexOf(program) > -1);
+  if (!clientNumberOptional && !document.getElementById('clientNumber').value.trim()) missing.push('Client Number');
   if (!sessionDate) missing.push('Session Date');
   if (!program) missing.push('Program');
   if (!sessionLength) missing.push('Session Length');
