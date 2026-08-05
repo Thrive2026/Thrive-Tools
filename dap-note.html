@@ -186,7 +186,7 @@ select{cursor:pointer;}
             </select>
           </div>
           <div class="field" id="locationField" style="display:none;">
-            <label class="field-label" id="locationLabel">Meeting Location</label>
+            <label class="field-label" id="locationLabel">Meeting Location <span class="required-star">*</span></label>
             <select id="location">
               <option value="">Select location...</option>
               <option value="Peer's home">Peer's Home</option>
@@ -233,13 +233,16 @@ select{cursor:pointer;}
               </select>
             </div>
             <div class="field">
-              <label class="field-label">Client Location During Session</label>
+              <label class="field-label">Client Location During Session <span class="required-star">*</span></label>
+              <div class="field-hint">Where the Peer actually was during the call \u2014 don't default to "Peer's Home" unless you've confirmed that's accurate.</div>
               <select id="clientLocation">
                 <option value="">Select client location...</option>
                 <option value="Peer's home">Peer's Home</option>
                 <option value="Peer's place of employment">Peer's Place of Employment</option>
                 <option value="community location">Community Location</option>
                 <option value="medical / behavioral health setting">Medical / Behavioral Health Setting</option>
+                <option value="hospital">Hospital</option>
+                <option value="shelter or transitional housing">Shelter or Transitional Housing</option>
                 <option value="other location">Other Location</option>
               </select>
             </div>
@@ -261,6 +264,13 @@ select{cursor:pointer;}
           <div class="field-hint">How and when the member was initially connected (e.g. referral source, method of contact).</div>
           <textarea id="u1Details" placeholder="e.g. Initially connected with member via referral from Hospital ABC discharge planning" rows="3"></textarea>
         </div>
+        <div class="field">
+          <label class="field-label">Did the member agree to services? <span class="required-star">*</span></label>
+          <div class="toggle-options" style="display:inline-flex;">
+            <button type="button" class="toggle-btn" id="u1AgreeYes" onclick="setU1Agree(true)">Yes</button>
+            <button type="button" class="toggle-btn" id="u1AgreeNo" onclick="setU1Agree(false)">No</button>
+          </div>
+        </div>
       </div>
 
       <div id="u2Block" style="display:none;">
@@ -269,6 +279,13 @@ select{cursor:pointer;}
           <label class="field-label">Brief Description of Initial Engagement <span class="required-star">*</span></label>
           <div class="field-hint">What occurred during this initial engagement contact.</div>
           <textarea id="u2Details" placeholder="e.g. Engaged member telephonically to review peer support services and confirm continued interest" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">Did the member agree to services? <span class="required-star">*</span></label>
+          <div class="toggle-options" style="display:inline-flex;">
+            <button type="button" class="toggle-btn" id="u2AgreeYes" onclick="setU2Agree(true)">Yes</button>
+            <button type="button" class="toggle-btn" id="u2AgreeNo" onclick="setU2Agree(false)">No</button>
+          </div>
         </div>
       </div>
 
@@ -289,20 +306,19 @@ select{cursor:pointer;}
       </div>
 
       <div id="u4Block" style="display:none;">
+        <div class="field-hint" style="margin-bottom:12px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">U4 requires <strong>3 unsuccessful outreach attempts</strong> to bill for this code &mdash; 1 or 2 attempts alone aren't billable under this U-code.</div>
         <div class="field">
           <label class="field-label">Number of Unsuccessful Outreach Attempts <span class="required-star">*</span></label>
           <select id="u4Count" onchange="renderU4Dates()">
             <option value="">Select number...</option>
-            <option value="1">1 attempt</option>
-            <option value="2">2 attempts</option>
             <option value="3">3 attempts</option>
           </select>
         </div>
         <div class="two-col" id="u4DatesRow" style="flex-wrap:wrap;"></div>
         <div class="field">
           <label class="field-label">Reason / Outcome (if documented) <span style="font-size:11px;font-weight:400;color:#888;">(optional)</span></label>
-          <div class="field-hint">e.g. member was not interested in services, no answer, voicemail left. Leave blank if no reason was given.</div>
-          <textarea id="u4Outcome" placeholder="e.g. the member was not interested in services" rows="2"></textarea>
+          <div class="field-hint">If the member answered but declined services, that still counts as an unsuccessful outreach attempt for this code &mdash; describe it here (e.g. "member answered but declined services," "not interested," "no answer," "voicemail left"). Leave blank if no reason was given.</div>
+          <textarea id="u4Outcome" placeholder="e.g. member answered but declined services" rows="2"></textarea>
         </div>
       </div>
 
@@ -912,7 +928,15 @@ function scanForPHI() {
     {id: 'itpModDetail', label: 'ITP Modification Detail'},
     {id: 'planNextSteps', label: 'Next Steps'},
     {id: 'linkageEngagement', label: 'Member Response / Engagement This Contact'},
-    {id: 'linkagePlanNext', label: 'Next Step / Case Status'}
+    {id: 'linkagePlanNext', label: 'Next Step / Case Status'},
+    {id: 'otherContactDetail', label: 'Describe Contact Method'},
+    {id: 'u1Details', label: 'Brief Description of Initial Connection'},
+    {id: 'u2Details', label: 'Brief Description of Initial Engagement'},
+    {id: 'u3ReferralDetails', label: 'U3 Referral Details'},
+    {id: 'u4Outcome', label: 'U4 Reason / Outcome'},
+    {id: 'gOtherType', label: 'G-Code Referral Type (Other)'},
+    {id: 'gDetails', label: 'G-Code Referral Details'},
+    {id: 'u9Detail', label: 'U9 Attendance Detail'}
   ];
 
   var patterns = [
@@ -979,7 +1003,15 @@ function showPhiScreen(warnings) {
     {id: 'itpModDetail',       label: 'ITP Modification Detail'},
     {id: 'planNextSteps',      label: 'Next Steps'},
     {id: 'linkageEngagement',  label: 'Member Response / Engagement This Contact'},
-    {id: 'linkagePlanNext',    label: 'Next Step / Case Status'}
+    {id: 'linkagePlanNext',    label: 'Next Step / Case Status'},
+    {id: 'otherContactDetail', label: 'Describe Contact Method'},
+    {id: 'u1Details',          label: 'Brief Description of Initial Connection'},
+    {id: 'u2Details',          label: 'Brief Description of Initial Engagement'},
+    {id: 'u3ReferralDetails',  label: 'U3 Referral Details'},
+    {id: 'u4Outcome',          label: 'U4 Reason / Outcome'},
+    {id: 'gOtherType',         label: 'G-Code Referral Type (Other)'},
+    {id: 'gDetails',           label: 'G-Code Referral Details'},
+    {id: 'u9Detail',           label: 'U9 Attendance Detail'}
   ];
 
   var flaggedIds = warnings.map(function(w){ return w.fieldId; });
@@ -1138,7 +1170,7 @@ var LINKAGE_TITLES = {
   G: 'G-Code — Resource Referral'
 };
 
-var LINKAGE_SYSTEM_PROMPT = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate a DAP-format progress note for a BH Linkage contact documented under Ohio Medicaid U-code / G-code billing rules (OAC 5122-27-04, 5160-27-14).\n\nTHIS IS A PEER SUPPORT / LINKAGE NOTE — NOT A CLINICAL NOTE. Use peer support values and language throughout: lived experience, mutuality, hope, self-determination. Never use clinical, diagnostic, or treatment terminology outside PRS scope.\n\nACCURACY AND GROUNDING — ABSOLUTE RULE: Every sentence must be traceable to something explicitly provided in the input below. Do NOT invent, infer, or assume an emotional state, motivation, causal connection, or outcome that was not explicitly stated. Do not pad a brief input with invented detail or interpretation to make the note sound more complete. When in doubt, state only what was directly reported and stop there.\n\nSCOPE OF PRACTICE — PEER SUPPORT VS. CLINICAL (CRITICAL — this is a leading cause of claim denials): Peer Recovery Supporters are not clinicians. Every activity documented must describe peer support activity, never clinical or therapeutic treatment. This is about the substance of what is described, not just which words appear — avoiding a banned word while still describing a clinical activity is still out of scope. Do NOT describe PRS as: processing trauma therapeutically, challenging or restructuring the member\'s thoughts, administering or interpreting a clinical assessment, delivering formal psychoeducation content, teaching a specific therapeutic technique or modality, diagnosing or assessing symptoms, or creating/implementing a treatment plan. If what happened sounds clinical, describe only the peer support framing of it (listening, validating, sharing lived experience, connecting to resources).\n\nFORMAT: Output exactly three sections, each header on its own line in normal sentence case, followed by a paragraph (no bullet points): Description, Assessment, Plan. No preamble, no closing remarks.\n\nLIVE CONTACT VS. FOLLOW-UP/ATTESTATION CODES (CRITICAL — read the LINKAGE CODE given in the user message before writing): Codes U1, U2, and U3 document an actual live contact between PRS and the member (a phone call or an in-person visit) — for these, it is appropriate to describe the interaction naturally, including how it took place. Codes U4 through U9 and the G-code, however, document the outcome or status of a linkage/attestation process that was already conducted and documented separately (e.g. an attestation call already logged elsewhere, a records/appointment-history check, a referral sent) — these are NOT a new live conversation. For U4-U9 and G-code: do NOT invent or imply a live session took place — do not describe how the member "presented," was "engaged," or where a conversation supposedly occurred, and do not use language implying a face-to-face or telephone conversation happened during this specific note unless the contact facts provided actually describe one (e.g. U4\'s outreach attempts are calls, which is fine to state as calls). Write the Description as a factual account of the milestone/outcome/attestation being documented, not as a session narrative.\n\nTERMINOLOGY — MANDATORY:\n- Refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS."\n- Refer to the person receiving services as "Peer" — never "the client," "the consumer," "the patient."\n- Third-person past tense throughout. Never first person (I, me, my, we). Never present tense for session events.\n\nDESCRIPTION SECTION: Open by stating the specific linkage milestone/contact type this note documents (e.g., initial connection, successful initiation, outreach attempt, follow-up, attestation) using the facts provided below. Then describe what occurred during the contact — outreach method, referrals given, dates, and any relevant context — in full peer-support narrative form, not a bare data dump.\n\nASSESSMENT SECTION: Open with an explicit statement of whether the Medicaid linkage benchmark for this code was met (e.g., successful engagement within 7 days, sustained treatment adherence within 60/90 days) — this is the core regulatory and billing-support requirement. If member response/engagement detail is provided, ground the assessment in that specific detail rather than generic engagement language. Note any barriers, Peer response, or engagement level observed.\n\nPLAN SECTION: State the next step in the linkage pathway — next outreach attempt, next follow-up window, or case status — specific enough that another PRS could pick up the case. If a next step/case status detail is provided, use it directly as the basis for this section rather than inventing a generic next step.\n\nPROHIBITED LANGUAGE: Never use "goal met/not met," "transported/drove/picked up," "clinical," "clinician," "diagnosis," "intervention," "psychoeducation" (use "recovery education/support"), "motivational interviewing" (use "motivational support"), "emotional regulation techniques" (use "recovery coping skills"), "mindfulness instruction" (use "wellness strategies"), "teaching" (use "shared information," "explored," or "discussed"), or generic filler like "services were rendered" or "session was productive." Never use clinical technique phrases even without a banned word present, such as "processed trauma," "cognitive restructuring," "administered a [clinical tool]," or "implemented a treatment." Never use literary or AI-sounding phrasing such as "deepening integration" or "[X] functioning as a barrier." Never state raw session duration as a standalone fact outside its role in describing the contact.\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan with headers in normal sentence case. No commentary.';
+var LINKAGE_SYSTEM_PROMPT = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate a DAP-format progress note for a BH Linkage contact documented under Ohio Medicaid U-code / G-code billing rules (OAC 5122-27-04, 5160-27-14).\n\nTHIS IS A PEER SUPPORT / LINKAGE NOTE — NOT A CLINICAL NOTE. Use peer support values and language throughout: lived experience, mutuality, hope, self-determination. Never use clinical, diagnostic, or treatment terminology outside PRS scope.\n\nACCURACY AND GROUNDING — ABSOLUTE RULE: Every sentence must be traceable to something explicitly provided in the input below. Do NOT invent, infer, or assume an emotional state, motivation, causal connection, or outcome that was not explicitly stated. Do not pad a brief input with invented detail or interpretation to make the note sound more complete. When in doubt, state only what was directly reported and stop there.\n\nSCOPE OF PRACTICE — PEER SUPPORT VS. CLINICAL (CRITICAL — this is a leading cause of claim denials): Peer Recovery Supporters are not clinicians. Every activity documented must describe peer support activity, never clinical or therapeutic treatment. This is about the substance of what is described, not just which words appear — avoiding a banned word while still describing a clinical activity is still out of scope. Do NOT describe PRS as: processing trauma therapeutically, challenging or restructuring the member\'s thoughts, administering or interpreting a clinical assessment, delivering formal psychoeducation content, teaching a specific therapeutic technique or modality, diagnosing or assessing symptoms, or creating/implementing a treatment plan. If what happened sounds clinical, describe only the peer support framing of it (listening, validating, sharing lived experience, connecting to resources).\n\nFORMAT: Output exactly three sections, each header on its own line in normal sentence case, followed by a paragraph (no bullet points): Description, Assessment, Plan. No preamble, no closing remarks.\n\nLIVE CONTACT VS. FOLLOW-UP/ATTESTATION CODES (CRITICAL — read the LINKAGE CODE given in the user message before writing): Codes U1, U2, and U3 document an actual live contact between PRS and the member (a phone call or an in-person visit) — for these, it is appropriate to describe the interaction naturally, including how it took place. Codes U4 through U9 and the G-code, however, document the outcome or status of a linkage/attestation process that was already conducted and documented separately (e.g. an attestation call already logged elsewhere, a records/appointment-history check, a referral sent) — these are NOT a new live conversation. For U4-U9 and G-code: do NOT invent or imply a live session took place — do not describe how the member "presented," was "engaged," or where a conversation supposedly occurred, and do not use language implying a face-to-face or telephone conversation happened during this specific note unless the contact facts provided actually describe one (e.g. U4\'s outreach attempts are calls, which is fine to state as calls). EXCEPTION for U4: if the contact facts state that the member actually answered/was reached on a given attempt (e.g. "member answered but declined services"), state that plainly and accurately — being reached and declining services still counts as an unsuccessful outreach attempt for billing purposes under this code, so do not soften, omit, or reframe it as a missed/no-answer attempt just because contact was technically made. Write the Description as a factual account of the milestone/outcome/attestation being documented, not as a session narrative.\n\nTERMINOLOGY — MANDATORY:\n- Refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS."\n- Refer to the person receiving services as "Peer" — never "the client," "the consumer," "the patient."\n- Third-person past tense throughout. Never first person (I, me, my, we). Never present tense for session events.\n\nNEVER NAME THE BILLING CODE (CRITICAL): The LINKAGE CODE given in the user message (e.g. U3, U5, G) and its formal title are for your own internal reference only — to decide structure, tense, and which facts matter. They must NEVER appear in the output in any form. Do not write the code letter/number, do not write its formal title, and do not write meta-commentary that names or explains what type of note or milestone this is — no phrases like "this documents," "this was a U3 contact," "this note documents a successful initiation," "this linkage milestone," "per the U-code requirements," or anything similar. The reader should be able to tell what kind of contact this was from the plain facts described (what happened, when, and why) — never from a label you attach.\n\nDESCRIPTION SECTION: Describe what occurred during this contact — outreach method, referrals given, dates, actual location, and any relevant context — in full peer-support narrative form, not a bare data dump, and without ever naming or labeling the billing code or milestone type per the rule above.\n\nASSESSMENT SECTION: Open with an explicit statement of whether the Medicaid linkage benchmark for this code was met (e.g., successful engagement within 7 days, sustained treatment adherence within 60/90 days) — this is the core regulatory and billing-support requirement. If member response/engagement detail is provided, ground the assessment in that specific detail rather than generic engagement language. Note any barriers, Peer response, or engagement level observed.\n\nPLAN SECTION: State the next step in the linkage pathway — next outreach attempt, next follow-up window, or case status — specific enough that another PRS could pick up the case. If a next step/case status detail is provided, use it directly as the basis for this section rather than inventing a generic next step.\n\nPROHIBITED LANGUAGE: Never use "goal met/not met," "transported/drove/picked up," "clinical," "clinician," "diagnosis," "intervention," "psychoeducation" (use "recovery education/support"), "motivational interviewing" (use "motivational support"), "emotional regulation techniques" (use "recovery coping skills"), "mindfulness instruction" (use "wellness strategies"), "teaching" (use "shared information," "explored," or "discussed"), or generic filler like "services were rendered" or "session was productive." Never use clinical technique phrases even without a banned word present, such as "processed trauma," "cognitive restructuring," "administered a [clinical tool]," or "implemented a treatment." Never use literary or AI-sounding phrasing such as "deepening integration" or "[X] functioning as a barrier." Never state raw session duration as a standalone fact outside its role in describing the contact.\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan with headers in normal sentence case. No commentary.';
 
 var CODES_NEEDING_SHARED_FIELDS = ['U3','U4','U5','U6','U7','U8','U9','G'];
 var CODES_USING_SESSION_DATE = ['U1','U2','U3'];
@@ -1243,6 +1275,18 @@ function setU3Referrals(val) {
   window._u3RefState = val;
 }
 
+function setU1Agree(val) {
+  document.getElementById('u1AgreeYes').className = 'toggle-btn' + (val ? ' active-yes' : '');
+  document.getElementById('u1AgreeNo').className = 'toggle-btn' + (!val ? ' active-no' : '');
+  window._u1AgreeState = val;
+}
+
+function setU2Agree(val) {
+  document.getElementById('u2AgreeYes').className = 'toggle-btn' + (val ? ' active-yes' : '');
+  document.getElementById('u2AgreeNo').className = 'toggle-btn' + (!val ? ' active-no' : '');
+  window._u2AgreeState = val;
+}
+
 function renderU4Dates() {
   var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
   var row = document.getElementById('u4DatesRow');
@@ -1296,10 +1340,14 @@ function daysBetween(d1, d2) {
 
 function joinDatesList(dates) {
   var d = dates.filter(function(x){ return x; }).map(formatDateSlash);
-  if (d.length === 0) return '';
-  if (d.length === 1) return d[0];
-  if (d.length === 2) return d[0] + ' and ' + d[1];
-  return d.slice(0, -1).join(', ') + ', and ' + d[d.length - 1];
+  return joinList(d);
+}
+
+function joinList(items) {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return items[0] + ' and ' + items[1];
+  return items.slice(0, -1).join(', ') + ', and ' + items[items.length - 1];
 }
 
 function buildLinkageNarrative(code) {
@@ -1312,37 +1360,75 @@ function buildLinkageNarrative(code) {
 
   if (code === 'U1') {
     var u1Details = document.getElementById('u1Details').value.trim();
+    var u1Agree = window._u1AgreeState;
     if (!sessionDate) missing.push('Session Date');
     if (!u1Details) missing.push('Brief Description of Initial Connection');
+    if (u1Agree === undefined || u1Agree === null) missing.push('Did the Member Agree to Services (Yes/No)');
     if (missing.length) return {missing: missing};
-    narrative = 'Initially connected with member on ' + formatDateSlash(sessionDate) + '. ' + u1Details + '.';
+    narrative = 'Initially connected with member on ' + formatDateSlash(sessionDate) + '. ' + u1Details + '. Member ' + (u1Agree ? 'agreed' : 'did not agree') + ' to services at this time.';
   }
 
   else if (code === 'U2') {
     var u2Details = document.getElementById('u2Details').value.trim();
+    var u2Agree = window._u2AgreeState;
     if (!sessionDate) missing.push('Session Date');
     if (!u2Details) missing.push('Brief Description of Initial Engagement');
+    if (u2Agree === undefined || u2Agree === null) missing.push('Did the Member Agree to Services (Yes/No)');
     if (missing.length) return {missing: missing};
-    narrative = 'On ' + formatDateSlash(sessionDate) + ', ' + u2Details + '.';
+    narrative = 'On ' + formatDateSlash(sessionDate) + ', ' + u2Details + '. Member ' + (u2Agree ? 'agreed' : 'did not agree') + ' to services at this time.';
   }
 
   else if (code === 'U3') {
     var sessionLength = document.getElementById('sessionLength').value;
+    var u3SessionType = document.getElementById('sessionType').value;
     var refGiven = window._u3RefState;
     var refDetails = document.getElementById('u3ReferralDetails').value.trim();
     if (!sessionDate) missing.push('Session Date');
     if (!sessionLength) missing.push('Session Length');
+    if (!u3SessionType) missing.push('Session Type');
+    else if (u3SessionType === 'In-Person') {
+      if (!document.getElementById('location').value) missing.push('Meeting Location');
+    } else if (u3SessionType === 'Telehealth') {
+      var u3ModalityCheck = document.querySelector('input[name="telehealthModality"]:checked');
+      if (!u3ModalityCheck) missing.push('Telehealth Modality (Phone or Video)');
+      if (!document.getElementById('providerLocation').value) missing.push('Provider Location During Session');
+      if (!document.getElementById('clientLocation').value) missing.push('Client Location During Session');
+    } else if (u3SessionType === 'Other') {
+      if (!document.getElementById('otherContactDetail').value.trim()) missing.push('Describe Contact Method');
+    }
     if (refGiven === undefined || refGiven === null) missing.push('Referrals Given (Yes/No)');
     if (refGiven && !refDetails) missing.push('Referral Details');
     if (missing.length) return {missing: missing};
-    narrative = 'Peer Recovery Supporter conducted a successful initiation contact with the Peer at the Peer\'s home on ' + formatDateSlash(sessionDate) + ', for a duration of ' + sessionLength + ', following the Peer\'s recent hospitalization. This contact was documented as a Service Note with both Location Type and Location Code recorded as Home. '
+
+    // Build the actual contact description from what the PRS selected in Session
+    // Information above — never assume the contact happened at the Peer's home,
+    // and never assume it was in person. Reflect whatever was actually selected.
+    var u3ContactPhrase = 'in person';
+    var u3OtherNote = '';
+    if (u3SessionType === 'In-Person') {
+      var u3Loc = document.getElementById('location').value;
+      u3ContactPhrase = u3Loc ? ('in person at ' + u3Loc) : 'in person';
+    } else if (u3SessionType === 'Telehealth') {
+      var u3Modality = document.querySelector('input[name="telehealthModality"]:checked');
+      u3ContactPhrase = u3Modality ? ('by ' + u3Modality.value) : 'by telehealth';
+    } else if (u3SessionType === 'Other') {
+      var u3Other = document.getElementById('otherContactDetail').value.trim();
+      u3ContactPhrase = 'by another contact method';
+      u3OtherNote = u3Other ? (' Contact method: ' + u3Other + '.') : '';
+    }
+
+    narrative = 'Peer Recovery Supporter conducted a successful initiation contact with the Peer ' + u3ContactPhrase + ' on ' + formatDateSlash(sessionDate) + ', for a duration of ' + sessionLength + ', following the Peer\'s recent hospitalization.' + u3OtherNote + ' '
       + (refGiven ? ('The following referral(s) were provided to the Peer during this contact: ' + refDetails + '.') : 'No referrals were provided during this contact.');
   }
 
   else if (code === 'U4') {
     var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
     var outcome = document.getElementById('u4Outcome').value.trim();
+    // U4 requires exactly 3 unsuccessful attempts to bill for this code — confirmed
+    // by Brandon. The dropdown only offers 3, but validate defensively in case the
+    // value is ever set some other way.
     if (!count) missing.push('Number of Attempts');
+    else if (count !== 3) missing.push('Number of Attempts (U4 requires exactly 3 unsuccessful attempts to bill for this code)');
     var dates = [];
     for (var i = 1; i <= count; i++) {
       var v = document.getElementById('u4Date' + i) ? document.getElementById('u4Date' + i).value : '';
@@ -1350,9 +1436,8 @@ function buildLinkageNarrative(code) {
       dates.push(v);
     }
     if (missing.length) return {missing: missing};
-    var countWord = {1: 'One', 2: 'Two', 3: 'Three'}[count];
     var lastDate = formatDateSlash(dates[dates.length - 1]);
-    narrative = countWord + ' unsuccessful outreach attempt' + (count > 1 ? 's' : '') + ' by phone on ' + joinDatesList(dates) + '.'
+    narrative = 'Three unsuccessful outreach attempts by phone on ' + joinDatesList(dates) + '.'
       + (outcome ? (' On ' + lastDate + ', ' + outcome + '.') : '');
   }
 
@@ -1404,7 +1489,9 @@ function buildLinkageNarrative(code) {
     if (!attended) missing.push('Appointments Attended');
     if (!total) missing.push('Appointments Scheduled (Total)');
     if (missing.length) return {missing: missing};
-    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member was successfully engaged in MH treatment as evidenced by attending more than 50% of scheduled appointments within 60 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence by attending ' + attended + ' out of ' + total + ' appointments.';
+    var u7Pct = (parseFloat(total) > 0) ? Math.round((parseFloat(attended) / parseFloat(total)) * 100) : null;
+    var u7PctText = (u7Pct !== null) ? (u7Pct + '%') : 'the reported share';
+    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member was engaged in MH treatment as evidenced by attending ' + u7PctText + ' of scheduled appointments within 60 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence by attending ' + attended + ' out of ' + total + ' appointments.';
   }
 
   else if (code === 'U8') {
@@ -1433,7 +1520,7 @@ function buildLinkageNarrative(code) {
     if (!attestationDate) missing.push('Attestation Date');
     if (!detail) missing.push('Attendance Detail');
     if (missing.length) return {missing: missing};
-    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member remains successfully engaged in MH treatment as evidenced by attending more than 50% of scheduled appointments within 90 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence by attending ' + detail + '.';
+    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member remains engaged in MH treatment within 90 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence by attending ' + detail + '.';
   }
 
   else if (code === 'G') {
@@ -1449,7 +1536,7 @@ function buildLinkageNarrative(code) {
     if (docChips.length === 0) missing.push('Documentation Method');
     if (missing.length) return {missing: missing};
     var typeText = (gType === 'other') ? gOtherType : gType;
-    narrative = 'Provided ' + typeText + ' assistance, on ' + formatDateSlash(gDate) + ', through a referral to ' + gDetails + '. Documented by ' + docChips.join(' and ') + '.';
+    narrative = 'Provided ' + typeText + ' assistance, on ' + formatDateSlash(gDate) + ', through a referral to ' + gDetails + '. Documented by ' + joinList(docChips) + '.';
   }
 
   var engagement = '', planNext = '';
@@ -1610,8 +1697,15 @@ function loadKickback() {
   var reviewAttest = document.getElementById('reviewAttestation');
   if (reviewAttest) {
     reviewAttest.checked = false;
-    toggleCopyButtons();
   }
+  // Run the Compliance Quality Check against the pasted-in text right away —
+  // otherwise the attestation checkbox stays disabled (it's only ever enabled by
+  // runQAChecks) and the PRS has no way to unlock copying without separately
+  // clicking "Re-Check After Edits," which nothing here tells them to do.
+  document.getElementById('assessOutputCard').style.display = 'block';
+  document.getElementById('planOutputCard').style.display = 'block';
+  document.getElementById('qaPanel').style.display = 'block';
+  runQAChecks(data, assessment, plan);
 
   var outputSection = document.getElementById('outputSection');
   outputSection.className = 'output-section visible';
@@ -1677,9 +1771,24 @@ function runQAChecks(descText, assessText, planText) {
     check('Session location/modality is documented', locationOk);
   }
 
-  // Telehealth-specific: provider location must be documented (billing requirement)
+  // Telehealth-specific: provider and client location must be documented (billing requirement)
   if (!skipSessionInfo && sessionType === 'Telehealth') {
     check('Telehealth provider location is documented', !!document.getElementById('providerLocation').value);
+    check('Telehealth client (Peer) location is documented', !!document.getElementById('clientLocation').value);
+
+    // Habit-driven error check: "Peer's Home" is the easiest option to default to
+    // without verifying, so treat it the same way the in-person location check does
+    // — flag it if the note content describes a different setting.
+    var clientLoc = document.getElementById('clientLocation').value;
+    if (clientLoc === "Peer's home") {
+      var teleConflictSettings = ['sober house', 'shelter', 'transitional housing', 'treatment center', 'recovery house', 'halfway house', 'group home', 'hospital', 'jail', 'correctional facility'];
+      var teleFoundConflict = teleConflictSettings.find(function(t){ return fullNoteText.indexOf(t) > -1; });
+      check('Selected client location ("Peer\'s Home") is consistent with note content', !teleFoundConflict);
+    } else if (clientLoc) {
+      var teleHomeIndicators = ["peer's home", 'peer\u2019s home', "at the peer's home", "member's home", 'at home'];
+      var teleFoundHomeClaim = teleHomeIndicators.find(function(t){ return fullNoteText.indexOf(t) > -1; });
+      check('Note does not describe the Peer as being at home when a different client location was selected', !teleFoundHomeClaim);
+    }
   }
 
   // Session type vs. note content consistency — catches the exact real-world denial
@@ -1703,6 +1812,13 @@ function runQAChecks(descText, assessText, planText) {
         var conflictingSettings = ['sober house', 'shelter', 'transitional housing', 'treatment center', 'recovery house', 'halfway house', 'group home', 'hospital', 'jail', 'correctional facility'];
         var foundConflict = conflictingSettings.find(function(t){ return noteTextLower.indexOf(t) > -1; });
         check('Selected location ("Peer\'s Home") is consistent with note content', !foundConflict);
+      } else if (selectedLocation) {
+        // Reverse case (this is what let the U3 "always says Home" bug slip past QA
+        // undetected): a non-Home location was selected, but the note text still
+        // claims the contact happened at the Peer's home.
+        var homeIndicators = ["peer's home", 'peer\u2019s home', "at the peer's home", "member's home", 'at home'];
+        var foundHomeClaim = homeIndicators.find(function(t){ return noteTextLower.indexOf(t) > -1; });
+        check('Note does not describe the contact as happening at the Peer\'s home when a different location was selected', !foundHomeClaim);
       }
     }
   }
@@ -1952,7 +2068,7 @@ function resetForm() {
   document.getElementById('outputSection').className = 'output-section';
   document.getElementById('loadingBlock').className = 'loading';
   document.getElementById('errorMsg').className = 'error-msg';
-  document.getElementById('generateBtn').disabled = true;
+  document.getElementById('generateBtn').disabled = false;
   document.getElementById('linkageCodeField').style.display = 'none';
   document.getElementById('linkageDetailsCard').style.display = 'none';
   document.getElementById('standardDapSections').style.display = 'block';
@@ -1971,6 +2087,12 @@ function resetForm() {
   document.getElementById('u3RefYes').className = 'toggle-btn';
   document.getElementById('u3RefNo').className = 'toggle-btn';
   document.getElementById('u3ReferralDetailsField').style.display = 'none';
+  document.getElementById('u1AgreeYes').className = 'toggle-btn';
+  document.getElementById('u1AgreeNo').className = 'toggle-btn';
+  document.getElementById('u2AgreeYes').className = 'toggle-btn';
+  document.getElementById('u2AgreeNo').className = 'toggle-btn';
+  window._u1AgreeState = null;
+  window._u2AgreeState = null;
   document.getElementById('linkageEngagementField').style.display = 'none';
   document.getElementById('linkagePlanNextField').style.display = 'none';
   window._u3RefState = null;
@@ -2065,10 +2187,13 @@ async function runGenerateNote() {
   if (!program) missing.push('Program');
   if (!sessionLength) missing.push('Session Length');
   if (!sessionType) missing.push('Session Type');
-  if (sessionType === 'Telehealth') {
+  if (sessionType === 'In-Person') {
+    if (!location) missing.push('Meeting Location');
+  } else if (sessionType === 'Telehealth') {
     var modality = document.querySelector('input[name="telehealthModality"]:checked');
     if (!modality) missing.push('Telehealth Modality (Phone or Video)');
     if (!document.getElementById('providerLocation').value) missing.push('Provider Location During Session');
+    if (!document.getElementById('clientLocation').value) missing.push('Client Location During Session');
   } else if (sessionType === 'Other') {
     var otherContactDetailVal = document.getElementById('otherContactDetail').value.trim();
     if (!otherContactDetailVal) missing.push('Describe Contact Method');
