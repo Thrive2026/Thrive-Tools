@@ -306,22 +306,19 @@ select{cursor:pointer;}
       </div>
 
       <div id="u4Block" style="display:none;">
-        <div class="field-hint" style="margin-bottom:12px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">U4 is billable once <strong>either</strong> of these is true: <strong>3 unsuccessful (no-answer) outreach attempts</strong>, <strong>or</strong> the Peer was reached and <strong>declined services</strong>, or the number reached was a <strong>wrong number</strong>, on attempt 1 or 2. Select the outcome of each attempt below &mdash; you don't need to make it to 3 attempts if an earlier one already qualifies.</div>
+        <div class="field-hint" style="margin-bottom:12px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">U4 requires <strong>3 unsuccessful outreach attempts</strong> to bill for this code &mdash; 1 or 2 attempts alone aren't billable under this U-code.</div>
         <div class="field">
-          <label class="field-label">Number of Outreach Attempts <span class="required-star">*</span></label>
+          <label class="field-label">Number of Unsuccessful Outreach Attempts <span class="required-star">*</span></label>
           <select id="u4Count" onchange="renderU4Dates()">
             <option value="">Select number...</option>
-            <option value="1">1 attempt</option>
-            <option value="2">2 attempts</option>
             <option value="3">3 attempts</option>
           </select>
         </div>
         <div class="two-col" id="u4DatesRow" style="flex-wrap:wrap;"></div>
-        <div id="u4BillabilityHint" style="font-size:12px;font-weight:600;margin-top:-8px;margin-bottom:16px;"></div>
         <div class="field">
-          <label class="field-label">Additional Details <span style="font-size:11px;font-weight:400;color:#888;">(optional)</span></label>
-          <div class="field-hint">Any further context about the outcome(s) above (e.g. "member said not interested," "voicemail left asking to call back"). Leave blank if nothing further to add.</div>
-          <textarea id="u4Outcome" placeholder="e.g. member said not interested at this time" rows="2"></textarea>
+          <label class="field-label">Reason / Outcome (if documented) <span style="font-size:11px;font-weight:400;color:#888;">(optional)</span></label>
+          <div class="field-hint">If the member answered but declined services, that still counts as an unsuccessful outreach attempt for this code &mdash; describe it here (e.g. "member answered but declined services," "not interested," "no answer," "voicemail left"). Leave blank if no reason was given.</div>
+          <textarea id="u4Outcome" placeholder="e.g. member answered but declined services" rows="2"></textarea>
         </div>
       </div>
 
@@ -1069,6 +1066,43 @@ function proceedFromPhiScreen() {
   }
 }
 
+// ── AI RISK SCAN — independent safety net, separate from the PRS's own
+// concern_flagged/itp_flagged toggles. Reads the actual narrative text and
+// flags on its own, so a real risk disclosed in the writing still surfaces
+// to leadership even if the PRS didn't click "Yes" on the concern toggle.
+// Fails open: any error here never blocks note generation or copying.
+var RISK_SCAN_SYSTEM_PROMPT = 'You are a safety-net risk classifier reviewing de-identified peer support note text for a CARF-accredited peer support agency. You are NOT writing or editing the note \u2014 you are only classifying it for internal clinical oversight purposes.\n\nRead the text provided and determine which of the following categories, if any, are present. Err toward flagging when language is ambiguous or borderline \u2014 a false positive costs a reviewer two minutes; a false negative on a real safety concern is the failure mode this exists to prevent.\n\nCATEGORIES (use exactly these labels):\n- "Safety-SI" \u2014 any suicidal ideation, passive or active, including statements like feeling like a burden, not wanting to be here, or wishing not to wake up.\n- "Safety-SelfHarm" \u2014 self-harm behavior, urges, or disclosed history relevant to current risk.\n- "Safety-Violence" \u2014 threats or acts of violence toward others.\n- "Safety-DV" \u2014 domestic violence, intimate partner violence, or abuse (as victim or perpetrator).\n- "Safety-ChildDependent" \u2014 any indication a child or dependent adult may be unsafe, neglected, or endangered. This is a mandatory-reporting-relevant category \u2014 flag even mild or indirect indications.\n- "Substance-Crisis" \u2014 acute substance use crisis: overdose, relapse with immediate danger, or use that suggests imminent risk (not routine recovery-topic discussion).\n- "Psychiatric-Acute" \u2014 acute psychiatric symptoms suggesting decompensation: psychosis, severe dissociation, mania, or similar.\n- "Housing-Crisis" \u2014 imminent homelessness, eviction, or loss of shelter.\n- "SDOH-Severe" \u2014 severe unmet basic need with immediate consequences: utility shutoff, food insecurity described as acute, loss of income with imminent consequence.\n- "Medication-Concern" \u2014 disclosed medication non-adherence, adverse effects, or access barriers with clinical relevance.\n- "Legal-Risk" \u2014 new legal jeopardy (arrest, warrant, upcoming court exposure) not already the routine subject of the contact.\n\nDo NOT flag: routine mentions of a topic in the ordinary course of recovery work (e.g., discussing substance use history in general recovery coaching, routine court check-ins for a Courts & Jail contact, general housing search assistance with no urgency). Only flag when the text describes something requiring clinical/leadership awareness beyond the PRS\'s routine documented response.\n\nOUTPUT FORMAT: Return ONLY a JSON object, no other text, no markdown code fences, in exactly this shape:\n{"flags": ["Safety-SI"], "requires_immediate_attention": true}\n\n"flags" is an array of zero or more of the category labels above (only labels from the list, nothing invented). "requires_immediate_attention" is true if ANY flag from Safety-SI, Safety-SelfHarm, Safety-Violence, Safety-DV, Safety-ChildDependent, or Substance-Crisis is present, false otherwise. If nothing applies, return {"flags": [], "requires_immediate_attention": false}.';
+
+async function runRiskScan(narrativeText) {
+  var fallback = { flags: [], requires_immediate_attention: false };
+  if (!narrativeText || !narrativeText.trim()) return fallback;
+
+  try {
+    var response = await fetch('/functions/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        system: RISK_SCAN_SYSTEM_PROMPT,
+        messages: [{role: 'user', content: 'Classify this note text:\n\n' + narrativeText}]
+      })
+    });
+    if (!response.ok) {
+      console.warn('[Risk scan] API returned non-OK status, skipping (fails open).');
+      return fallback;
+    }
+    var data = await response.json();
+    var rawText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text.trim() : '';
+    rawText = rawText.replace(/^```(json)?/i, '').replace(/```$/, '').trim();
+    var parsed = JSON.parse(rawText);
+    var flags = Array.isArray(parsed.flags) ? parsed.flags : [];
+    var requiresAttention = !!parsed.requires_immediate_attention;
+    return { flags: flags, requires_immediate_attention: requiresAttention };
+  } catch (e) {
+    console.warn('[Risk scan] failed, proceeding without AI flags (fails open): ' + e.message);
+    return fallback;
+  }
+}
+
 var concernActive = null;
 
 function setConcern(val) {
@@ -1173,7 +1207,7 @@ var LINKAGE_TITLES = {
   G: 'G-Code — Resource Referral'
 };
 
-var LINKAGE_SYSTEM_PROMPT = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate a DAP-format progress note for a BH Linkage contact documented under Ohio Medicaid U-code / G-code billing rules (OAC 5122-27-04, 5160-27-14).\n\nTHIS IS A PEER SUPPORT / LINKAGE NOTE — NOT A CLINICAL NOTE. Use peer support values and language throughout: lived experience, mutuality, hope, self-determination. Never use clinical, diagnostic, or treatment terminology outside PRS scope.\n\nACCURACY AND GROUNDING — ABSOLUTE RULE: Every sentence must be traceable to something explicitly provided in the input below. Do NOT invent, infer, or assume an emotional state, motivation, causal connection, or outcome that was not explicitly stated. Do not pad a brief input with invented detail or interpretation to make the note sound more complete. When in doubt, state only what was directly reported and stop there.\n\nSCOPE OF PRACTICE — PEER SUPPORT VS. CLINICAL (CRITICAL — this is a leading cause of claim denials): Peer Recovery Supporters are not clinicians. Every activity documented must describe peer support activity, never clinical or therapeutic treatment. This is about the substance of what is described, not just which words appear — avoiding a banned word while still describing a clinical activity is still out of scope. Do NOT describe PRS as: processing trauma therapeutically, challenging or restructuring the member\'s thoughts, administering or interpreting a clinical assessment, delivering formal psychoeducation content, teaching a specific therapeutic technique or modality, diagnosing or assessing symptoms, or creating/implementing a treatment plan. If what happened sounds clinical, describe only the peer support framing of it (listening, validating, sharing lived experience, connecting to resources).\n\nFORMAT: Output exactly three sections, each header on its own line in normal sentence case, followed by a paragraph (no bullet points): Description, Assessment, Plan. No preamble, no closing remarks.\n\nLIVE CONTACT VS. FOLLOW-UP/ATTESTATION CODES (CRITICAL — read the LINKAGE CODE given in the user message before writing): Codes U1, U2, and U3 document an actual live contact between PRS and the member (a phone call or an in-person visit) — for these, it is appropriate to describe the interaction naturally, including how it took place. Codes U4 through U9 and the G-code, however, document the outcome or status of a linkage/attestation process that was already conducted and documented separately (e.g. an attestation call already logged elsewhere, a records/appointment-history check, a referral sent) — these are NOT a new live conversation. For U4-U9 and G-code: do NOT invent or imply a live session took place — do not describe how the member "presented," was "engaged," or where a conversation supposedly occurred, and do not use language implying a face-to-face or telephone conversation happened during this specific note unless the contact facts provided actually describe one (e.g. U4\'s outreach attempts are calls, which is fine to state as calls). EXCEPTION for U4: if the contact facts state that the member actually answered/was reached on a given attempt (e.g. "member answered but declined services") or that a number reached was incorrect (a wrong number), state that plainly and accurately — being reached and declining services, and reaching a wrong number, both still count as an unsuccessful outreach attempt for billing purposes under this code, so do not soften, omit, or reframe either outcome as a missed/no-answer attempt just because contact was technically made.\n\nTERMINOLOGY — MANDATORY:\n- Refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS."\n- Refer to the person receiving services as "Peer" — never "the client," "the consumer," "the patient."\n- Third-person past tense throughout. Never first person (I, me, my, we). Never present tense for session events.\n\nNEVER NAME THE BILLING CODE (CRITICAL): The LINKAGE CODE given in the user message (e.g. U3, U5, G) and its formal title are for your own internal reference only — to decide structure, tense, and which facts matter. They must NEVER appear in the output in any form. Do not write the code letter/number, do not write its formal title, and do not write meta-commentary that names or explains what type of note or milestone this is — no phrases like "this documents," "this was a U3 contact," "this note documents a successful initiation," "this linkage milestone," "per the U-code requirements," or anything similar. The reader should be able to tell what kind of contact this was from the plain facts described (what happened, when, and why) — never from a label you attach.\n\nDESCRIPTION SECTION: Describe what occurred during this contact — outreach method, referrals given, dates, actual location, and any relevant context — in full peer-support narrative form, not a bare data dump, and without ever naming or labeling the billing code or milestone type per the rule above.\n\nASSESSMENT SECTION: Open with an explicit statement of whether the Medicaid linkage benchmark for this code was met (e.g., successful engagement within 7 days, sustained treatment adherence within 60/90 days) — this is the core regulatory and billing-support requirement. If member response/engagement detail is provided, ground the assessment in that specific detail rather than generic engagement language. Note any barriers, Peer response, or engagement level observed.\n\nPLAN SECTION: State the next step in the linkage pathway — next outreach attempt, next follow-up window, or case status — specific enough that another PRS could pick up the case. If a next step/case status detail is provided, use it directly as the basis for this section rather than inventing a generic next step.\n\nPROHIBITED LANGUAGE: Never use "goal met/not met," "transported/drove/picked up," "clinical," "clinician," "diagnosis," "intervention," "psychoeducation" (use "recovery education/support"), "motivational interviewing" (use "motivational support"), "emotional regulation techniques" (use "recovery coping skills"), "mindfulness instruction" (use "wellness strategies"), "teaching" (use "shared information," "explored," or "discussed"), or generic filler like "services were rendered" or "session was productive." Never use clinical technique phrases even without a banned word present, such as "processed trauma," "cognitive restructuring," "administered a [clinical tool]," or "implemented a treatment." Never use literary or AI-sounding phrasing such as "deepening integration" or "[X] functioning as a barrier." Never state raw session duration as a standalone fact outside its role in describing the contact.\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan with headers in normal sentence case. No commentary.';
+var LINKAGE_SYSTEM_PROMPT = 'You are a documentation assistant for Thrive Peer Recovery Services, a CARF-accredited, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate a DAP-format progress note for a BH Linkage contact documented under Ohio Medicaid U-code / G-code billing rules (OAC 5122-27-04, 5160-27-14).\n\nTHIS IS A PEER SUPPORT / LINKAGE NOTE — NOT A CLINICAL NOTE. Use peer support values and language throughout: lived experience, mutuality, hope, self-determination. Never use clinical, diagnostic, or treatment terminology outside PRS scope.\n\nACCURACY AND GROUNDING — ABSOLUTE RULE: Every sentence must be traceable to something explicitly provided in the input below. Do NOT invent, infer, or assume an emotional state, motivation, causal connection, or outcome that was not explicitly stated. Do not pad a brief input with invented detail or interpretation to make the note sound more complete. When in doubt, state only what was directly reported and stop there.\n\nSCOPE OF PRACTICE — PEER SUPPORT VS. CLINICAL (CRITICAL — this is a leading cause of claim denials): Peer Recovery Supporters are not clinicians. Every activity documented must describe peer support activity, never clinical or therapeutic treatment. This is about the substance of what is described, not just which words appear — avoiding a banned word while still describing a clinical activity is still out of scope. Do NOT describe PRS as: processing trauma therapeutically, challenging or restructuring the member\'s thoughts, administering or interpreting a clinical assessment, delivering formal psychoeducation content, teaching a specific therapeutic technique or modality, diagnosing or assessing symptoms, or creating/implementing a treatment plan. If what happened sounds clinical, describe only the peer support framing of it (listening, validating, sharing lived experience, connecting to resources).\n\nFORMAT: Output exactly three sections, each header on its own line in normal sentence case, followed by a paragraph (no bullet points): Description, Assessment, Plan. No preamble, no closing remarks.\n\nLIVE CONTACT VS. FOLLOW-UP/ATTESTATION CODES (CRITICAL — read the LINKAGE CODE given in the user message before writing): Codes U1, U2, and U3 document an actual live contact between PRS and the member (a phone call or an in-person visit) — for these, it is appropriate to describe the interaction naturally, including how it took place. Codes U4 through U9 and the G-code, however, document the outcome or status of a linkage/attestation process that was already conducted and documented separately (e.g. an attestation call already logged elsewhere, a records/appointment-history check, a referral sent) — these are NOT a new live conversation. For U4-U9 and G-code: do NOT invent or imply a live session took place — do not describe how the member "presented," was "engaged," or where a conversation supposedly occurred, and do not use language implying a face-to-face or telephone conversation happened during this specific note unless the contact facts provided actually describe one (e.g. U4\'s outreach attempts are calls, which is fine to state as calls). EXCEPTION for U4: if the contact facts state that the member actually answered/was reached on a given attempt (e.g. "member answered but declined services"), state that plainly and accurately — being reached and declining services still counts as an unsuccessful outreach attempt for billing purposes under this code, so do not soften, omit, or reframe it as a missed/no-answer attempt just because contact was technically made. Write the Description as a factual account of the milestone/outcome/attestation being documented, not as a session narrative.\n\nTERMINOLOGY — MANDATORY:\n- Refer to the provider as "Peer Recovery Supporter" on first reference, then "PRS."\n- Refer to the person receiving services as "Peer" — never "the client," "the consumer," "the patient."\n- Third-person past tense throughout. Never first person (I, me, my, we). Never present tense for session events.\n\nNEVER NAME THE BILLING CODE (CRITICAL): The LINKAGE CODE given in the user message (e.g. U3, U5, G) and its formal title are for your own internal reference only — to decide structure, tense, and which facts matter. They must NEVER appear in the output in any form. Do not write the code letter/number, do not write its formal title, and do not write meta-commentary that names or explains what type of note or milestone this is — no phrases like "this documents," "this was a U3 contact," "this note documents a successful initiation," "this linkage milestone," "per the U-code requirements," or anything similar. The reader should be able to tell what kind of contact this was from the plain facts described (what happened, when, and why) — never from a label you attach.\n\nDESCRIPTION SECTION: Describe what occurred during this contact — outreach method, referrals given, dates, actual location, and any relevant context — in full peer-support narrative form, not a bare data dump, and without ever naming or labeling the billing code or milestone type per the rule above.\n\nASSESSMENT SECTION: Open with an explicit statement of whether the Medicaid linkage benchmark for this code was met (e.g., successful engagement within 7 days, sustained treatment adherence within 60/90 days) — this is the core regulatory and billing-support requirement. If member response/engagement detail is provided, ground the assessment in that specific detail rather than generic engagement language. Note any barriers, Peer response, or engagement level observed.\n\nPLAN SECTION: State the next step in the linkage pathway — next outreach attempt, next follow-up window, or case status — specific enough that another PRS could pick up the case. If a next step/case status detail is provided, use it directly as the basis for this section rather than inventing a generic next step.\n\nPROHIBITED LANGUAGE: Never use "goal met/not met," "transported/drove/picked up," "clinical," "clinician," "diagnosis," "intervention," "psychoeducation" (use "recovery education/support"), "motivational interviewing" (use "motivational support"), "emotional regulation techniques" (use "recovery coping skills"), "mindfulness instruction" (use "wellness strategies"), "teaching" (use "shared information," "explored," or "discussed"), or generic filler like "services were rendered" or "session was productive." Never use clinical technique phrases even without a banned word present, such as "processed trauma," "cognitive restructuring," "administered a [clinical tool]," or "implemented a treatment." Never use literary or AI-sounding phrasing such as "deepening integration" or "[X] functioning as a barrier." Never state raw session duration as a standalone fact outside its role in describing the contact.\n\nOUTPUT FORMAT: Return only Description, Assessment, Plan with headers in normal sentence case. No commentary.';
 
 var CODES_NEEDING_SHARED_FIELDS = ['U3','U4','U5','U6','U7','U8','U9','G'];
 var CODES_USING_SESSION_DATE = ['U1','U2','U3'];
@@ -1188,22 +1222,6 @@ var CODES_USING_SESSION_LENGTH = ['U3'];
 var CODES_NO_LIVE_SESSION_TYPE = ['U4','U5','U6','U7','U8','U9','G'];
 // Linkage codes where a Pimsy chart / client number may not yet exist at the time of contact.
 var CODES_NO_CLIENT_NUMBER = ['U1', 'U2', 'G'];
-
-// U4 per-attempt outcomes. "declined" and "wrong_number" qualify a contact as a billable
-// unsuccessful outreach attempt on their own, per Brandon/Geneiva's guidance — since U1/U2
-// aren't billed by this PRS, an answered-but-declined call or a wrong number on attempt 1
-// or 2 finalizes as U4 without needing to reach 3 total attempts.
-var U4_OUTCOME_OPTIONS = [
-  {value: 'no_answer', label: 'No answer / voicemail left'},
-  {value: 'declined', label: 'Answered \u2014 Peer declined services'},
-  {value: 'wrong_number', label: 'Wrong number'}
-];
-var U4_OUTCOME_TEXT = {
-  no_answer: 'no answer',
-  declined: 'the member answered but declined services',
-  wrong_number: 'the number reached was incorrect (wrong number)'
-};
-var U4_QUALIFYING_OUTCOMES = ['declined', 'wrong_number'];
 
 function handleProgramChange() {
   var program = document.getElementById('program').value;
@@ -1306,34 +1324,6 @@ function setU2Agree(val) {
   window._u2AgreeState = val;
 }
 
-// Returns true if `count` outreach attempts, given the outcome selects currently on the
-// page (u4Outcome1, u4Outcome2, ...), are enough to bill U4. 3+ attempts always qualify
-// regardless of outcome. Fewer than 3 qualify only if attempt 1 or 2 was a declined
-// contact or a wrong number.
-function u4QualifiesForBilling(count) {
-  if (count >= 3) return true;
-  for (var i = 1; i <= count; i++) {
-    var el = document.getElementById('u4Outcome' + i);
-    if (el && U4_QUALIFYING_OUTCOMES.indexOf(el.value) > -1) return true;
-  }
-  return false;
-}
-
-function updateU4BillabilityHint() {
-  var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
-  var hintEl = document.getElementById('u4BillabilityHint');
-  if (!hintEl) return;
-  if (!count) { hintEl.textContent = ''; return; }
-  var qualifies = u4QualifiesForBilling(count);
-  if (qualifies) {
-    hintEl.textContent = '\u2705 Billable under U4 based on current selections.';
-    hintEl.style.color = '#1A7A3A';
-  } else {
-    hintEl.textContent = '\u26a0\ufe0f Not yet billable \u2014 add a 3rd attempt, or update an outcome to "declined" or "wrong number."';
-    hintEl.style.color = '#B08000';
-  }
-}
-
 function renderU4Dates() {
   var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
   var row = document.getElementById('u4DatesRow');
@@ -1341,19 +1331,12 @@ function renderU4Dates() {
   for (var i = 1; i <= count; i++) {
     var field = document.createElement('div');
     field.className = 'field';
-    field.style.minWidth = '220px';
+    field.style.minWidth = '150px';
     field.style.flex = '1';
-    var optionsHtml = '<option value="">Select outcome...</option>';
-    U4_OUTCOME_OPTIONS.forEach(function(opt){
-      optionsHtml += '<option value="' + opt.value + '">' + opt.label + '</option>';
-    });
     field.innerHTML = '<label class="field-label">Attempt ' + i + ' Date <span class="required-star">*</span></label>'
-      + '<input type="date" id="u4Date' + i + '" style="margin-bottom:10px;"/>'
-      + '<label class="field-label">Attempt ' + i + ' Outcome <span class="required-star">*</span></label>'
-      + '<select id="u4Outcome' + i + '" onchange="updateU4BillabilityHint()">' + optionsHtml + '</select>';
+      + '<input type="date" id="u4Date' + i + '"/>';
     row.appendChild(field);
   }
-  updateU4BillabilityHint();
 }
 
 function renderFollowupDates(prefix) {
@@ -1477,32 +1460,22 @@ function buildLinkageNarrative(code) {
 
   else if (code === 'U4') {
     var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
-    var outcomeNotes = document.getElementById('u4Outcome').value.trim();
-    if (!count) missing.push('Number of Outreach Attempts');
-    var attempts = [];
+    var outcome = document.getElementById('u4Outcome').value.trim();
+    // U4 requires exactly 3 unsuccessful attempts to bill for this code — confirmed
+    // by Brandon. The dropdown only offers 3, but validate defensively in case the
+    // value is ever set some other way.
+    if (!count) missing.push('Number of Attempts');
+    else if (count !== 3) missing.push('Number of Attempts (U4 requires exactly 3 unsuccessful attempts to bill for this code)');
+    var dates = [];
     for (var i = 1; i <= count; i++) {
-      var dEl = document.getElementById('u4Date' + i);
-      var oEl = document.getElementById('u4Outcome' + i);
-      var dVal = dEl ? dEl.value : '';
-      var oVal = oEl ? oEl.value : '';
-      if (!dVal) missing.push('Attempt ' + i + ' Date');
-      if (!oVal) missing.push('Attempt ' + i + ' Outcome');
-      attempts.push({date: dVal, outcome: oVal});
-    }
-    // U4 requires either 3 unsuccessful attempts, or a declined/wrong-number outcome
-    // on attempt 1 or 2 — confirmed by Brandon/Geneiva. Enforce it here, not just via
-    // the advisory hint under the date fields, since this determines billability.
-    if (count && count < 3 && !u4QualifiesForBilling(count)) {
-      missing.push('U4 is not billable yet with ' + count + ' attempt' + (count > 1 ? 's' : '') + ' \u2014 add a 3rd attempt, or change an attempt\u2019s outcome to "declined" or "wrong number"');
+      var v = document.getElementById('u4Date' + i) ? document.getElementById('u4Date' + i).value : '';
+      if (!v) missing.push('Attempt ' + i + ' Date');
+      dates.push(v);
     }
     if (missing.length) return {missing: missing};
-
-    var attemptPhrases = attempts.map(function(a){
-      return 'on ' + formatDateSlash(a.date) + ', ' + (U4_OUTCOME_TEXT[a.outcome] || 'no answer');
-    });
-    var countWord = {1: 'One', 2: 'Two', 3: 'Three'}[count] || count;
-    narrative = countWord + ' outreach attempt' + (count > 1 ? 's' : '') + ' by phone ' + (count > 1 ? 'were' : 'was') + ' made: ' + joinList(attemptPhrases) + '.'
-      + (outcomeNotes ? (' Additional detail: ' + outcomeNotes + '.') : '');
+    var lastDate = formatDateSlash(dates[dates.length - 1]);
+    narrative = 'Three unsuccessful outreach attempts by phone on ' + joinDatesList(dates) + '.'
+      + (outcome ? (' On ' + lastDate + ', ' + outcome + '.') : '');
   }
 
   else if (code === 'U5') {
@@ -1669,6 +1642,10 @@ async function runGenerateLinkageNote(code) {
     document.getElementById('remarksOutputCard').style.display = 'none';
 
     var linkageQaResult = runQAChecks(descText, assessText, planText);
+
+    var riskScanInput = [result.narrative, result.engagement, result.planNext].filter(Boolean).join('\n\n');
+    var riskResult = await runRiskScan(riskScanInput);
+
     logNoteAnalytics({
       client_number: document.getElementById('clientNumber').value.trim(),
       provider_email: document.getElementById('providerEmail').value.trim(),
@@ -1694,6 +1671,8 @@ async function runGenerateLinkageNote(code) {
       concern_flagged: null,
       concern_type: null,
       itp_flagged: null,
+      ai_concern_flagged: riskResult.requires_immediate_attention,
+      other_flags: riskResult.flags,
       qa_pass_count: linkageQaResult ? linkageQaResult.passCount : null,
       qa_fail_count: linkageQaResult ? linkageQaResult.failCount : null
     });
@@ -2146,7 +2125,6 @@ function resetForm() {
   copyAllBtnReset.setAttribute('data-label', 'Copy Full Note (All Sections)');
   copyAllBtnReset.textContent = 'Copy Full Note (All Sections)';
   document.getElementById('u4DatesRow').innerHTML = '';
-  document.getElementById('u4BillabilityHint').textContent = '';
   document.getElementById('u6DatesRow').innerHTML = '';
   document.getElementById('u8DatesRow').innerHTML = '';
   document.getElementById('u3RefYes').className = 'toggle-btn';
@@ -2407,6 +2385,10 @@ async function runGenerateNote() {
     }
 
     var standardQaResult = runQAChecks(descText, assessText, planText);
+
+    var riskScanInput = [sessionFlow, document.getElementById('concernDescription').value.trim(), document.getElementById('providerResponse').value.trim(), presentationDetail].filter(Boolean).join('\n\n');
+    var riskResult = await runRiskScan(riskScanInput);
+
     logNoteAnalytics({
       client_number: document.getElementById('clientNumber').value.trim(),
       provider_email: document.getElementById('providerEmail').value.trim(),
@@ -2432,6 +2414,8 @@ async function runGenerateNote() {
       concern_flagged: concernActive,
       concern_type: concernActive ? concernTypeChips : null,
       itp_flagged: isGoalReviewFlagged(),
+      ai_concern_flagged: riskResult.requires_immediate_attention,
+      other_flags: riskResult.flags,
       qa_pass_count: standardQaResult ? standardQaResult.passCount : null,
       qa_fail_count: standardQaResult ? standardQaResult.failCount : null
     });
