@@ -2045,10 +2045,18 @@ function toggleCopyButtons() {
 }
 
 function copySection(id, btn) {
-  navigator.clipboard.writeText(document.getElementById(id).innerText).then(function(){
+  var text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(function(){
     var orig = btn.textContent;
     btn.textContent = 'Copied!';
     setTimeout(function(){ btn.textContent = orig; }, 2000);
+  }).catch(function(err){
+    console.warn('[Copy] clipboard write failed: ' + err.message);
+    var orig = btn.textContent;
+    btn.textContent = 'Copy failed \u2014 select manually';
+    btn.style.color = '#8B1A1A';
+    setTimeout(function(){ btn.textContent = orig; btn.style.color = ''; }, 3500);
+    alert('Could not copy automatically (this can happen if your browser blocked clipboard access). Please click into the box above and manually select and copy the text instead.');
   });
 }
 
@@ -2064,6 +2072,14 @@ function copyAll() {
     var btn = document.querySelector('.copy-all-btn');
     btn.textContent = 'Full Note Copied!';
     setTimeout(function(){ btn.textContent = btn.getAttribute('data-label') || 'Copy Full Note (All Sections)'; }, 2500);
+  }).catch(function(err){
+    console.warn('[Copy All] clipboard write failed: ' + err.message);
+    var btn = document.querySelector('.copy-all-btn');
+    var orig = btn.getAttribute('data-label') || 'Copy Full Note (All Sections)';
+    btn.textContent = 'Copy failed \u2014 select manually';
+    btn.style.color = '#8B1A1A';
+    setTimeout(function(){ btn.textContent = orig; btn.style.color = ''; }, 3500);
+    alert('Could not copy automatically (this can happen if your browser blocked clipboard access). Please click into each box above and manually select and copy the text instead.');
   });
 }
 
