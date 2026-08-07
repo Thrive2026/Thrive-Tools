@@ -306,19 +306,56 @@ select{cursor:pointer;}
       </div>
 
       <div id="u4Block" style="display:none;">
-        <div class="field-hint" style="margin-bottom:12px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">U4 requires <strong>3 unsuccessful outreach attempts</strong> to bill for this code &mdash; 1 or 2 attempts alone aren't billable under this U-code.</div>
         <div class="field">
-          <label class="field-label">Number of Unsuccessful Outreach Attempts <span class="required-star">*</span></label>
-          <select id="u4Count" onchange="renderU4Dates()">
-            <option value="">Select number...</option>
-            <option value="3">3 attempts</option>
+          <label class="field-label">What was the outcome of this outreach? <span class="required-star">*</span></label>
+          <select id="u4OutcomeType" onchange="handleU4OutcomeType()">
+            <option value="">Select outcome...</option>
+            <option value="no_answer">No response after attempts</option>
+            <option value="declined">Member was reached and declined services</option>
+            <option value="no_contact">No working contact information available</option>
           </select>
         </div>
-        <div class="two-col" id="u4DatesRow" style="flex-wrap:wrap;"></div>
-        <div class="field">
-          <label class="field-label">Reason / Outcome (if documented) <span style="font-size:11px;font-weight:400;color:#888;">(optional)</span></label>
-          <div class="field-hint">If the member answered but declined services, that still counts as an unsuccessful outreach attempt for this code &mdash; describe it here (e.g. "member answered but declined services," "not interested," "no answer," "voicemail left"). Leave blank if no reason was given.</div>
-          <textarea id="u4Outcome" placeholder="e.g. member answered but declined services" rows="2"></textarea>
+
+        <div id="u4NoAnswerFields" style="display:none;">
+          <div class="field-hint" style="margin-bottom:12px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">Document each attempt made. 1&ndash;3 attempts are all valid &mdash; use whatever actually happened.</div>
+          <div class="field">
+            <label class="field-label">Number of Unsuccessful Outreach Attempts <span class="required-star">*</span></label>
+            <select id="u4Count" onchange="renderU4Dates()">
+              <option value="">Select number...</option>
+              <option value="1">1 attempt</option>
+              <option value="2">2 attempts</option>
+              <option value="3">3 attempts</option>
+            </select>
+          </div>
+          <div class="two-col" id="u4DatesRow" style="flex-wrap:wrap;"></div>
+          <div class="field">
+            <label class="field-label">Additional Detail <span style="font-size:11px;font-weight:400;color:#888;">(optional)</span></label>
+            <textarea id="u4Outcome" placeholder="e.g. no answer, voicemail left" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div id="u4DeclinedFields" style="display:none;">
+          <div class="field-hint" style="margin-bottom:12px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">One documented decline closes this out &mdash; no further attempts are needed regardless of how many attempts came before it.</div>
+          <div class="field">
+            <label class="field-label">Date Member Declined <span class="required-star">*</span></label>
+            <input type="date" id="u4DeclinedDate"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Detail <span style="font-size:11px;font-weight:400;color:#888;">(optional)</span></label>
+            <textarea id="u4DeclinedDetail" placeholder="e.g. member answered but declined services at this time" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div id="u4NoContactFields" style="display:none;">
+          <div class="field-hint" style="margin-bottom:12px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">Use this when there is no working number or contact method to attempt at all &mdash; 3 attempts aren't possible against contact information that doesn't work.</div>
+          <div class="field">
+            <label class="field-label">Date This Was Identified <span class="required-star">*</span></label>
+            <input type="date" id="u4NoContactDate"/>
+          </div>
+          <div class="field">
+            <label class="field-label">Describe the Issue <span class="required-star">*</span></label>
+            <textarea id="u4NoContactDetail" placeholder="e.g. phone number on file is disconnected; no alternate contact method on record" rows="2"></textarea>
+          </div>
         </div>
       </div>
 
@@ -934,6 +971,8 @@ function scanForPHI() {
     {id: 'u2Details', label: 'Brief Description of Initial Engagement'},
     {id: 'u3ReferralDetails', label: 'U3 Referral Details'},
     {id: 'u4Outcome', label: 'U4 Reason / Outcome'},
+    {id: 'u4DeclinedDetail', label: 'U4 Decline Detail'},
+    {id: 'u4NoContactDetail', label: 'U4 No-Contact Detail'},
     {id: 'gOtherType', label: 'G-Code Referral Type (Other)'},
     {id: 'gDetails', label: 'G-Code Referral Details'},
     {id: 'u9Detail', label: 'U9 Attendance Detail'}
@@ -1009,6 +1048,8 @@ function showPhiScreen(warnings) {
     {id: 'u2Details',          label: 'Brief Description of Initial Engagement'},
     {id: 'u3ReferralDetails',  label: 'U3 Referral Details'},
     {id: 'u4Outcome',          label: 'U4 Reason / Outcome'},
+    {id: 'u4DeclinedDetail',   label: 'U4 Decline Detail'},
+    {id: 'u4NoContactDetail',  label: 'U4 No-Contact Detail'},
     {id: 'gOtherType',         label: 'G-Code Referral Type (Other)'},
     {id: 'gDetails',           label: 'G-Code Referral Details'},
     {id: 'u9Detail',           label: 'U9 Attendance Detail'}
@@ -1339,6 +1380,13 @@ function renderU4Dates() {
   }
 }
 
+function handleU4OutcomeType() {
+  var type = document.getElementById('u4OutcomeType').value;
+  document.getElementById('u4NoAnswerFields').style.display = (type === 'no_answer') ? 'block' : 'none';
+  document.getElementById('u4DeclinedFields').style.display = (type === 'declined') ? 'block' : 'none';
+  document.getElementById('u4NoContactFields').style.display = (type === 'no_contact') ? 'block' : 'none';
+}
+
 function renderFollowupDates(prefix) {
   var count = parseInt(document.getElementById(prefix + 'Count').value, 10) || 0;
   var row = document.getElementById(prefix + 'DatesRow');
@@ -1459,23 +1507,49 @@ function buildLinkageNarrative(code) {
   }
 
   else if (code === 'U4') {
-    var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
-    var outcome = document.getElementById('u4Outcome').value.trim();
-    // U4 requires exactly 3 unsuccessful attempts to bill for this code — confirmed
-    // by Brandon. The dropdown only offers 3, but validate defensively in case the
-    // value is ever set some other way.
-    if (!count) missing.push('Number of Attempts');
-    else if (count !== 3) missing.push('Number of Attempts (U4 requires exactly 3 unsuccessful attempts to bill for this code)');
-    var dates = [];
-    for (var i = 1; i <= count; i++) {
-      var v = document.getElementById('u4Date' + i) ? document.getElementById('u4Date' + i).value : '';
-      if (!v) missing.push('Attempt ' + i + ' Date');
-      dates.push(v);
+    // U4 covers three distinct real scenarios, confirmed by Brandon:
+    //   1. No answer after 1-3 attempts (the classic case) -- count is NOT fixed at 3.
+    //   2. Member was reached and declined -- one documented decline closes this out
+    //      regardless of how many attempts happened before it.
+    //   3. No working contact information exists at all -- 3 attempts against a
+    //      number that doesn't work isn't possible, so this needs its own path.
+    var outcomeType = document.getElementById('u4OutcomeType').value;
+    if (!outcomeType) { missing.push('Outreach Outcome Type'); return {missing: missing}; }
+
+    if (outcomeType === 'no_answer') {
+      var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
+      var outcome = document.getElementById('u4Outcome').value.trim();
+      if (!count) missing.push('Number of Attempts');
+      var dates = [];
+      for (var i = 1; i <= count; i++) {
+        var v = document.getElementById('u4Date' + i) ? document.getElementById('u4Date' + i).value : '';
+        if (!v) missing.push('Attempt ' + i + ' Date');
+        dates.push(v);
+      }
+      if (missing.length) return {missing: missing};
+      var countWord = {1: 'One', 2: 'Two', 3: 'Three'}[count];
+      var lastDate = formatDateSlash(dates[dates.length - 1]);
+      narrative = countWord + ' unsuccessful outreach attempt' + (count > 1 ? 's' : '') + ' by phone on ' + joinDatesList(dates) + '.'
+        + (outcome ? (' On ' + lastDate + ', ' + outcome + '.') : '');
     }
-    if (missing.length) return {missing: missing};
-    var lastDate = formatDateSlash(dates[dates.length - 1]);
-    narrative = 'Three unsuccessful outreach attempts by phone on ' + joinDatesList(dates) + '.'
-      + (outcome ? (' On ' + lastDate + ', ' + outcome + '.') : '');
+
+    else if (outcomeType === 'declined') {
+      var declinedDate = document.getElementById('u4DeclinedDate').value;
+      var declinedDetail = document.getElementById('u4DeclinedDetail').value.trim();
+      if (!declinedDate) missing.push('Date Member Declined');
+      if (missing.length) return {missing: missing};
+      narrative = 'Peer Recovery Supporter reached the member by phone on ' + formatDateSlash(declinedDate) + '.'
+        + (declinedDetail ? (' ' + declinedDetail + '.') : ' Member declined services at this time.');
+    }
+
+    else if (outcomeType === 'no_contact') {
+      var noContactDate = document.getElementById('u4NoContactDate').value;
+      var noContactDetail = document.getElementById('u4NoContactDetail').value.trim();
+      if (!noContactDate) missing.push('Date This Was Identified');
+      if (!noContactDetail) missing.push('Describe the Issue');
+      if (missing.length) return {missing: missing};
+      narrative = 'On ' + formatDateSlash(noContactDate) + ', Peer Recovery Supporter determined that no working contact information was available for this member. ' + noContactDetail + '.';
+    }
   }
 
   else if (code === 'U5') {
@@ -2141,6 +2215,7 @@ function resetForm() {
   copyAllBtnReset.setAttribute('data-label', 'Copy Full Note (All Sections)');
   copyAllBtnReset.textContent = 'Copy Full Note (All Sections)';
   document.getElementById('u4DatesRow').innerHTML = '';
+  handleU4OutcomeType();
   document.getElementById('u6DatesRow').innerHTML = '';
   document.getElementById('u8DatesRow').innerHTML = '';
   document.getElementById('u3RefYes').className = 'toggle-btn';
