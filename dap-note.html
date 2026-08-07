@@ -574,6 +574,7 @@ select{cursor:pointer;}
           <option value="co-occurring">Co-Occurring (SUD + MH)</option>
         </select>
       </div>
+      <div id="treatmentPlanGoalFields">
       <div class="field">
         <label class="field-label">Treatment Plan Goals Worked On <span class="required-star">*</span></label>
         <div class="field-hint">Write it in your own words — same goal concept as Peer's treatment plan. Use 'Peer will...' not 'Client will...' If this goal is about housing, employment, or another basic need, briefly note how it connects to Peer's recovery or mental health.</div>
@@ -596,6 +597,7 @@ select{cursor:pointer;}
         <div class="field-hint" id="goalProgressDetailHint">Only required for "Difficulty / setback" or "Too early to assess."</div>
         <textarea id="goalProgressDetail" placeholder="e.g. Peer independently identified two coping strategies and used one successfully this week..." rows="2" oninput="updateCharCounter('goalProgressDetail','goalProgressDetailCounter', goalProgressNeedsDetail() ? 20 : 0)"></textarea>
         <div class="char-counter" id="goalProgressDetailCounter"></div>
+      </div>
       </div>
     </div>
   </div>
@@ -1306,8 +1308,8 @@ function handleProgramChange() {
   } else {
     linkageField.style.display = 'none';
     document.getElementById('linkageCode').value = '';
-    handleLinkageCode();
   }
+  handleLinkageCode();
   updateClientNumberRequirement();
 }
 
@@ -1356,6 +1358,12 @@ function handleLinkageCode() {
     generateBtn.textContent = 'Generate DAP Progress Note';
     engagementField.style.display = 'none';
     planNextField.style.display = 'none';
+    // BH Linkage clients don't have treatment plan goals at all (confirmed by
+    // Brandon) -- a "Standard Peer Support Contact" under BH Linkage still needs
+    // Primary Service Focus (billing category), but the treatment-plan-specific
+    // fields don't apply and shouldn't be required.
+    var program = document.getElementById('program').value;
+    document.getElementById('treatmentPlanGoalFields').style.display = (program === 'BH Linkage') ? 'none' : 'block';
     updateClientNumberRequirement();
   }
 }
@@ -2018,13 +2026,16 @@ function runQAChecks(descText, assessText, planText) {
   }
 
   if (!isLinkage) {
-    var goalsAddressed = document.getElementById('goalsAddressed').value.trim();
-    check('At least one treatment plan goal is addressed', !!goalsAddressed);
+    var isLinkageProgram = document.getElementById('program').value === 'BH Linkage';
+    if (!isLinkageProgram) {
+      var goalsAddressed = document.getElementById('goalsAddressed').value.trim();
+      check('At least one treatment plan goal is addressed', !!goalsAddressed);
 
-    var goalProgress = document.getElementById('goalProgress').value;
-    var goalProgressDetail = document.getElementById('goalProgressDetail').value.trim();
-    var progressDetailOk = !!goalProgress && (!!goalProgressDetail || !goalProgressNeedsDetail());
-    check('Progress toward the specific goal is documented on the form', progressDetailOk);
+      var goalProgress = document.getElementById('goalProgress').value;
+      var goalProgressDetail = document.getElementById('goalProgressDetail').value.trim();
+      var progressDetailOk = !!goalProgress && (!!goalProgressDetail || !goalProgressNeedsDetail());
+      check('Progress toward the specific goal is documented on the form', progressDetailOk);
+    }
 
     var measurableMarkers = ['completed', 'attended', 'identified', 'contacted', 'scheduled', 'applied', 'enrolled', 'connected with', 'practiced', 'utilized', 'obtained', 'submitted', 'reached out', 'signed up', 'followed up'];
     var hasMeasurableMarker = measurableMarkers.some(function(t){ return assessText.toLowerCase().indexOf(t) > -1; });
@@ -2409,12 +2420,16 @@ async function runGenerateNote() {
     if (!otherContactDetailVal) missing.push('Describe Contact Method');
   }
   if (!serviceFocus) missing.push('Primary Service Focus This Session');
-  if (!goals) missing.push('Goals Addressed');
-  else if (goals.length < MIN_GOAL) missing.push('Goals Addressed (needs more detail — at least ' + MIN_GOAL + ' characters, roughly one full sentence)');
-  if (!goalProgress) missing.push('Progress Toward Goal');
-  if (goalProgressNeedsDetail()) {
-    if (!goalProgressDetail) missing.push('Progress Toward Goal Detail (required for this status)');
-    else if (goalProgressDetail.length < MIN_SHORT) missing.push('Progress Toward Goal Detail (needs a bit more detail — at least ' + MIN_SHORT + ' characters)');
+  // BH Linkage clients don't have treatment plan goals -- this whole field group
+  // is hidden in the UI for BH Linkage, so don't require it either.
+  if (program !== 'BH Linkage') {
+    if (!goals) missing.push('Goals Addressed');
+    else if (goals.length < MIN_GOAL) missing.push('Goals Addressed (needs more detail — at least ' + MIN_GOAL + ' characters, roughly one full sentence)');
+    if (!goalProgress) missing.push('Progress Toward Goal');
+    if (goalProgressNeedsDetail()) {
+      if (!goalProgressDetail) missing.push('Progress Toward Goal Detail (required for this status)');
+      else if (goalProgressDetail.length < MIN_SHORT) missing.push('Progress Toward Goal Detail (needs a bit more detail — at least ' + MIN_SHORT + ' characters)');
+    }
   }
   if (chips.length === 0 && !presentationDetail) missing.push('Client Presentation');
   if (!stageOfChange) missing.push('Stage of Change');
@@ -2479,15 +2494,20 @@ async function runGenerateNote() {
     ? 'This is a mental health service. Open the Description by framing the contact as mental health peer support — do NOT describe it as "substance use peer support" or "SUD peer support." If substance use also came up, it can be mentioned within the narrative, but the opening framing and the billed service must be mental health.'
     : 'This is a co-occurring service (both SUD and MH). The Description should reflect both substance use and mental health as part of the peer support focus, as appropriate to what is described in the Session Narrative.';
 
+  var isLinkageProgramForPrompt = (program === 'BH Linkage');
+  var goalSection = isLinkageProgramForPrompt
+    ? 'TREATMENT PLAN GOAL: Not applicable. BH Linkage contacts do not have treatment plan goals \u2014 do not reference a treatment plan goal, and do not write a sentence structured around "progress toward a goal." Frame the Description and Assessment purely around the linkage/outreach work itself, using the Session Narrative below.\n\n'
+    : 'TREATMENT PLAN GOAL ADDRESSED THIS SESSION:\n' + goals + '\n\n'
+      + 'PROGRESS TOWARD GOAL THIS SESSION: Peer ' + goalProgress + ' the goal above.\n'
+      + (goalProgressDetail ? ('Supporting detail: ' + goalProgressDetail + '\n') : 'No separate supporting detail was provided for this — ground the progress statement in specifics drawn from the Session Narrative below.\n') + '\n';
+
   var userContent = 'Generate a DAP progress note using the following session data:\n\n'
     + 'PROGRAM: ' + program + '\n'
     + 'PRIMARY SERVICE FOCUS (must match billed diagnosis category — see instructions below): ' + serviceFocusLabel + '\n'
     + serviceFocusInstruction + '\n\n'
     + 'SESSION TYPE: ' + sessionType + locationLine + '\n'
     + 'SESSION LENGTH (for calibrating note depth only — do not state this in the note): ' + sessionLength + '\n\n'
-    + 'TREATMENT PLAN GOAL ADDRESSED THIS SESSION:\n' + goals + '\n\n'
-    + 'PROGRESS TOWARD GOAL THIS SESSION: Peer ' + goalProgress + ' the goal above.\n'
-    + (goalProgressDetail ? ('Supporting detail: ' + goalProgressDetail + '\n') : 'No separate supporting detail was provided for this — ground the progress statement in specifics drawn from the Session Narrative below.\n') + '\n'
+    + goalSection
     + 'HOW PEER PRESENTED:\n'
     + (chips.length > 0 ? 'Observed descriptors: ' + chips.join(', ') + '\n' : '')
     + (presentationDetail ? 'Additional detail: ' + presentationDetail + '\n' : '') + '\n'
