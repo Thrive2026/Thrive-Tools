@@ -357,6 +357,36 @@ select{cursor:pointer;}
             <textarea id="u4NoContactDetail" placeholder="e.g. phone number on file is disconnected; no alternate contact method on record" rows="2"></textarea>
           </div>
         </div>
+
+        <div class="field" style="margin-top:8px;">
+          <label class="field-label">Is this the final note for this case? <span class="required-star">*</span></label>
+          <div class="field-hint">Select Yes if this closes the case out &mdash; regardless of which outcome above applies.</div>
+          <div class="toggle-options" style="display:inline-flex;">
+            <button type="button" class="toggle-btn" id="u4FinalYes" onclick="setU4Final(true)">Yes</button>
+            <button type="button" class="toggle-btn" id="u4FinalNo" onclick="setU4Final(false)">No</button>
+          </div>
+        </div>
+        <div id="u4FinalFields" style="display:none;">
+          <div class="field-hint" style="margin-bottom:12px;background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:10px 14px;">Case closure information for the final note.</div>
+          <div class="two-col" style="flex-wrap:wrap;">
+            <div class="field" style="min-width:200px;flex:1;">
+              <label class="field-label">Date of Admission <span class="required-star">*</span></label>
+              <input type="date" id="u4AdmissionDate"/>
+            </div>
+            <div class="field" style="min-width:200px;flex:1;">
+              <label class="field-label">Date of Last Service <span class="required-star">*</span></label>
+              <input type="date" id="u4LastServiceDate"/>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Assessment of Progress <span class="required-star">*</span></label>
+            <textarea id="u4AssessmentProgress" placeholder="Summarize progress made toward treatment plan goals over the course of the case" rows="3"></textarea>
+          </div>
+          <div class="field">
+            <label class="field-label">Outcome of Services <span class="required-star">*</span></label>
+            <textarea id="u4OutcomeOfServices" placeholder="e.g. unable to establish linkage; case closed due to lack of response" rows="3"></textarea>
+          </div>
+        </div>
       </div>
 
       <div id="u5Block" style="display:none;">
@@ -973,6 +1003,8 @@ function scanForPHI() {
     {id: 'u4Outcome', label: 'U4 Reason / Outcome'},
     {id: 'u4DeclinedDetail', label: 'U4 Decline Detail'},
     {id: 'u4NoContactDetail', label: 'U4 No-Contact Detail'},
+    {id: 'u4AssessmentProgress', label: 'U4 Assessment of Progress'},
+    {id: 'u4OutcomeOfServices', label: 'U4 Outcome of Services'},
     {id: 'gOtherType', label: 'G-Code Referral Type (Other)'},
     {id: 'gDetails', label: 'G-Code Referral Details'},
     {id: 'u9Detail', label: 'U9 Attendance Detail'}
@@ -1050,6 +1082,8 @@ function showPhiScreen(warnings) {
     {id: 'u4Outcome',          label: 'U4 Reason / Outcome'},
     {id: 'u4DeclinedDetail',   label: 'U4 Decline Detail'},
     {id: 'u4NoContactDetail',  label: 'U4 No-Contact Detail'},
+    {id: 'u4AssessmentProgress', label: 'U4 Assessment of Progress'},
+    {id: 'u4OutcomeOfServices',  label: 'U4 Outcome of Services'},
     {id: 'gOtherType',         label: 'G-Code Referral Type (Other)'},
     {id: 'gDetails',           label: 'G-Code Referral Details'},
     {id: 'u9Detail',           label: 'U9 Attendance Detail'}
@@ -1387,6 +1421,13 @@ function handleU4OutcomeType() {
   document.getElementById('u4NoContactFields').style.display = (type === 'no_contact') ? 'block' : 'none';
 }
 
+function setU4Final(val) {
+  document.getElementById('u4FinalYes').className = 'toggle-btn' + (val ? ' active-yes' : '');
+  document.getElementById('u4FinalNo').className = 'toggle-btn' + (!val ? ' active-no' : '');
+  document.getElementById('u4FinalFields').style.display = val ? 'block' : 'none';
+  window._u4FinalState = val;
+}
+
 function renderFollowupDates(prefix) {
   var count = parseInt(document.getElementById(prefix + 'Count').value, 10) || 0;
   var row = document.getElementById(prefix + 'DatesRow');
@@ -1407,6 +1448,10 @@ document.addEventListener('change', function(e){
     document.getElementById('gOtherTypeField').style.display = (e.target.value === 'other') ? 'block' : 'none';
   }
 });
+
+function stripTrailingPeriod(s) {
+  return (s || '').replace(/[.\s]+$/, '');
+}
 
 function formatDateSlash(dateStr) {
   if (!dateStr) return '';
@@ -1513,9 +1558,13 @@ function buildLinkageNarrative(code) {
     //      regardless of how many attempts happened before it.
     //   3. No working contact information exists at all -- 3 attempts against a
     //      number that doesn't work isn't possible, so this needs its own path.
+    // Any of the three can also be the final/closing note for the case, so that
+    // check happens after the outcome-specific branch, not inside it -- otherwise
+    // an early return would skip validating the closure fields entirely.
     var outcomeType = document.getElementById('u4OutcomeType').value;
-    if (!outcomeType) { missing.push('Outreach Outcome Type'); return {missing: missing}; }
+    if (!outcomeType) missing.push('Outreach Outcome Type');
 
+    var u4BaseNarrative = '';
     if (outcomeType === 'no_answer') {
       var count = parseInt(document.getElementById('u4Count').value, 10) || 0;
       var outcome = document.getElementById('u4Outcome').value.trim();
@@ -1526,20 +1575,20 @@ function buildLinkageNarrative(code) {
         if (!v) missing.push('Attempt ' + i + ' Date');
         dates.push(v);
       }
-      if (missing.length) return {missing: missing};
-      var countWord = {1: 'One', 2: 'Two', 3: 'Three'}[count];
-      var lastDate = formatDateSlash(dates[dates.length - 1]);
-      narrative = countWord + ' unsuccessful outreach attempt' + (count > 1 ? 's' : '') + ' by phone on ' + joinDatesList(dates) + '.'
-        + (outcome ? (' On ' + lastDate + ', ' + outcome + '.') : '');
+      if (count) {
+        var countWord = {1: 'One', 2: 'Two', 3: 'Three'}[count];
+        var lastDate = formatDateSlash(dates[dates.length - 1]);
+        u4BaseNarrative = countWord + ' unsuccessful outreach attempt' + (count > 1 ? 's' : '') + ' by phone on ' + joinDatesList(dates) + '.'
+          + (outcome ? (' On ' + lastDate + ', ' + stripTrailingPeriod(outcome) + '.') : '');
+      }
     }
 
     else if (outcomeType === 'declined') {
       var declinedDate = document.getElementById('u4DeclinedDate').value;
       var declinedDetail = document.getElementById('u4DeclinedDetail').value.trim();
       if (!declinedDate) missing.push('Date Member Declined');
-      if (missing.length) return {missing: missing};
-      narrative = 'Peer Recovery Supporter reached the member by phone on ' + formatDateSlash(declinedDate) + '.'
-        + (declinedDetail ? (' ' + declinedDetail + '.') : ' Member declined services at this time.');
+      u4BaseNarrative = 'Peer Recovery Supporter reached the member by phone on ' + formatDateSlash(declinedDate) + '.'
+        + (declinedDetail ? (' ' + stripTrailingPeriod(declinedDetail) + '.') : ' Member declined services at this time.');
     }
 
     else if (outcomeType === 'no_contact') {
@@ -1547,9 +1596,32 @@ function buildLinkageNarrative(code) {
       var noContactDetail = document.getElementById('u4NoContactDetail').value.trim();
       if (!noContactDate) missing.push('Date This Was Identified');
       if (!noContactDetail) missing.push('Describe the Issue');
-      if (missing.length) return {missing: missing};
-      narrative = 'On ' + formatDateSlash(noContactDate) + ', Peer Recovery Supporter determined that no working contact information was available for this member. ' + noContactDetail + '.';
+      u4BaseNarrative = 'On ' + formatDateSlash(noContactDate) + ', Peer Recovery Supporter determined that no working contact information was available for this member. ' + stripTrailingPeriod(noContactDetail) + '.';
     }
+
+    // Closure fields, only if this is the final note for the case -- applies
+    // regardless of which outcome branch above was used.
+    var u4IsFinal = window._u4FinalState;
+    if (u4IsFinal === undefined || u4IsFinal === null) missing.push('Is This the Final Note for This Case (Yes/No)');
+    var u4ClosureText = '';
+    if (u4IsFinal) {
+      var admissionDate = document.getElementById('u4AdmissionDate').value;
+      var lastServiceDate = document.getElementById('u4LastServiceDate').value;
+      var assessmentProgress = document.getElementById('u4AssessmentProgress').value.trim();
+      var outcomeOfServices = document.getElementById('u4OutcomeOfServices').value.trim();
+      if (!admissionDate) missing.push('Date of Admission');
+      if (!lastServiceDate) missing.push('Date of Last Service');
+      if (!assessmentProgress) missing.push('Assessment of Progress');
+      if (!outcomeOfServices) missing.push('Outcome of Services');
+      if (admissionDate && lastServiceDate && assessmentProgress && outcomeOfServices) {
+        u4ClosureText = ' This is the final note for this case. Member was admitted on ' + formatDateSlash(admissionDate)
+          + ', with a date of last service of ' + formatDateSlash(lastServiceDate) + '. Assessment of progress: '
+          + stripTrailingPeriod(assessmentProgress) + '. Outcome of services: ' + stripTrailingPeriod(outcomeOfServices) + '.';
+      }
+    }
+
+    if (missing.length) return {missing: missing};
+    narrative = u4BaseNarrative + u4ClosureText;
   }
 
   else if (code === 'U5') {
@@ -2216,6 +2288,10 @@ function resetForm() {
   copyAllBtnReset.textContent = 'Copy Full Note (All Sections)';
   document.getElementById('u4DatesRow').innerHTML = '';
   handleU4OutcomeType();
+  document.getElementById('u4FinalYes').className = 'toggle-btn';
+  document.getElementById('u4FinalNo').className = 'toggle-btn';
+  document.getElementById('u4FinalFields').style.display = 'none';
+  window._u4FinalState = null;
   document.getElementById('u6DatesRow').innerHTML = '';
   document.getElementById('u8DatesRow').innerHTML = '';
   document.getElementById('u3RefYes').className = 'toggle-btn';
