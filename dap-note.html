@@ -1829,6 +1829,8 @@ async function runGenerateLinkageNote(code) {
       concern_flagged: null,
       concern_type: null,
       itp_flagged: null,
+      itp_flag_detail: null,
+      itp_review_status: null,
       ai_concern_flagged: riskResult.requires_immediate_attention,
       other_flags: riskResult.flags,
       qa_pass_count: linkageQaResult ? linkageQaResult.passCount : null,
@@ -2218,9 +2220,9 @@ function copyAll() {
   var a = document.getElementById('assessmentOutput').innerText;
   var p = document.getElementById('planOutput').innerText;
   var full = 'Description of Session\n\n' + d + '\n\nAssessment of Progress\n\n' + a + '\n\nPlans for Follow-Up\n\n' + p;
-  if (document.getElementById('remarksOutputCard').style.display !== 'none') {
-    full += '\n\nFlagged for Clinical / Supervisor Review\n\n' + document.getElementById('remarksOutput').innerText;
-  }
+  // NOTE: The "Flagged for Clinical / Supervisor Review" remarks are intentionally excluded here.
+  // That flag + detail is workflow/review metadata tracked in Supabase for supervisor follow-up,
+  // not clinical documentation — it must never be copied into the Pimsy note text.
   navigator.clipboard.writeText(full).then(function(){
     var btn = document.querySelector('.copy-all-btn');
     btn.textContent = 'Full Note Copied!';
@@ -2603,6 +2605,8 @@ async function runGenerateNote() {
       concern_flagged: concernActive,
       concern_type: concernActive ? concernTypeChips : null,
       itp_flagged: isGoalReviewFlagged(),
+      itp_flag_detail: isGoalReviewFlagged() ? document.getElementById('itpModDetail').value.trim() : null,
+      itp_review_status: isGoalReviewFlagged() ? 'pending' : null,
       ai_concern_flagged: riskResult.requires_immediate_attention,
       other_flags: riskResult.flags,
       qa_pass_count: standardQaResult ? standardQaResult.passCount : null,
