@@ -392,7 +392,7 @@ select{cursor:pointer;}
       <div id="u5Block" style="display:none;">
         <div class="two-col">
           <div class="field">
-            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <label class="field-label">Initially Connected Date (U1 or U3 Date) <span class="required-star">*</span></label>
             <input type="date" id="u5ConnectedDate"/>
           </div>
           <div class="field">
@@ -423,7 +423,7 @@ select{cursor:pointer;}
       <div id="u6Block" style="display:none;">
         <div class="two-col">
           <div class="field">
-            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <label class="field-label">Initially Connected Date (U1 or U3 Date) <span class="required-star">*</span></label>
             <input type="date" id="u6ConnectedDate"/>
           </div>
           <div class="field">
@@ -446,7 +446,7 @@ select{cursor:pointer;}
       <div id="u7Block" style="display:none;">
         <div class="two-col">
           <div class="field">
-            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <label class="field-label">Initially Connected Date (U1 or U3 Date) <span class="required-star">*</span></label>
             <input type="date" id="u7ConnectedDate"/>
           </div>
           <div class="field">
@@ -454,14 +454,31 @@ select{cursor:pointer;}
             <input type="date" id="u7AttestationDate"/>
           </div>
         </div>
-        <div class="two-col">
-          <div class="field">
-            <label class="field-label">Appointments Attended <span class="required-star">*</span></label>
-            <input type="number" min="0" id="u7Attended" placeholder="e.g. 15"/>
+        <div class="field">
+          <label class="field-label">How Was Attendance Provided by the Treatment Provider? <span class="required-star">*</span></label>
+          <select id="u7Mode" onchange="handleU7Mode()">
+            <option value="">Select...</option>
+            <option value="count">Count of appointments (attended / scheduled)</option>
+            <option value="percent">Percentage attested (e.g. "100% of appointments attended")</option>
+          </select>
+        </div>
+        <div id="u7CountFields" style="display:none;">
+          <div class="two-col">
+            <div class="field">
+              <label class="field-label">Appointments Attended <span class="required-star">*</span></label>
+              <input type="number" min="0" id="u7Attended" placeholder="e.g. 15"/>
+            </div>
+            <div class="field">
+              <label class="field-label">Appointments Scheduled (Total) <span class="required-star">*</span></label>
+              <input type="number" min="0" id="u7Total" placeholder="e.g. 20"/>
+            </div>
           </div>
+        </div>
+        <div id="u7PercentFields" style="display:none;">
           <div class="field">
-            <label class="field-label">Appointments Scheduled (Total) <span class="required-star">*</span></label>
-            <input type="number" min="0" id="u7Total" placeholder="e.g. 20"/>
+            <label class="field-label">Percent of Appointments Attended <span class="required-star">*</span></label>
+            <div class="field-hint">Use when the treatment provider's attestation gives a percentage rather than a count (e.g. group and one-on-one sessions attested together as "100%").</div>
+            <input type="number" min="0" max="100" id="u7Percent" placeholder="e.g. 100"/>
           </div>
         </div>
       </div>
@@ -469,7 +486,7 @@ select{cursor:pointer;}
       <div id="u8Block" style="display:none;">
         <div class="two-col">
           <div class="field">
-            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <label class="field-label">Initially Connected Date (U1 or U3 Date) <span class="required-star">*</span></label>
             <input type="date" id="u8ConnectedDate"/>
           </div>
           <div class="field">
@@ -492,7 +509,7 @@ select{cursor:pointer;}
       <div id="u9Block" style="display:none;">
         <div class="two-col">
           <div class="field">
-            <label class="field-label">Initially Connected Date (U1 Date) <span class="required-star">*</span></label>
+            <label class="field-label">Initially Connected Date (U1 or U3 Date) <span class="required-star">*</span></label>
             <input type="date" id="u9ConnectedDate"/>
           </div>
           <div class="field">
@@ -1422,6 +1439,12 @@ function renderU4Dates() {
   }
 }
 
+function handleU7Mode() {
+  var mode = document.getElementById('u7Mode').value;
+  document.getElementById('u7CountFields').style.display = (mode === 'count') ? 'block' : 'none';
+  document.getElementById('u7PercentFields').style.display = (mode === 'percent') ? 'block' : 'none';
+}
+
 function handleU4OutcomeType() {
   var type = document.getElementById('u4OutcomeType').value;
   document.getElementById('u4NoAnswerFields').style.display = (type === 'no_answer') ? 'block' : 'none';
@@ -1673,16 +1696,26 @@ function buildLinkageNarrative(code) {
   else if (code === 'U7') {
     var connectedDate = document.getElementById('u7ConnectedDate').value;
     var attestationDate = document.getElementById('u7AttestationDate').value;
-    var attended = document.getElementById('u7Attended').value.trim();
-    var total = document.getElementById('u7Total').value.trim();
+    var u7Mode = document.getElementById('u7Mode').value;
     if (!connectedDate) missing.push('Initially Connected Date');
     if (!attestationDate) missing.push('Attestation Date');
-    if (!attended) missing.push('Appointments Attended');
-    if (!total) missing.push('Appointments Scheduled (Total)');
-    if (missing.length) return {missing: missing};
-    var u7Pct = (parseFloat(total) > 0) ? Math.round((parseFloat(attended) / parseFloat(total)) * 100) : null;
-    var u7PctText = (u7Pct !== null) ? (u7Pct + '%') : 'the reported share';
-    narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member was engaged in MH treatment as evidenced by attending ' + u7PctText + ' of scheduled appointments within 60 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence by attending ' + attended + ' out of ' + total + ' appointments.';
+    if (!u7Mode) missing.push('How Attendance Was Provided');
+
+    if (u7Mode === 'percent') {
+      var percent = document.getElementById('u7Percent').value.trim();
+      if (!percent) missing.push('Percent of Appointments Attended');
+      if (missing.length) return {missing: missing};
+      narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member was engaged in MH treatment as evidenced by attending ' + percent + '% of scheduled appointments within 60 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence at this attendance rate.';
+    } else {
+      var attended = document.getElementById('u7Attended').value.trim();
+      var total = document.getElementById('u7Total').value.trim();
+      if (!attended) missing.push('Appointments Attended');
+      if (!total) missing.push('Appointments Scheduled (Total)');
+      if (missing.length) return {missing: missing};
+      var u7Pct = (parseFloat(total) > 0) ? Math.round((parseFloat(attended) / parseFloat(total)) * 100) : null;
+      var u7PctText = (u7Pct !== null) ? (u7Pct + '%') : 'the reported share';
+      narrative = 'Initially connected with member on ' + formatDateSlash(connectedDate) + '. Member was engaged in MH treatment as evidenced by attending ' + u7PctText + ' of scheduled appointments within 60 days. Provider completed attestation with MH provider on ' + formatDateSlash(attestationDate) + ' confirming member adherence by attending ' + attended + ' out of ' + total + ' appointments.';
+    }
   }
 
   else if (code === 'U8') {
