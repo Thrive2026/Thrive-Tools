@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Individual Psychotherapy Note — Thrive Peer Recovery Services</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a1a2e;min-height:100vh;}
@@ -39,6 +40,23 @@ select{cursor:pointer;}
 .sli-item .q{font-size:13px;color:#2d2d4e;margin-bottom:8px;line-height:1.5;}
 .sli-gap-note{font-size:11.5px;color:#7A5200;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:6px;padding:10px 12px;margin:0 0 14px;line-height:1.55;}
 .sli-crisis-note{font-size:12px;color:#8B1A1A;background:#FDECEA;border:1.5px solid #E8417A;border-radius:6px;padding:10px 12px;margin:12px 0;line-height:1.55;font-weight:600;}
+.sli-save-row{background:#fff;border:1.5px solid #c8cfe8;border-radius:8px;padding:14px 16px;margin-top:16px;}
+.sli-save-row .authline{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:#555;margin-bottom:10px;flex-wrap:wrap;}
+.sli-save-row button{padding:8px 14px;border-radius:6px;border:none;font-size:12.5px;font-weight:600;cursor:pointer;}
+.sli-save-row .ghost-btn{background:#f4f5f7;color:#4B5EA6;border:1.5px solid #c8cfe8;}
+.sli-save-row .save-btn{background:#4B5EA6;color:#fff;width:100%;padding:11px;font-size:13px;}
+.sli-save-row .save-btn:disabled{background:#AEB6BE;cursor:not-allowed;}
+.sli-save-status{margin-top:8px;font-size:12px;text-align:center;}
+.tp-modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,25,50,0.55);z-index:1000;align-items:center;justify-content:center;}
+.tp-modal-overlay.visible{display:flex;}
+.tp-modal-box{background:#fff;border-radius:10px;padding:26px;max-width:380px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.25);}
+.tp-modal-box h2{font-size:16px;color:#2d2d4e;margin-bottom:10px;}
+.tp-modal-box p{font-size:12.5px;color:#666;line-height:1.5;margin-bottom:14px;}
+.tp-modal-box label{display:block;font-size:12px;font-weight:600;color:#2d2d4e;margin-bottom:4px;margin-top:10px;}
+.tp-modal-box input{width:100%;border:1.5px solid #dde0f0;border-radius:6px;padding:9px 12px;font-size:13.5px;}
+.tp-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+.tp-modal-actions .tp-secondary{background:#f4f5f7;color:#555;border:none;padding:9px 16px;border-radius:6px;font-size:13px;cursor:pointer;}
+.tp-modal-actions .tp-primary{background:#4B5EA6;color:#fff;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
 .toggle-row{display:flex;align-items:center;gap:16px;padding:14px 0;}
 .toggle-label{font-size:14px;font-weight:600;color:#2d2d4e;}
 .toggle-options{display:flex;border:1.5px solid #dde0f0;border-radius:8px;overflow:hidden;}
@@ -568,6 +586,33 @@ select{cursor:pointer;}
           <div style="display:none;margin-top:10px;padding:10px;background:#FDECEA;border-radius:6px;text-align:center;font-size:12px;color:#8B1A1A;font-weight:600;" id="directorFlag">&#9888; Level 5 &mdash; Director Approval Required before continuing services at this intensity</div>
           <div style="display:none;margin-top:10px;padding:10px;background:#FFF8E6;border-radius:6px;text-align:center;font-size:12px;color:#7A5200;font-weight:600;" id="capFlag">&#9888; Service Intensity Cap Applied &mdash; Level 1 regardless of Adjusted SLI. Focus on barrier resolution.</div>
         </div>
+
+        <div class="sli-save-row">
+          <div class="authline">
+            <span id="sliAuthMsg">Checking connection&hellip;</span>
+            <button type="button" class="ghost-btn" id="sliAuthBtn" style="display:none;">Sign In</button>
+          </div>
+          <button type="button" class="save-btn" id="sliSaveBtn" onclick="saveSliToSharedRecord()">Save SLI 2.0 Assessment to Shared Record</button>
+          <div class="sli-save-status" id="sliSaveStatus"></div>
+          <div style="font-size:11px;color:#888;margin-top:6px;line-height:1.5;">Saves this score into the same <code>sli_assessments</code> table the standalone SLI 2.0 Assessment tool uses, keyed to the Client Number above, so progress shows up as one history per client regardless of which tool captured it. This is separate from generating/copying the note itself.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLI SHARED-RECORD LOGIN MODAL -->
+  <div class="tp-modal-overlay" id="sliLoginModal">
+    <div class="tp-modal-box">
+      <h2>Staff Sign-In</h2>
+      <p>Sign in with your Thrive Supabase staff account to save this SLI 2.0 score to the shared assessment record. This is the same account used by the SLI 2.0 Assessment and Treatment Plan tools.</p>
+      <label for="sliLoginEmail">Email</label>
+      <input type="text" id="sliLoginEmail" autocomplete="username"/>
+      <label for="sliLoginPassword">Password</label>
+      <input type="password" id="sliLoginPassword" autocomplete="current-password"/>
+      <div style="font-size:12px;color:#8B1A1A;margin-top:8px;" id="sliLoginError"></div>
+      <div class="tp-modal-actions">
+        <button class="tp-secondary" onclick="closeSliLoginModal()">Cancel</button>
+        <button class="tp-primary" id="sliLoginSubmitBtn" onclick="submitSliLogin()">Sign In</button>
       </div>
     </div>
   </div>
@@ -797,6 +842,134 @@ async function logNoteAnalytics(payload) {
   } catch (e) {
     console.warn('[Psychotherapy note analytics] request failed - ' + e.message, payload);
   }
+}
+
+// ── SUPABASE AUTH (staff sign-in, required only to save an SLI 2.0 assessment
+// into the shared sli_assessments table — note drafting/AI/copy never requires
+// login, exactly like before). Reuses the same project as analytics above. ──
+var sb = null;
+var currentSession = null;
+var loginSuccessCallback = null;
+
+function initSliAuth(){
+  if (!window.supabase || !window.supabase.createClient) {
+    console.warn('[SLI save] Supabase library did not load — SLI 2.0 assessments cannot be saved to the shared record until this loads.');
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb.auth.getSession().then(function(res){ currentSession = res.data.session; onSliAuthStateResolved(); });
+  sb.auth.onAuthStateChange(function(event, session){ currentSession = session; onSliAuthStateResolved(); });
+}
+function onSliAuthStateResolved(){
+  var msg = document.getElementById('sliAuthMsg');
+  var btn = document.getElementById('sliAuthBtn');
+  if (!msg || !btn) return;
+  btn.style.display = 'inline-block';
+  if (currentSession && currentSession.user) {
+    msg.textContent = 'Signed in as ' + currentSession.user.email;
+    btn.textContent = 'Sign Out';
+    btn.onclick = function(){ signOutSliStaff(); };
+  } else {
+    msg.textContent = 'Sign in to save this SLI 2.0 score to the shared assessment record.';
+    btn.textContent = 'Sign In';
+    btn.onclick = function(){ openSliLoginModal(null); };
+  }
+}
+function requireSliAuth(fn){
+  if (!sb) { alert('The Supabase library has not loaded — check your internet connection and reload the page.'); return; }
+  if (currentSession) { fn(); } else { openSliLoginModal(fn); }
+}
+function openSliLoginModal(onSuccess){
+  loginSuccessCallback = onSuccess || null;
+  document.getElementById('sliLoginError').textContent = '';
+  document.getElementById('sliLoginModal').classList.add('visible');
+}
+function closeSliLoginModal(){
+  document.getElementById('sliLoginModal').classList.remove('visible');
+  loginSuccessCallback = null;
+}
+async function submitSliLogin(){
+  var email = document.getElementById('sliLoginEmail').value.trim();
+  var password = document.getElementById('sliLoginPassword').value;
+  var errEl = document.getElementById('sliLoginError');
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
+  var btn = document.getElementById('sliLoginSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try {
+    var res = await sb.auth.signInWithPassword({ email: email, password: password });
+    if (res.error) throw res.error;
+    currentSession = res.data.session;
+    document.getElementById('sliLoginPassword').value = '';
+    onSliAuthStateResolved();
+    closeSliLoginModal();
+    if (loginSuccessCallback) loginSuccessCallback();
+  } catch (err) {
+    errEl.textContent = err.message || 'Sign-in failed.';
+  }
+  btn.disabled = false; btn.textContent = 'Sign In';
+}
+async function signOutSliStaff(){
+  if (sb) await sb.auth.signOut();
+  currentSession = null;
+  onSliAuthStateResolved();
+}
+
+// ── Save this note's SLI 2.0 score into the shared sli_assessments table (same
+// table the standalone SLI 2.0 Assessment tool writes to), so progress across
+// tools shows up as one history per client_number instead of being siloed in
+// this note's own analytics row. ──
+async function saveSliToSharedRecord(){
+  var statusEl = document.getElementById('sliSaveStatus');
+  var btn = document.getElementById('sliSaveBtn');
+  var clientNumber = document.getElementById('clientNumber') ? document.getElementById('clientNumber').value.trim() : '';
+  if (!clientNumber) { statusEl.textContent = 'Enter the Client Number above before saving.'; statusEl.style.color = '#8B1A1A'; return; }
+  requireSliAuth(async function(){
+    btn.disabled = true; btn.textContent = 'Saving…';
+    statusEl.textContent = ''; statusEl.style.color = '#888';
+    var s = sli2ComputeScores(sliState);
+    var finalLevel = s.cap ? 1 : s.calculatedLevel.level;
+    var payload = {
+      client_number: clientNumber,
+      assessed_by: currentSession.user.email,
+      assessment_date: document.getElementById('sessionDate') && document.getElementById('sessionDate').value ? document.getElementById('sessionDate').value : new Date().toISOString().slice(0,10),
+      assessment_type: 'Psychotherapy Note Re-score',
+      phq9_items: sliState.phq9, phq9_hospitalizations: sliState.phq9_hosp, phq9_raw: s.phq9Raw, phq9_band: s.phq9Band.label, phq9_points: s.phq9Band.points,
+      gad7_items: sliState.gad7, gad7_functional_impact: sliState.gad7_impact, gad7_raw: s.gad7Raw, gad7_band: s.gad7Band.label, gad7_points: s.gad7Band.points,
+      bam_items: sliState.bam, bam_raw: s.bamRaw, bam_band: s.bamBand.label, bam_points: s.bamBand.points,
+      bam_substance_use_30d: sliState.bam_substance_use_30d === 1, bam_overdoses_90d: sliState.bam_overdoses, bam_arrests_90d: sliState.bam_arrests,
+      bam_seen_dentist_12mo: sliState.bam_dentist === 1, bam_seen_doctor_12mo: sliState.bam_doctor === 1,
+      asam_mh_only: !!sliState.asam_mh_only, asam_dimensions: sliState.asam_dims, asam_raw: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points,
+      asam_loc_recommendation: document.getElementById('asamLevel') ? (document.getElementById('asamLevel').value || null) : null,
+      risk_cssrs: sliState.cssrs, risk_harm_others: sliState.risk_extra.harm_others, risk_abuse: sliState.risk_extra.abuse, risk_psychosis: sliState.risk_extra.psychosis,
+      risk_raw: s.riskRaw, risk_band: s.riskBand.label, risk_points: s.riskBand.points,
+      risk_escalation_triggered: s.escalation, risk_escalation_notified_by: sliState.risk_notified_by || null,
+      risk_escalation_notified_at: s.escalation ? new Date().toISOString() : null,
+      risk_full_columbia_needed: sliState.risk_full_columbia_needed,
+      sdoh_items: sliState.sdoh, sdoh_barrier_score: s.sdohScore,
+      clinical_score: s.clinicalScore, adjusted_sli: s.adjustedSli,
+      low_clinical_flag: s.lowClinicalFlag, high_sdoh_flag: s.highSdohFlag, service_intensity_cap: s.cap,
+      calculated_support_level: s.cap ? 1 : s.calculatedLevel.level, final_support_level: finalLevel,
+      director_review_required: s.directorReviewRequired,
+      is_current: true
+    };
+    try {
+      var prior = await sb.from('sli_assessments').select('id').eq('client_number', clientNumber).eq('is_current', true);
+      if (prior.error) throw prior.error;
+      var inserted = await sb.from('sli_assessments').insert(payload).select('id').single();
+      if (inserted.error) throw inserted.error;
+      if (prior.data && prior.data.length) {
+        for (var i = 0; i < prior.data.length; i++) {
+          await sb.from('sli_assessments').update({ is_current: false, superseded_by: inserted.data.id }).eq('id', prior.data[i].id);
+        }
+      }
+      statusEl.textContent = 'Saved to the shared SLI 2.0 record for client ' + clientNumber + ' — Support Level ' + finalLevel + '.';
+      statusEl.style.color = '#1A7A3A';
+    } catch (e) {
+      statusEl.textContent = 'Save failed: ' + e.message;
+      statusEl.style.color = '#8B1A1A';
+    }
+    btn.disabled = false; btn.textContent = 'Save SLI 2.0 Assessment to Shared Record';
+  });
 }
 
 // ── CPT TIME RANGES (AMA/CMS time-based coding convention, used for QA only — never surfaced in note text) ──
@@ -1718,6 +1891,7 @@ function resetForm() {
   }
   sliState = sli2NewState();
   renderSliWidget();
+  if (document.getElementById('sliSaveStatus')) document.getElementById('sliSaveStatus').textContent = '';
   if (document.getElementById('sliResult')) document.getElementById('sliResult').className = 'sli-result';
   if (document.getElementById('sliOutputCard')) document.getElementById('sliOutputCard').style.display = 'none';
   if (document.getElementById('sliOutput')) document.getElementById('sliOutput').innerText = '';
@@ -2054,6 +2228,7 @@ updateCharCounter('providerResponse', 'providerResponseCounter', 30);
 updateCharCounter('tpReviewDetail', 'tpReviewDetailCounter', 20);
 updateCharCounter('planNextSteps', 'planNextStepsCounter', 25);
 renderSliWidget();
+initSliAuth();
 
 </script>
 </body>
