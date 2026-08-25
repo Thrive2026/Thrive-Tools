@@ -34,8 +34,16 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .chip{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #dde0f0;background:#f4f5f7;color:#555;user-select:none;transition:all 0.15s;}
 .chip:hover{border-color:#4B5EA6;color:#4B5EA6;}
 .chip.selected{background:#4B5EA6;border-color:#4B5EA6;color:#fff;}
+.chip.selected.risk{background:#E8417A;border-color:#E8417A;}
 .sli-card{background:#f0f2fa;border:1.5px solid #c8cfe8;border-radius:10px;padding:18px;margin-bottom:16px;}
 .sli-card h3{font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;}
+.sli-card .sli-card-sub{font-size:11px;color:#888;margin-bottom:12px;line-height:1.5;margin-top:-10px;}
+.sli-item{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #e6e0d5;}
+.sli-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.sli-item .q{font-size:13px;color:#2d2d4e;margin-bottom:8px;line-height:1.5;}
+.sli-gap-note{font-size:11.5px;color:#7A5200;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:6px;padding:10px 12px;margin:0 0 14px;line-height:1.55;}
+.sli-warn-note{font-size:11px;color:#7A5200;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:6px;padding:8px 12px;margin-top:12px;line-height:1.5;}
+.sli-crisis-note{font-size:12px;color:#8B1A1A;background:#FDECEA;border:1.5px solid #E8417A;border-radius:6px;padding:10px 12px;margin:12px 0;line-height:1.55;font-weight:600;}
 .score-input-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 @media(max-width:600px){.score-input-row{grid-template-columns:1fr 1fr;}}
 .score-field label{font-size:12px;font-weight:600;color:#2d2d4e;display:block;margin-bottom:4px;}
@@ -87,7 +95,63 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .reset-btn:hover{border-color:#4B5EA6;color:#4B5EA6;}
 .required-star{color:#E8417A;margin-left:2px;}
 .review-banner{margin-bottom:16px;padding:14px;background:#fffbea;border:1.5px solid #F5C518;border-radius:8px;font-size:13px;color:#5a4200;line-height:1.5;}
+
+/* ── SUPABASE SIGN-IN / SAVE / DASHBOARD ── */
+.tp-authbar{background:#2d2d4e;color:#fff;padding:8px 32px;display:flex;align-items:center;justify-content:space-between;font-size:12.5px;flex-wrap:wrap;gap:8px;}
+.tp-authbar .tp-authbar-msg{opacity:0.9;}
+.tp-authbar button{background:#4B5EA6;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+.tp-authbar button:hover{background:#5f72bd;}
+.tp-authbar button.tp-btn-ghost{background:transparent;border:1.5px solid rgba(255,255,255,0.4);}
+.tp-authbar button.tp-btn-ghost:hover{background:rgba(255,255,255,0.1);}
+.tp-setup-banner{background:#FFF3CD;border-left:5px solid #F5C518;padding:14px 32px;font-size:13px;color:#5a4200;line-height:1.6;}
+.tp-setup-banner code{background:rgba(0,0,0,0.08);padding:1px 6px;border-radius:4px;font-size:12px;}
+.tp-dashboard{max-width:900px;margin:24px auto 0;padding:0 20px;}
+.tp-dashboard-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.07);overflow:hidden;}
+.tp-dashboard-header{background:#1A5C63;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.tp-dashboard-header h2{font-size:15px;font-weight:700;color:#fff;}
+.tp-dashboard-header button{background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+.tp-dashboard-body{padding:18px 24px;}
+.tp-due-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:8px;background:#f4f5f7;margin-bottom:8px;flex-wrap:wrap;}
+.tp-due-case{font-weight:700;font-size:13px;color:#2d2d4e;}
+.tp-due-meta{font-size:11.5px;color:#888;}
+.tp-due-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.tp-due-overdue{background:#FDECEA;color:#8B1A1A;}
+.tp-due-soon{background:#FFF8E6;color:#7A5200;}
+.tp-due-ok{background:#E8F5EC;color:#1A7A3A;}
+.tp-due-actions{display:flex;gap:8px;}
+.tp-due-actions button{padding:6px 12px;border-radius:6px;border:1.5px solid #4B5EA6;background:#fff;color:#4B5EA6;font-size:11.5px;font-weight:700;cursor:pointer;}
+.tp-due-actions button:hover{background:#4B5EA6;color:#fff;}
+.tp-lookup-row{display:flex;gap:8px;margin-top:14px;}
+.tp-lookup-row input{flex:1;border:1.5px solid #dde0f0;border-radius:8px;padding:9px 12px;font-size:13px;}
+.tp-lookup-row button{padding:9px 16px;border-radius:8px;border:none;background:#1A5C63;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;}
+.tp-sign-block{background:#fff;border:1.5px solid #c8cfe8;border-radius:10px;padding:16px 18px;margin-top:10px;}
+.tp-sign-block.tp-sign-disabled{opacity:0.55;pointer-events:none;}
+.tp-sign-block h4{font-size:12.5px;font-weight:700;color:#4B5EA6;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px;}
+.tp-sign-block input[type=text]{margin-bottom:10px;}
+.tp-sign-status{margin-top:16px;padding:12px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;}
+.tp-sign-status.tp-signed{display:block;background:#E8F5EC;color:#1A7A3A;}
+.tp-sign-status.tp-pending{display:block;background:#FFF8E6;color:#7A5200;}
+.tp-save-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+.tp-save-row button{flex:1;min-width:180px;padding:12px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid #4B5EA6;background:#fff;color:#4B5EA6;}
+.tp-save-row button:hover:not(:disabled){background:#4B5EA6;color:#fff;}
+.tp-save-row button:disabled{opacity:0.4;cursor:not-allowed;}
+.tp-msg{font-size:12px;margin-top:8px;display:none;}
+.tp-msg.tp-msg-err{display:block;color:#8B1A1A;}
+.tp-msg.tp-msg-ok{display:block;color:#1A7A3A;}
+.tp-modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1200;align-items:center;justify-content:center;padding:20px;}
+.tp-modal-overlay.visible{display:flex;}
+.tp-modal-box{background:#fff;border-radius:12px;max-width:380px;width:100%;padding:26px;box-shadow:0 8px 32px rgba(0,0,0,0.2);}
+.tp-modal-box h2{font-size:16px;font-weight:700;color:#2d2d4e;margin-bottom:6px;}
+.tp-modal-box p{font-size:12.5px;color:#888;margin-bottom:16px;line-height:1.5;}
+.tp-modal-box label{font-size:12px;font-weight:600;color:#2d2d4e;display:block;margin-bottom:4px;margin-top:12px;}
+.tp-modal-box input{width:100%;border:1.5px solid #dde0f0;border-radius:8px;padding:9px 12px;font-size:13px;}
+.tp-modal-actions{display:flex;gap:10px;margin-top:18px;}
+.tp-modal-actions button{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;}
+.tp-modal-actions .tp-primary{background:#4B5EA6;color:#fff;}
+.tp-modal-actions .tp-secondary{background:#f4f5f7;color:#555;}
+.case-ref-hint{background:#EEF1FB;border:1.5px solid #c8cfe8;border-radius:8px;padding:10px 12px;font-size:11.5px;color:#2d2d4e;line-height:1.5;margin-top:6px;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -104,12 +168,67 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
   <p><strong>HIPAA Notice:</strong> Do NOT enter any Protected Health Information (PHI) &mdash; no names, dates of birth, Social Security numbers, or any other identifying information.</p>
 </div>
 
+<!-- SUPABASE AUTH STATUS BAR -->
+<div class="tp-authbar" id="authBar">
+  <span class="tp-authbar-msg" id="authBarMsg">Checking connection&hellip;</span>
+  <span>
+    <button id="authBarBtn" class="tp-btn-ghost" style="display:none;">Sign In</button>
+  </span>
+</div>
+
+<!-- SETUP NOT COMPLETE NOTICE -->
+<div class="tp-setup-banner" id="setupBanner" style="display:none;">
+  <strong>Supabase isn&rsquo;t connected yet.</strong> The plan builder below still works exactly as before &mdash; drafting, generating, and copying into Pimsy &mdash; but signing/saving/loading plans is disabled until this is configured.
+  Open <code>treatmentplan.html</code> and set <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> near the top of the <code>&lt;script&gt;</code> section (see the SUPABASE_SETUP guide for the SQL and step-by-step instructions), then reload this page.
+</div>
+
+<!-- PLANS DUE FOR REVIEW DASHBOARD -->
+<div class="tp-dashboard" id="dueDashboard" style="display:none;">
+  <div class="tp-dashboard-card">
+    <div class="tp-dashboard-header">
+      <h2>&#128197; Plans Due for Review</h2>
+      <button onclick="loadDashboard()">&#8635; Refresh</button>
+    </div>
+    <div class="tp-dashboard-body">
+      <div id="dueRows"><p style="font-size:12.5px;color:#888;">Loading&hellip;</p></div>
+      <div class="tp-lookup-row">
+        <input type="text" id="lookupCaseNumber" placeholder="Look up a Case / Reference Number for a 90-day review&hellip;"/>
+        <button onclick="lookupAndStartReview()">Look Up &amp; Start Review</button>
+      </div>
+      <div class="tp-msg" id="lookupMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="tp-modal-overlay" id="loginModal">
+  <div class="tp-modal-box">
+    <h2>Staff Sign-In</h2>
+    <p>Sign in with your Thrive Supabase staff account to save, sign, or look up treatment plans. Accounts are created by your admin in the Supabase dashboard.</p>
+    <label for="loginEmail">Email</label>
+    <input type="text" id="loginEmail" autocomplete="username"/>
+    <label for="loginPassword">Password</label>
+    <input type="password" id="loginPassword" autocomplete="current-password"/>
+    <div class="tp-msg tp-msg-err" id="loginError"></div>
+    <div class="tp-modal-actions">
+      <button class="tp-secondary" onclick="closeLoginModal()">Cancel</button>
+      <button class="tp-primary" id="loginSubmitBtn" onclick="submitLogin()">Sign In</button>
+    </div>
+  </div>
+</div>
+
 <div class="main">
 
   <!-- SECTION 1: CLIENT INFO -->
   <div class="section-card">
     <div class="section-header"><div class="step">1</div><h2>Client &amp; Plan Information</h2></div>
     <div class="section-body">
+      <div class="field">
+        <label class="field-label">Case / Reference Number <span class="required-star">*</span></label>
+        <div class="field-hint">Your internal Pimsy case/chart number or another non-identifying reference code. This is how you&rsquo;ll look this plan up later for its 90-day review &mdash; do not use the Peer&rsquo;s name.</div>
+        <input type="text" id="caseNumber" placeholder="e.g. CPS-2026-0417" oninput="onCaseNumberChange()"/>
+        <div class="case-ref-hint" id="caseNumberStatus" style="display:none;"></div>
+      </div>
       <div class="two-col">
         <div class="field">
           <label class="field-label">Program <span class="required-star">*</span></label>
@@ -156,6 +275,43 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
           <option value="Maintenance">Maintenance</option>
         </select>
       </div>
+      <div class="field">
+        <label class="field-label">ASAM Level of Care</label>
+        <div class="field-hint">Required per OAC 5122-27-03 for clients receiving addiction services; leave blank if not applicable to this plan.</div>
+        <select id="asamLevelOfCare">
+          <option value="">Select level (if applicable)...</option>
+          <option value="Level 0.5: Early Intervention">Level 0.5: Early Intervention</option>
+          <option value="Level 1: Outpatient Services">Level 1: Outpatient Services</option>
+          <option value="Level 2.1: Intensive Outpatient Services">Level 2.1: Intensive Outpatient Services</option>
+          <option value="Level 2.5: Partial Hospitalization Services">Level 2.5: Partial Hospitalization Services</option>
+          <option value="Level 3.1: Clinically Managed Low-Intensity Residential Services">Level 3.1: Clinically Managed Low-Intensity Residential Services</option>
+          <option value="Level 3.3: Clinically Managed Medium-Intensity Residential Services">Level 3.3: Clinically Managed Medium-Intensity Residential Services</option>
+          <option value="Level 3.5: Clinically Managed High-Intensity Residential Services">Level 3.5: Clinically Managed High-Intensity Residential Services</option>
+          <option value="Level 4: Medically Managed Intensive Inpatient Services">Level 4: Medically Managed Intensive Inpatient Services</option>
+          <option value="Level 5: Medically Monitored Intensive Inpatient Services">Level 5: Medically Monitored Intensive Inpatient Services</option>
+        </select>
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label class="field-label">Admission / Referral Date</label>
+          <div class="field-hint">Date Peer was admitted to this program or referred for services. Used to confirm the initial plan meets OAC 5122-27-03 timelines (completed within 7 days of admission or by the 5th service contact, whichever is later; comprehensive plan within 30 days).</div>
+          <input type="date" id="admissionDate"/>
+        </div>
+        <div class="field">
+          <label class="field-label">Presenting Diagnosis (per assessment on file)</label>
+          <div class="field-hint">Reference the diagnosis already documented in the clinical/psychiatric assessment on file &mdash; do not diagnose here. Ohio Medicaid requires goals be consistent with the member's diagnosis. Leave blank only if no formal diagnosis is on file yet.</div>
+          <input type="text" id="presentingDiagnosis" placeholder="e.g. F10.20 Alcohol Use Disorder, Moderate (per intake assessment)"/>
+        </div>
+      </div>
+      <div class="field" style="background:#f4f5f7;border-radius:10px;padding:14px 16px;">
+        <label class="field-label">Capacity to Benefit from Treatment <span class="required-star">*</span></label>
+        <div class="field-hint">Ohio Medicaid requires documentation that the individual has the ability and capacity to benefit from treatment at this level.</div>
+        <div style="display:flex;gap:12px;margin-bottom:10px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="capacityToBenefit" value="Yes" onchange="updateSignOff()" style="accent-color:#4B5EA6;cursor:pointer;"> Yes</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="capacityToBenefit" value="No" onchange="updateSignOff()" style="accent-color:#4B5EA6;cursor:pointer;"> No</label>
+        </div>
+        <textarea id="capacityToBenefitBasis" placeholder="Brief basis for this determination, e.g. Peer is oriented x4, able to articulate personal recovery goals, and has demonstrated engagement with prior services..." rows="2"></textarea>
+      </div>
     </div>
   </div>
 
@@ -167,59 +323,26 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         Enter raw scores from Pimsy. Normalization bands, Clinical Score, SDOH Barrier Score, Cap rule, and Support Level are calculated automatically per the SLI 2.0 Training Manual.
       </div>
 
-      <div class="sli-card">
-        <h3>Clinical Instruments &mdash; Raw Scores</h3>
-        <div class="score-input-row">
-          <div class="score-field">
-            <label>PHQ-9 Raw (0&ndash;27)</label>
-            <input type="number" id="sli_phq9" min="0" max="27" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="phq9band"></div>
-          </div>
-          <div class="score-field">
-            <label>GAD-7 Raw (0&ndash;21)</label>
-            <input type="number" id="sli_gad7" min="0" max="21" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="gad7band"></div>
-          </div>
-          <div class="score-field">
-            <label>BAM Raw (0&ndash;60)</label>
-            <input type="number" id="sli_bam" min="0" max="60" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="bamband"></div>
-          </div>
-          <div class="score-field">
-            <label>ASAM Raw (0&ndash;24)</label>
-            <input type="number" id="sli_asam" min="0" max="24" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="asamband"></div>
-          </div>
-          <div class="score-field">
-            <label>Risk Score (0&ndash;6)</label>
-            <input type="number" id="sli_risk" min="0" max="6" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="riskband"></div>
-          </div>
-        </div>
-        <div style="background:#FFF8E6;border:1.5px solid #f0d060;border-radius:6px;padding:8px 12px;margin-top:12px;font-size:11px;color:#7A5200;line-height:1.5;">
-          &#9888; <strong>C-SSRS Clinical Gate:</strong> If Peer endorsed ANY of items 1c, 1d, 1e, or 1f, Risk must be scored as High (2 pts) regardless of raw count.
-        </div>
-        <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
-          <input type="checkbox" id="riskOverride" onchange="calcSLI()" style="accent-color:#E8417A;width:16px;height:16px;cursor:pointer;"/>
-          <label for="riskOverride" style="font-size:12px;color:#8B1A1A;cursor:pointer;font-weight:600;">Apply C-SSRS gate &mdash; Peer endorsed 1c, 1d, 1e, or 1f (force Risk to High, 2 pts)</label>
+      <div class="field" style="background:#f4f5f7;border-radius:10px;padding:14px 16px;margin-bottom:4px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <input type="checkbox" id="sliApplicable" checked onchange="onSliApplicableChange()" style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;"/>
+          <label for="sliApplicable" style="font-size:13px;font-weight:600;color:#2d2d4e;cursor:pointer;">This plan requires SLI 2.0 scoring<br/><span style="font-size:11.5px;font-weight:400;color:#888;">Uncheck for programs or service types where SLI 2.0 doesn't apply. The plan will clearly document that scoring was not applicable rather than showing a default score.</span></label>
         </div>
       </div>
+      <div id="sliNotApplicableNote" style="display:none;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:12.5px;color:#7A5200;line-height:1.5;">SLI 2.0 scoring will be marked <strong>not applicable</strong> in this plan and skipped in the compliance check below.</div>
 
-      <div class="sli-card">
-        <h3>SDOH Critical Barriers &mdash; Check All That Apply</h3>
-        <div style="font-size:11px;color:#888;margin-bottom:12px;">Each endorsed barrier = 1 point added to SDOH Barrier Score (max 6).</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="sdoh_housing" onchange="calcSLI()" style="accent-color:#4B5EA6;margin-top:2px;width:16px;height:16px;flex-shrink:0;"/>Housing instability</label>
-          <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="sdoh_food" onchange="calcSLI()" style="accent-color:#4B5EA6;margin-top:2px;width:16px;height:16px;flex-shrink:0;"/>Difficulty affording food, utilities, or rent</label>
-          <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="sdoh_transport" onchange="calcSLI()" style="accent-color:#4B5EA6;margin-top:2px;width:16px;height:16px;flex-shrink:0;"/>Transportation challenges</label>
-          <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="sdoh_healthcare" onchange="calcSLI()" style="accent-color:#4B5EA6;margin-top:2px;width:16px;height:16px;flex-shrink:0;"/>Healthcare access difficulty</label>
-          <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="sdoh_isolation" onchange="calcSLI()" style="accent-color:#4B5EA6;margin-top:2px;width:16px;height:16px;flex-shrink:0;"/>Social isolation</label>
-          <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="sdoh_legal" onchange="calcSLI()" style="accent-color:#4B5EA6;margin-top:2px;width:16px;height:16px;flex-shrink:0;"/>Legal issues or feeling unsafe at home</label>
-        </div>
-        <div style="margin-top:10px;font-size:13px;color:#4B5EA6;font-weight:600;">SDOH Barrier Count: <span id="sdohCount">0</span> / 6</div>
-      </div>
+      <div id="sliScoringBlock">
+      <div id="sliItemsContainer"></div>
 
       <div class="sli-result" id="sliResult">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:14px;font-size:12px;color:#2d2d4e;">
+          <div><strong>PHQ-9:</strong> <span id="phq9band"></span></div>
+          <div><strong>GAD-7:</strong> <span id="gad7band"></span></div>
+          <div><strong>BAM:</strong> <span id="bamband"></span></div>
+          <div><strong>ASAM:</strong> <span id="asamband"></span></div>
+          <div><strong>Risk:</strong> <span id="riskband"></span></div>
+          <div><strong>SDOH Barriers:</strong> <span id="sdohCount"></span> / 6</div>
+        </div>
         <div class="sli-result-grid">
           <div class="sli-result-item"><div class="val" id="sliClinical">0</div><div class="lbl">Clinical Score</div></div>
           <div class="sli-result-item"><div class="val" id="sliSdoh">0</div><div class="lbl">SDOH Barrier Score</div></div>
@@ -234,6 +357,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         <div style="text-align:center;font-size:13px;font-weight:600;color:#2d2d4e;" id="sliHoursText"></div>
         <div style="display:none;margin-top:10px;padding:10px;background:#FDECEA;border-radius:6px;text-align:center;font-size:12px;color:#8B1A1A;font-weight:600;" id="directorFlag">&#9888; Level 5 &mdash; Director Approval Required before initiating services</div>
         <div style="display:none;margin-top:10px;padding:10px;background:#FFF8E6;border-radius:6px;text-align:center;font-size:12px;color:#7A5200;font-weight:600;" id="capFlag">&#9888; Service Intensity Cap Applied &mdash; Level 1 regardless of Adjusted SLI. Focus on barrier resolution.</div>
+      </div>
       </div>
     </div>
   </div>
@@ -290,6 +414,11 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         <div class="field-hint">In Peer's own words &mdash; what does recovery look like to them?</div>
         <textarea id="clientGoalStatement" placeholder="e.g. I want to get my own apartment and stay sober so I can be there for my kids... (quote directly, no name)" rows="3"></textarea>
       </div>
+      <div class="field">
+        <label class="field-label">Preliminary Discharge Plan / Step-Down Criteria <span class="required-star">*</span></label>
+        <div class="field-hint">Anticipated criteria for successful completion of services and/or step-down to a lower service intensity. Required as part of an individualized service plan per Ohio Medicaid documentation standards and CARF discharge/transition planning requirements.</div>
+        <textarea id="dischargeCriteria" placeholder="e.g. Peer will be considered ready for step-down or discharge when housing is stabilized for 90+ consecutive days, SLI 2.0 re-score reflects Level 1-2 support needs, and Peer identifies at least two sustainable recovery supports independent of Thrive services..." rows="3"></textarea>
+      </div>
     </div>
   </div>
 
@@ -326,6 +455,10 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
       <div class="output-header"><h3>SLI 2.0 SUMMARY &amp; CLINICAL JUSTIFICATION</h3></div>
       <div class="output-body" id="justificationOutput" contenteditable="true"></div>
     </div>
+    <div class="output-card">
+      <div class="output-header"><h3>PRELIMINARY DISCHARGE PLAN / STEP-DOWN CRITERIA</h3></div>
+      <div class="output-body" id="dischargeOutput" contenteditable="true"></div>
+    </div>
     <!-- CARF/ODBH COMPLIANCE QUALITY CHECK -->
     <div id="qaPanel" style="background:#fff;border:2px solid #4B5EA6;border-radius:12px;overflow:hidden;margin-bottom:16px;">
       <div style="background:#4B5EA6;padding:14px 24px;display:flex;align-items:center;gap:10px;">
@@ -333,7 +466,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         <h2 style="font-size:15px;font-weight:700;color:#fff;">Compliance Quality Check</h2>
       </div>
       <div style="padding:18px 24px;">
-        <p style="font-size:12px;color:#666;margin-bottom:14px;line-height:1.5;">Automated check against CARF person-centered planning standards, ODBH/OhioMHAS documentation requirements, and Ohio Medicaid medical necessity standards. Items marked &#9888; need attention before this plan can be copied.</p>
+        <p style="font-size:12px;color:#666;margin-bottom:14px;line-height:1.5;">Automated check against CARF person-centered planning standards, ODBH/OhioMHAS documentation requirements (OAC 5122-27-03), and Ohio Medicaid medical necessity and billing documentation standards. Items marked &#9888; need attention before this plan can be copied. Reminder: Ohio Medicaid requires this record be retained for at least 7 years after discharge &mdash; this tool's saved/signed record satisfies that requirement automatically.</p>
         <div id="tpQaResults" style="display:flex;flex-direction:column;gap:6px;"></div>
         <div id="tpQaSummary" style="margin-top:14px;padding:12px 14px;border-radius:8px;font-size:13px;font-weight:600;"></div>
         <button onclick="rerunPlanQAChecks()" style="margin-top:12px;width:100%;padding:10px;background:#fff;color:#4B5EA6;border:1.5px solid #4B5EA6;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">&#8635; Re-Check After Edits</button>
@@ -379,6 +512,12 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
           </div>
         </div>
 
+        <!-- Reason for Non-Participation / Disagreement (OAC 5122-27-03 requires this be documented) -->
+        <div id="signOffReasonField">
+          <label style="display:block;font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:6px;">Reason client/guardian did not participate, consent, or approve all goals <span id="signOffReasonRequiredTag" style="font-size:11px;font-weight:400;color:#888;">(required only if any answer above is "No")</span></label>
+          <textarea id="signOffReason" rows="2" oninput="updateSignOff()" style="width:100%;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;font-family:inherit;background:#fafbff;resize:vertical;" placeholder="e.g. Individual was not reachable for direct review this period; plan was reviewed with legal guardian instead and will be reviewed with the individual at next contact..."></textarea>
+        </div>
+
         <!-- Who Participated -->
         <div>
           <label style="display:block;font-size:13px;font-weight:700;color:#2d2d4e;margin-bottom:8px;">Who participated in the development of the treatment plan? (select all that apply)</label>
@@ -402,13 +541,65 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         <div style="background:#EEF1FB;border:1.5px solid #4B5EA6;border-radius:8px;padding:14px 16px;">
           <div style="display:flex;align-items:flex-start;gap:10px;">
             <input type="checkbox" id="clinicianAttestation" onchange="updateSignOff()" disabled style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;"/>
-            <label for="clinicianAttestation" style="font-size:13px;color:#2d2d4e;line-height:1.6;cursor:pointer;"><strong>Clinician / Care Coordinator Attestation:</strong> I confirm that I have reviewed this AI-generated treatment plan, verified that it accurately reflects this individual's presenting needs, strengths, and goals, and made any necessary corrections. I understand that as the clinician/care coordinator of record, I am responsible for the accuracy and completeness of this documentation regardless of how it was drafted. Supervisor co-signature will be completed in Pimsy.</label>
+            <label for="clinicianAttestation" style="font-size:13px;color:#2d2d4e;line-height:1.6;cursor:pointer;"><strong>Clinician / Care Coordinator Attestation:</strong> I confirm that I have reviewed this AI-generated treatment plan, verified that it accurately reflects this individual's presenting needs, strengths, and goals, and made any necessary corrections. I understand that as the clinician/care coordinator of record, I am responsible for the accuracy and completeness of this documentation regardless of how it was drafted.</label>
           </div>
           <p id="tpQaGateMessage" style="font-size:12px;color:#E8417A;margin-top:8px;margin-left:28px;font-weight:600;"></p>
         </div>
 
         <div style="background:#f0faf2;border:1.5px solid #4CAF50;border-radius:8px;padding:12px 14px;">
-          <p style="font-size:12px;color:#2d5a2d;line-height:1.5;margin:0;">&#9432; <strong>Next step:</strong> After copying this plan into Pimsy, complete the dual sign-off (clinician + supervisor co-signature) using Pimsy's native review and sign-off workflow. This satisfies CARF, ODBH, and Ohio Medicaid dual signature requirements.</p>
+          <p style="font-size:12px;color:#2d5a2d;line-height:1.5;margin:0;">&#9432; This plan can be signed and saved directly below as the authoritative record for this tool. You can still copy it into Pimsy for billing/EHR purposes, but dual sign-off (clinician + supervisor) no longer has to happen there.</p>
+        </div>
+
+        <!-- SIGN & SAVE -->
+        <div class="tp-sign-block" id="planSaveBlock">
+          <h4>Sign &amp; Save (Supabase)</h4>
+          <div id="planSaveIntro" style="font-size:12px;color:#888;margin-bottom:10px;">Saves a de-identified record of this plan (no client name/DOB) keyed to the Case/Reference Number above. Complete the compliance check and clinician attestation above first.</div>
+          <div class="tp-save-row">
+            <button id="saveDraftPlanBtn" onclick="requireAuth(saveDraftPlan)">Save Draft</button>
+          </div>
+          <div class="tp-sign-block" id="clinicianSignBlock" style="margin-top:14px;">
+            <h4>Clinician / PRS Signature</h4>
+            <input type="text" id="clinicianSigName" placeholder="Type your full legal name"/>
+            <select id="clinicianSigCredential" style="width:100%;margin-top:8px;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;font-family:inherit;background:#fafbff;">
+              <option value="">Select your credential/title...</option>
+              <option value="Peer Recovery Supporter (PRS)">Peer Recovery Supporter (PRS)</option>
+              <option value="Care Coordinator">Care Coordinator</option>
+              <option value="Certified Dependency Counselor Assistant (CDCA)">Certified Dependency Counselor Assistant (CDCA)</option>
+              <option value="Qualified Mental Health Specialist (QMHS)">Qualified Mental Health Specialist (QMHS)</option>
+              <option value="Licensed Social Worker (LSW)">Licensed Social Worker (LSW)</option>
+              <option value="Licensed Independent Social Worker (LISW)">Licensed Independent Social Worker (LISW)</option>
+              <option value="Licensed Professional Counselor (LPC)">Licensed Professional Counselor (LPC)</option>
+              <option value="Licensed Professional Clinical Counselor (LPCC)">Licensed Professional Clinical Counselor (LPCC)</option>
+              <option value="Other">Other</option>
+            </select>
+            <div style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;">
+              <input type="checkbox" id="clinicianSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
+              <label for="clinicianSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this treatment plan as the clinician/care coordinator of record.</label>
+            </div>
+            <div class="tp-save-row"><button id="signClinicianBtn" onclick="requireAuth(signClinician)">Sign as Clinician / PRS</button></div>
+          </div>
+          <div class="tp-sign-block tp-sign-disabled" id="supervisorSignBlock" style="margin-top:14px;">
+            <h4>Supervisor Signature</h4>
+            <input type="text" id="supervisorSigName" placeholder="Type your full legal name"/>
+            <select id="supervisorSigCredential" style="width:100%;margin-top:8px;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;font-family:inherit;background:#fafbff;">
+              <option value="">Select your credential/title...</option>
+              <option value="Peer Recovery Supporter Supervisor (PRS-S)">Peer Recovery Supporter Supervisor (PRS-S)</option>
+              <option value="Program Director">Program Director</option>
+              <option value="Clinical Director">Clinical Director</option>
+              <option value="Licensed Social Worker (LSW)">Licensed Social Worker (LSW)</option>
+              <option value="Licensed Independent Social Worker (LISW-S)">Licensed Independent Social Worker (LISW-S)</option>
+              <option value="Licensed Professional Clinical Counselor (LPCC-S)">Licensed Professional Clinical Counselor (LPCC-S)</option>
+              <option value="Licensed Independent Chemical Dependency Counselor (LICDC-CS)">Licensed Independent Chemical Dependency Counselor (LICDC-CS)</option>
+              <option value="Other">Other</option>
+            </select>
+            <div style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;">
+              <input type="checkbox" id="supervisorSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
+              <label for="supervisorSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this treatment plan as the co-signing supervisor, per CARF/ODBH dual sign-off requirements.</label>
+            </div>
+            <div class="tp-save-row"><button id="signSupervisorBtn" onclick="requireAuth(signSupervisor)">Sign as Supervisor</button></div>
+          </div>
+          <div class="tp-sign-status" id="planSignStatus"></div>
+          <div class="tp-msg" id="planSaveMsg"></div>
         </div>
 
       </div>
@@ -455,45 +646,75 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
           </div>
         </div>
 
+        <div class="field" style="margin-bottom:20px;">
+          <label class="field-label">Reason for This Review <span class="required-star">*</span></label>
+          <div class="field-hint">Document what triggered this review, per OAC 5122-27-03 review-trigger documentation requirements.</div>
+          <select id="reviewTrigger">
+            <option value="">Select reason...</option>
+            <option value="Scheduled 90-Day Review">Scheduled 90-Day Review</option>
+            <option value="Scheduled 12-Month / Annual Review">Scheduled 12-Month / Annual Review</option>
+            <option value="Change in ASAM Level of Care">Change in ASAM Level of Care</option>
+            <option value="Change in Service Type or Frequency">Change in Service Type or Frequency</option>
+            <option value="Client / Guardian Request">Client / Guardian Request</option>
+            <option value="Clinical Indication (e.g. crisis, hospitalization, significant change in status)">Clinical Indication (e.g. crisis, hospitalization, significant change in status)</option>
+          </select>
+        </div>
+
+        <!-- Load from Supabase -->
+        <div class="tp-sign-block" style="margin-bottom:20px;">
+          <h4>Load Saved Plan (Supabase)</h4>
+          <div style="font-size:12px;color:#888;margin-bottom:10px;">Look up the most recently signed plan for this Case/Reference Number and pull it in below automatically, instead of pasting it by hand.</div>
+          <div class="tp-lookup-row" style="margin-top:0;">
+            <input type="text" id="reviewCaseNumber" placeholder="Case / Reference Number"/>
+            <button onclick="requireAuth(loadPlanForReview)">Load Plan</button>
+          </div>
+          <div class="tp-msg" id="reviewLoadMsg"></div>
+        </div>
+
         <!-- Paste Current Plan -->
         <div class="field" style="margin-bottom:20px;">
-          <label class="field-label">Paste Current Treatment Plan <span class="required-star">*</span></label>
-          <div class="field-hint">Paste the full existing treatment plan here. The AI will use this as the foundation for the updated plan.</div>
+          <label class="field-label">Current Treatment Plan <span class="required-star">*</span></label>
+          <div class="field-hint">Loaded automatically above, or paste the full existing treatment plan here manually. The AI will use this as the foundation for the updated plan.</div>
           <textarea id="currentPlanText" rows="8" placeholder="Paste the full current treatment plan here..."></textarea>
         </div>
 
         <!-- Updated SLI -->
         <div style="background:#f0f2fa;border:1.5px solid #c8cfe8;border-radius:10px;padding:18px;margin-bottom:20px;">
           <h3 style="font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">Updated SLI 2.0 Scores at Review</h3>
-          <div class="score-input-row">
-            <div class="score-field"><label>PHQ-9 Raw (0-27)</label><input type="number" id="rev_sli_phq9" min="0" max="27" placeholder="0" oninput="calcReviewSLI()"/></div>
-            <div class="score-field"><label>GAD-7 Raw (0-21)</label><input type="number" id="rev_sli_gad7" min="0" max="21" placeholder="0" oninput="calcReviewSLI()"/></div>
-            <div class="score-field"><label>BAM Raw (0-60)</label><input type="number" id="rev_sli_bam" min="0" max="60" placeholder="0" oninput="calcReviewSLI()"/></div>
-            <div class="score-field"><label>ASAM Raw (0-24)</label><input type="number" id="rev_sli_asam" min="0" max="24" placeholder="0" oninput="calcReviewSLI()"/></div>
-            <div class="score-field"><label>Risk Score (0-6)</label><input type="number" id="rev_sli_risk" min="0" max="6" placeholder="0" oninput="calcReviewSLI()"/></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+            <input type="checkbox" id="rev_sliApplicable" checked onchange="onRevSliApplicableChange()" style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;"/>
+            <label for="rev_sliApplicable" style="font-size:12.5px;font-weight:600;color:#2d2d4e;cursor:pointer;">This plan requires SLI 2.0 scoring<span style="font-size:11px;font-weight:400;color:#888;"> &mdash; uncheck if not applicable to this program/service type.</span></label>
           </div>
-          <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
-            <input type="checkbox" id="rev_risk_override" onchange="calcReviewSLI()" style="accent-color:#E8417A;width:16px;height:16px;cursor:pointer;"/>
-            <label for="rev_risk_override" style="font-size:12px;color:#8B1A1A;cursor:pointer;font-weight:600;">C-SSRS gate: Peer endorsed 1c/1d/1e/1f &mdash; force Risk to High (2 pts)</label>
-          </div>
-          <div style="margin-top:14px;">
-            <div style="font-size:12px;font-weight:700;color:#4B5EA6;margin-bottom:8px;">SDOH Barriers at Review &mdash; Check All That Apply</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="rev_sdoh_housing" onchange="calcReviewSLI()" style="accent-color:#4B5EA6;"/>Housing instability</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="rev_sdoh_food" onchange="calcReviewSLI()" style="accent-color:#4B5EA6;"/>Food/utility/rent difficulty</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="rev_sdoh_transport" onchange="calcReviewSLI()" style="accent-color:#4B5EA6;"/>Transportation challenges</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="rev_sdoh_healthcare" onchange="calcReviewSLI()" style="accent-color:#4B5EA6;"/>Healthcare access difficulty</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="rev_sdoh_isolation" onchange="calcReviewSLI()" style="accent-color:#4B5EA6;"/>Social isolation</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#2d2d4e;cursor:pointer;"><input type="checkbox" id="rev_sdoh_legal" onchange="calcReviewSLI()" style="accent-color:#4B5EA6;"/>Legal/safety issues</label>
-            </div>
+          <div id="revSliNotApplicableNote" style="display:none;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7A5200;line-height:1.5;">SLI 2.0 scoring will be marked <strong>not applicable</strong> in this review and the updated plan.</div>
+          <div id="reviewSliScoringBlock">
+          <div style="background:#EEF1FB;border:1.5px solid #c8cfe8;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#2d2d4e;line-height:1.5;">Re-administer the full SLI 2.0 assessment for this review period &mdash; don't carry forward the individual's prior answers.</div>
+          <div id="reviewSliItemsContainer"></div>
           </div>
           </div>
           <div class="sli-result" id="reviewSliResult" style="margin-top:14px;">
-            <div class="sli-result-grid">
-              <div class="sli-result-item"><div class="val" id="revSliTotal">0</div><div class="lbl">Total SLI</div></div>
-              <div class="sli-result-item"><div class="val" id="revSliLevel" style="font-size:14px;">—</div><div class="lbl">Support Level</div></div>
-              <div class="sli-result-item"><div class="val" id="revSliCap" style="font-size:13px;">—</div><div class="lbl">Service Cap</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:14px;font-size:12px;color:#2d2d4e;">
+              <div><strong>PHQ-9:</strong> <span id="revPhq9band"></span></div>
+              <div><strong>GAD-7:</strong> <span id="revGad7band"></span></div>
+              <div><strong>BAM:</strong> <span id="revBamband"></span></div>
+              <div><strong>ASAM:</strong> <span id="revAsamband"></span></div>
+              <div><strong>Risk:</strong> <span id="revRiskband"></span></div>
+              <div><strong>SDOH Barriers:</strong> <span id="revSdohCount"></span> / 6</div>
             </div>
+            <div class="sli-result-grid">
+              <div class="sli-result-item"><div class="val" id="revSliClinical">0</div><div class="lbl">Clinical Score</div></div>
+              <div class="sli-result-item"><div class="val" id="revSliSdoh">0</div><div class="lbl">SDOH Barrier Score</div></div>
+              <div class="sli-result-item"><div class="val" id="revSliTotal">0</div><div class="lbl">Adjusted SLI</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div style="background:#f4f5f7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:11px;color:#888;margin-bottom:4px;">Low Clinical Flag</div><div style="font-size:13px;font-weight:700;" id="revLowClinicalFlag">&mdash;</div></div>
+              <div style="background:#f4f5f7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:11px;color:#888;margin-bottom:4px;">High SDOH Flag</div><div style="font-size:13px;font-weight:700;" id="revHighSdohFlag">&mdash;</div></div>
+            </div>
+            <div style="text-align:center;margin-bottom:8px;"><span class="level-badge" id="revLevelBadge">—</span></div>
+            <div style="text-align:center;font-size:13px;color:#555;margin-bottom:4px;" id="revSliCapText"></div>
+            <div style="text-align:center;font-size:13px;font-weight:600;color:#2d2d4e;" id="revSliHoursText"></div>
+            <div style="display:none;margin-top:10px;padding:10px;background:#FDECEA;border-radius:6px;text-align:center;font-size:12px;color:#8B1A1A;font-weight:600;" id="revDirectorFlag">&#9888; Level 5 &mdash; Director Approval Required before continuing services at this intensity</div>
+            <div style="display:none;margin-top:10px;padding:10px;background:#FFF8E6;border-radius:6px;text-align:center;font-size:12px;color:#7A5200;font-weight:600;" id="revCapFlag">&#9888; Service Intensity Cap Applied &mdash; Level 1 regardless of Adjusted SLI. Focus on barrier resolution.</div>
+            <span id="revSliLevel" style="display:none;"></span><span id="revSliCap" style="display:none;"></span>
           </div>
         </div>
 
@@ -577,6 +798,56 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
       </div>
 
       <button onclick="copyBothReviewDocs()" id="copyBothBtn" disabled style="width:100%;padding:12px;background:#fff;color:#1A5C63;border:2px solid #1A5C63;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;opacity:0.4;">Copy Both Documents</button>
+
+      <!-- REVIEW SIGN & SAVE -->
+      <div class="tp-sign-block" id="reviewSaveBlock">
+        <h4>Sign &amp; Save Review (Supabase)</h4>
+        <div style="font-size:12px;color:#888;margin-bottom:10px;">Saves this review and creates the next signed version of the plan, due for its own 90-day review. Complete the review confirmation attestation above first.</div>
+        <div class="tp-save-row"><button id="saveDraftReviewBtn" onclick="requireAuth(saveDraftReview)">Save Draft</button></div>
+        <div class="tp-sign-block" id="reviewClinicianSignBlock" style="margin-top:14px;">
+          <h4>Clinician / PRS Signature</h4>
+          <input type="text" id="reviewClinicianSigName" placeholder="Type your full legal name"/>
+          <select id="reviewClinicianSigCredential" style="width:100%;margin-top:8px;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;font-family:inherit;background:#fafbff;">
+            <option value="">Select your credential/title...</option>
+            <option value="Peer Recovery Supporter (PRS)">Peer Recovery Supporter (PRS)</option>
+            <option value="Care Coordinator">Care Coordinator</option>
+            <option value="Certified Dependency Counselor Assistant (CDCA)">Certified Dependency Counselor Assistant (CDCA)</option>
+            <option value="Qualified Mental Health Specialist (QMHS)">Qualified Mental Health Specialist (QMHS)</option>
+            <option value="Licensed Social Worker (LSW)">Licensed Social Worker (LSW)</option>
+            <option value="Licensed Independent Social Worker (LISW)">Licensed Independent Social Worker (LISW)</option>
+            <option value="Licensed Professional Counselor (LPC)">Licensed Professional Counselor (LPC)</option>
+            <option value="Licensed Professional Clinical Counselor (LPCC)">Licensed Professional Clinical Counselor (LPCC)</option>
+            <option value="Other">Other</option>
+          </select>
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;">
+            <input type="checkbox" id="reviewClinicianSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
+            <label for="reviewClinicianSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this 90-day review as the clinician/care coordinator of record.</label>
+          </div>
+          <div class="tp-save-row"><button id="signReviewClinicianBtn" onclick="requireAuth(signReviewClinician)">Sign as Clinician / PRS</button></div>
+        </div>
+        <div class="tp-sign-block tp-sign-disabled" id="reviewSupervisorSignBlock" style="margin-top:14px;">
+          <h4>Supervisor Signature</h4>
+          <input type="text" id="reviewSupervisorSigName" placeholder="Type your full legal name"/>
+          <select id="reviewSupervisorSigCredential" style="width:100%;margin-top:8px;border:1.5px solid #dde0f0;border-radius:8px;padding:10px 14px;font-size:14px;font-family:inherit;background:#fafbff;">
+            <option value="">Select your credential/title...</option>
+            <option value="Peer Recovery Supporter Supervisor (PRS-S)">Peer Recovery Supporter Supervisor (PRS-S)</option>
+            <option value="Program Director">Program Director</option>
+            <option value="Clinical Director">Clinical Director</option>
+            <option value="Licensed Social Worker (LSW)">Licensed Social Worker (LSW)</option>
+            <option value="Licensed Independent Social Worker (LISW-S)">Licensed Independent Social Worker (LISW-S)</option>
+            <option value="Licensed Professional Clinical Counselor (LPCC-S)">Licensed Professional Clinical Counselor (LPCC-S)</option>
+            <option value="Licensed Independent Chemical Dependency Counselor (LICDC-CS)">Licensed Independent Chemical Dependency Counselor (LICDC-CS)</option>
+            <option value="Other">Other</option>
+          </select>
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;">
+            <input type="checkbox" id="reviewSupervisorSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
+            <label for="reviewSupervisorSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this 90-day review as the co-signing supervisor. This finalizes and saves the next version of the plan, due for review in 90 days.</label>
+          </div>
+          <div class="tp-save-row"><button id="signReviewSupervisorBtn" onclick="requireAuth(signReviewSupervisor)">Sign as Supervisor &amp; Finalize</button></div>
+        </div>
+        <div class="tp-sign-status" id="reviewSignStatus"></div>
+        <div class="tp-msg" id="reviewSaveMsg"></div>
+      </div>
     </div>
   </div>
 
@@ -607,6 +878,791 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 </div>
 
 <script>
+
+// ═══════════════════════════════════════════════════════════
+// SUPABASE CONFIG — paste your Project URL and anon key here
+// (Project Settings → API in your Supabase dashboard). See the
+// SUPABASE_SETUP guide for the SQL to run first.
+// ═══════════════════════════════════════════════════════════
+var SUPABASE_URL = 'https://fussjixekyhwuromauff.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1c3NqaXhla3lod3Vyb21hdWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjMzNzYsImV4cCI6MjA5ODI5OTM3Nn0.3yfRu5LMDlIasvc0cu_GOcXAquji6ZYUkp3dgxk1j2M';
+
+var sb = null;
+var currentSession = null;
+var loginSuccessCallback = null;
+
+var currentPlanRowId = null;
+var currentPlanVersion = 1;
+var currentPlanSupersedesId = null;
+var planSignState = { status: 'draft', clinicianName: '', clinicianCredential: '', clinicianSignedAt: null, supervisorName: '', supervisorCredential: '', supervisorSignedAt: null };
+
+var activeReviewPlanId = null;
+var activeReviewCaseNumber = '';
+var currentReviewRowId = null;
+var reviewSignState = { status: 'draft', clinicianName: '', clinicianCredential: '', clinicianSignedAt: null, supervisorName: '', supervisorCredential: '', supervisorSignedAt: null };
+
+function tpConfigured(){
+  return typeof SUPABASE_URL === 'string' && SUPABASE_URL.indexOf('http') === 0 && !!SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.indexOf('YOUR_') !== 0;
+}
+
+function initSupabaseIntegration(){
+  var setupBanner = document.getElementById('setupBanner');
+  var authBarMsg = document.getElementById('authBarMsg');
+  var authBarBtn = document.getElementById('authBarBtn');
+
+  if(!tpConfigured()){
+    setupBanner.style.display = 'block';
+    authBarMsg.textContent = 'Supabase not configured — signing/saving disabled (see banner below).';
+    authBarBtn.style.display = 'none';
+    return;
+  }
+  if(!window.supabase || !window.supabase.createClient){
+    setupBanner.style.display = 'block';
+    setupBanner.innerHTML = '<strong>Could not load the Supabase library.</strong> Check your internet connection and reload this page.';
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  sb.auth.getSession().then(function(res){
+    currentSession = res.data.session;
+    onAuthStateResolved();
+  });
+  sb.auth.onAuthStateChange(function(event, session){
+    currentSession = session;
+    onAuthStateResolved();
+  });
+}
+
+function onAuthStateResolved(){
+  updateAuthBar();
+  if(currentSession){
+    document.getElementById('dueDashboard').style.display = 'block';
+    loadDashboard();
+  } else {
+    document.getElementById('dueDashboard').style.display = 'none';
+  }
+}
+
+function updateAuthBar(){
+  var msg = document.getElementById('authBarMsg');
+  var btn = document.getElementById('authBarBtn');
+  btn.style.display = 'inline-block';
+  if(currentSession && currentSession.user){
+    msg.textContent = 'Signed in as ' + currentSession.user.email;
+    btn.textContent = 'Sign Out';
+    btn.onclick = function(){ signOutStaff(); };
+  } else {
+    msg.textContent = 'Not signed in — sign in to save, sign, or look up plans.';
+    btn.textContent = 'Sign In';
+    btn.onclick = function(){ openLoginModal(null); };
+  }
+}
+
+function requireAuth(fn){
+  if(!tpConfigured()){
+    alert('Supabase is not configured yet. See the SUPABASE_SETUP guide to connect this tool before saving or signing plans.');
+    return;
+  }
+  if(currentSession){ fn(); } else { openLoginModal(fn); }
+}
+
+function openLoginModal(onSuccess){
+  loginSuccessCallback = onSuccess || null;
+  document.getElementById('loginError').className = 'tp-msg tp-msg-err';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginModal').classList.add('visible');
+}
+function closeLoginModal(){
+  document.getElementById('loginModal').classList.remove('visible');
+  loginSuccessCallback = null;
+}
+async function submitLogin(){
+  var email = document.getElementById('loginEmail').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var errEl = document.getElementById('loginError');
+  if(!email || !password){ errEl.textContent = 'Enter your email and password.'; errEl.className = 'tp-msg tp-msg-err'; return; }
+  var btn = document.getElementById('loginSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try {
+    var res = await sb.auth.signInWithPassword({ email: email, password: password });
+    if(res.error) throw res.error;
+    currentSession = res.data.session;
+    document.getElementById('loginPassword').value = '';
+    onAuthStateResolved();
+    closeLoginModal();
+    if(loginSuccessCallback) loginSuccessCallback();
+  } catch(err){
+    errEl.textContent = err.message || 'Sign-in failed.';
+    errEl.className = 'tp-msg tp-msg-err';
+  }
+  btn.disabled = false; btn.textContent = 'Sign In';
+}
+async function signOutStaff(){
+  if(sb) await sb.auth.signOut();
+  currentSession = null;
+  onAuthStateResolved();
+}
+
+// ── DASHBOARD ──
+function dueStatus(dateStr){
+  if(!dateStr) return {cls:'tp-due-ok', label:'—'};
+  var due = new Date(dateStr + 'T00:00:00');
+  var today = new Date(); today.setHours(0,0,0,0);
+  var diffDays = Math.round((due - today) / 86400000);
+  if(diffDays < 0) return {cls:'tp-due-overdue', label: Math.abs(diffDays) + ' day' + (Math.abs(diffDays)===1?'':'s') + ' overdue'};
+  if(diffDays <= 14) return {cls:'tp-due-soon', label:'Due in ' + diffDays + ' day' + (diffDays===1?'':'s')};
+  return {cls:'tp-due-ok', label:'Due ' + dateStr};
+}
+
+async function loadDashboard(){
+  if(!sb || !currentSession) return;
+  var rowsEl = document.getElementById('dueRows');
+  rowsEl.innerHTML = '<p style="font-size:12.5px;color:#888;">Loading&hellip;</p>';
+  try {
+    var res = await sb.from('treatment_plans')
+      .select('id,case_number,status,next_review_due,version')
+      .eq('status','signed')
+      .order('next_review_due', {ascending:true});
+    if(res.error) throw res.error;
+    var rows = res.data || [];
+    if(rows.length === 0){
+      rowsEl.innerHTML = '<p style="font-size:12.5px;color:#888;">No signed plans on file yet.</p>';
+      return;
+    }
+    rowsEl.innerHTML = '';
+    rows.forEach(function(r){
+      var d = dueStatus(r.next_review_due);
+      var row = document.createElement('div');
+      row.className = 'tp-due-row';
+      row.innerHTML = '<div><div class="tp-due-case">Case ' + r.case_number + '</div><div class="tp-due-meta">v' + r.version + ' &middot; next review ' + (r.next_review_due || '—') + '</div></div>'
+        + '<span class="tp-due-badge ' + d.cls + '">' + d.label + '</span>'
+        + '<div class="tp-due-actions"><button>Start 90-Day Review</button></div>';
+      row.querySelector('button').onclick = function(){ startReviewFromDashboard(r.case_number); };
+      rowsEl.appendChild(row);
+    });
+  } catch(err){
+    rowsEl.innerHTML = '<p style="font-size:12.5px;color:#8B1A1A;">Could not load: ' + err.message + '</p>';
+  }
+}
+
+function startReviewFromDashboard(caseNumber){
+  openReview();
+  document.getElementById('reviewCaseNumber').value = caseNumber;
+  loadPlanForReview();
+}
+
+function lookupAndStartReview(){
+  var cn = document.getElementById('lookupCaseNumber').value.trim();
+  var msg = document.getElementById('lookupMsg');
+  if(!cn){ msg.textContent = 'Enter a case/reference number.'; msg.className = 'tp-msg tp-msg-err'; return; }
+  msg.className = 'tp-msg';
+  requireAuth(function(){ startReviewFromDashboard(cn); });
+}
+
+// ── CASE NUMBER GUARD ──
+function onCaseNumberChange(){
+  var v = document.getElementById('caseNumber').value.trim();
+  var hint = document.getElementById('caseNumberStatus');
+  if(v && /^[A-Za-z\s.'-]{4,}$/.test(v) && !/\d/.test(v)){
+    hint.style.display = 'block';
+    hint.style.background = '#FDECEA'; hint.style.borderColor = '#f5c6c6'; hint.style.color = '#8B1A1A';
+    hint.textContent = '⚠ This looks like it could be a name rather than a case number. Use a non-identifying reference code instead.';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+// ── PLAN: COLLECT / SAVE / SIGN ──
+function addDays(dateStr, n){
+  if(!dateStr) return null;
+  var d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  var y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+
+function collectSliRecord(){
+  if(!isSliApplicable()){
+    return { applicable: false };
+  }
+  var s = sliScores || sli2ComputeScores(sliState);
+  return {
+    applicable: true,
+    items: sliState,
+    phq9: s.phq9Raw, phq9_band: s.phq9Band.label, phq9_points: s.phq9Band.points,
+    gad7: s.gad7Raw, gad7_band: s.gad7Band.label, gad7_points: s.gad7Band.points,
+    bam: s.bamRaw, bam_band: s.bamBand.label, bam_points: s.bamBand.points,
+    asam: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points, asam_mh_only: !!sliState.asam_mh_only,
+    risk: s.riskRaw, risk_band: s.riskBand.label, risk_points: s.riskBand.points, riskOverride: s.escalation,
+    sdoh: Object.keys(sliState.sdoh).filter(function(k){return sliState.sdoh[k]===1;}),
+    clinicalScore: s.clinicalScore,
+    sdohScore: s.sdohScore,
+    total: s.adjustedSli,
+    level: s.cap ? 'Level 1 — Cap Applied' : s.calculatedLevel.label,
+    hours: s.cap ? '1-2 hrs/wk — Maintenance' : s.calculatedLevel.hours,
+    capApplied: s.cap,
+    directorReviewRequired: s.directorReviewRequired
+  };
+}
+
+function collectSignOffRecord(){
+  var participation = document.querySelector('input[name="clientParticipation"]:checked');
+  var clientConsent = document.querySelector('input[name="clientConsent"]:checked');
+  var guardianConsent = document.querySelector('input[name="guardianConsent"]:checked');
+  var capacity = document.querySelector('input[name="capacityToBenefit"]:checked');
+  return {
+    clientParticipation: participation ? participation.value : null,
+    clientConsent: clientConsent ? clientConsent.value : null,
+    guardianConsent: guardianConsent ? guardianConsent.value : null,
+    participants: ['partClinician','partCareCoord','partClient','partPRS','partGuardian'].filter(function(id){var el=document.getElementById(id); return el && el.checked;}),
+    reason: document.getElementById('signOffReason') ? document.getElementById('signOffReason').value.trim() : '',
+    remarks: document.getElementById('signOffRemarks').value.trim(),
+    capacityToBenefit: capacity ? capacity.value : null,
+    capacityToBenefitBasis: document.getElementById('capacityToBenefitBasis') ? document.getElementById('capacityToBenefitBasis').value.trim() : '',
+    presentingDiagnosis: document.getElementById('presentingDiagnosis') ? document.getElementById('presentingDiagnosis').value.trim() : '',
+    admissionDate: document.getElementById('admissionDate') ? (document.getElementById('admissionDate').value || null) : null,
+    dischargeCriteria: document.getElementById('dischargeCriteria') ? document.getElementById('dischargeCriteria').value.trim() : ''
+  };
+}
+
+function collectPlanRecord(){
+  return {
+    case_number: document.getElementById('caseNumber').value.trim(),
+    program: document.getElementById('program').value,
+    plan_start_date: document.getElementById('planStartDate').value || null,
+    plan_end_date: document.getElementById('planEndDate').value || null,
+    frequency: document.getElementById('frequency').value,
+    stage_of_change: document.getElementById('stageOfChange').value,
+    asam_level_of_care: document.getElementById('asamLevelOfCare') ? (document.getElementById('asamLevelOfCare').value || null) : null,
+    strengths: document.getElementById('strengths').value.trim(),
+    barriers: document.getElementById('barriers').value.trim(),
+    clinical_justification: document.getElementById('clinicalJustification').value.trim(),
+    client_goal_statement: document.getElementById('clientGoalOutput').innerText.trim() || document.getElementById('clientGoalStatement').value.trim(),
+    sli: collectSliRecord(),
+    need_areas: getNeedCardsData(),
+    plan_summary: document.getElementById('planSummaryOutput').innerText.trim(),
+    sli_justification: document.getElementById('justificationOutput').innerText.trim(),
+    sign_off: collectSignOffRecord()
+  };
+}
+
+function planValidationError(){
+  var cn = document.getElementById('caseNumber').value.trim();
+  if(!cn) return 'Enter a Case / Reference Number before saving.';
+  if(!document.getElementById('planSummaryOutput').innerText.trim()) return 'Generate the treatment plan before saving.';
+  if(signOffNeedsReason() && !(document.getElementById('signOffReason') && document.getElementById('signOffReason').value.trim())){
+    return 'Document the reason the client/guardian did not participate, consent, or approve all goals (OAC 5122-27-03 requires this) before saving.';
+  }
+  if(typeof needsAsamLOC==='function' && needsAsamLOC() && !(document.getElementById('asamLevelOfCare') && document.getElementById('asamLevelOfCare').value)){
+    return 'Select an ASAM Level of Care (required — Substance Use / Recovery is a selected need area, per OAC 5122-27-03) before saving.';
+  }
+  return null;
+}
+
+async function saveDraftPlan(){
+  var msg = document.getElementById('planSaveMsg');
+  var errText = planValidationError();
+  if(errText){ msg.textContent = errText; msg.className = 'tp-msg tp-msg-err'; return; }
+  var record = collectPlanRecord();
+  var btn = document.getElementById('saveDraftPlanBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    if(currentPlanRowId && planSignState.status !== 'signed'){
+      record.updated_at = new Date().toISOString();
+      var upd = await sb.from('treatment_plans').update(record).eq('id', currentPlanRowId).select().single();
+      if(upd.error) throw upd.error;
+    } else {
+      if(planSignState.status === 'signed'){
+        currentPlanSupersedesId = currentPlanRowId;
+        currentPlanVersion = currentPlanVersion + 1;
+      }
+      record.status = 'draft';
+      record.version = currentPlanVersion;
+      record.supersedes_id = currentPlanSupersedesId;
+      record.created_by = currentSession.user.email;
+      var ins = await sb.from('treatment_plans').insert(record).select().single();
+      if(ins.error) throw ins.error;
+      currentPlanRowId = ins.data.id;
+      if(currentPlanSupersedesId){
+        await sb.from('treatment_plans').update({status:'superseded'}).eq('id', currentPlanSupersedesId);
+      }
+      planSignState = { status:'draft', clinicianName:'', clinicianCredential:'', clinicianSignedAt:null, supervisorName:'', supervisorCredential:'', supervisorSignedAt:null };
+    }
+    msg.textContent = 'Draft saved.';
+    msg.className = 'tp-msg tp-msg-ok';
+    refreshPlanSignUI();
+  } catch(e){
+    msg.textContent = 'Save failed: ' + e.message;
+    msg.className = 'tp-msg tp-msg-err';
+  }
+  btn.disabled = false; btn.textContent = 'Save Draft';
+}
+
+async function signClinician(){
+  var msg = document.getElementById('planSaveMsg');
+  var name = document.getElementById('clinicianSigName').value.trim();
+  var credential = document.getElementById('clinicianSigCredential') ? document.getElementById('clinicianSigCredential').value : '';
+  var attested = document.getElementById('clinicianSigAttest').checked;
+  var qaAttested = document.getElementById('clinicianAttestation').checked;
+  if(!qaAttested){ msg.textContent = 'Complete the Clinician / Care Coordinator Attestation above first.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!name || !attested){ msg.textContent = 'Type your full legal name and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!credential){ msg.textContent = 'Select your credential/title — required per OAC 5122-27-03 for signature documentation.'; msg.className='tp-msg tp-msg-err'; return; }
+  var errText = planValidationError();
+  if(errText){ msg.textContent = errText; msg.className = 'tp-msg tp-msg-err'; return; }
+
+  var btn = document.getElementById('signClinicianBtn');
+  btn.disabled = true; btn.textContent = 'Signing...';
+  try {
+    var record = collectPlanRecord();
+    record.clinician_name = name;
+    record.sign_off.clinician_credential = credential;
+    record.clinician_signed_at = new Date().toISOString();
+    record.status = 'pending_supervisor';
+
+    if(currentPlanRowId && planSignState.status !== 'signed'){
+      var upd = await sb.from('treatment_plans').update(record).eq('id', currentPlanRowId).select().single();
+      if(upd.error) throw upd.error;
+    } else {
+      if(planSignState.status === 'signed'){ currentPlanSupersedesId = currentPlanRowId; currentPlanVersion += 1; }
+      record.version = currentPlanVersion;
+      record.supersedes_id = currentPlanSupersedesId;
+      record.created_by = currentSession.user.email;
+      var ins = await sb.from('treatment_plans').insert(record).select().single();
+      if(ins.error) throw ins.error;
+      currentPlanRowId = ins.data.id;
+      if(currentPlanSupersedesId) await sb.from('treatment_plans').update({status:'superseded'}).eq('id', currentPlanSupersedesId);
+    }
+    planSignState.status = 'pending_supervisor';
+    planSignState.clinicianName = name;
+    planSignState.clinicianCredential = credential;
+    planSignState.clinicianSignedAt = record.clinician_signed_at;
+    msg.textContent = 'Signed as clinician. Awaiting supervisor signature.';
+    msg.className = 'tp-msg tp-msg-ok';
+    refreshPlanSignUI();
+  } catch(e){
+    msg.textContent = 'Signing failed: ' + e.message;
+    msg.className = 'tp-msg tp-msg-err';
+  }
+  btn.disabled = false; btn.textContent = 'Sign as Clinician / PRS';
+}
+
+async function signSupervisor(){
+  var msg = document.getElementById('planSaveMsg');
+  var name = document.getElementById('supervisorSigName').value.trim();
+  var credential = document.getElementById('supervisorSigCredential') ? document.getElementById('supervisorSigCredential').value : '';
+  var attested = document.getElementById('supervisorSigAttest').checked;
+  if(planSignState.status !== 'pending_supervisor'){ msg.textContent = 'The clinician must sign first.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!name || !attested){ msg.textContent = 'Type your full legal name and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!credential){ msg.textContent = 'Select your credential/title — required per OAC 5122-27-03 for signature documentation.'; msg.className='tp-msg tp-msg-err'; return; }
+
+  var btn = document.getElementById('signSupervisorBtn');
+  btn.disabled = true; btn.textContent = 'Signing...';
+  try {
+    var startDate = document.getElementById('planStartDate').value;
+    var signedAt = new Date().toISOString();
+    var sq = collectSignOffRecord();
+    sq.clinician_credential = document.getElementById('clinicianSigCredential') ? document.getElementById('clinicianSigCredential').value : '';
+    sq.supervisor_credential = credential;
+    var record = {
+      supervisor_name: name,
+      supervisor_signed_at: signedAt,
+      status: 'signed',
+      next_review_due: addDays(startDate, 90) || addDays(signedAt.slice(0,10), 90),
+      updated_at: signedAt,
+      sign_off: sq
+    };
+    var upd = await sb.from('treatment_plans').update(record).eq('id', currentPlanRowId).select().single();
+    if(upd.error) throw upd.error;
+    planSignState.status = 'signed';
+    planSignState.supervisorName = name;
+    planSignState.supervisorCredential = credential;
+    planSignState.clinicianCredential = sq.clinician_credential;
+    planSignState.supervisorSignedAt = signedAt;
+    msg.textContent = 'Fully signed and saved. Next review due ' + record.next_review_due + '.';
+    msg.className = 'tp-msg tp-msg-ok';
+    refreshPlanSignUI();
+    loadDashboard();
+  } catch(e){
+    msg.textContent = 'Signing failed: ' + e.message;
+    msg.className = 'tp-msg tp-msg-err';
+  }
+  btn.disabled = false; btn.textContent = 'Sign as Supervisor';
+}
+
+function resetClinicianSignature(reason){
+  if(!planSignState.clinicianSignedAt) return;
+  planSignState = { status:'draft', clinicianName:'', clinicianCredential:'', clinicianSignedAt:null, supervisorName:'', supervisorCredential:'', supervisorSignedAt:null };
+  var msg = document.getElementById('planSaveMsg');
+  msg.textContent = reason;
+  msg.className = 'tp-msg tp-msg-err';
+  refreshPlanSignUI();
+}
+
+function onPlanContentRegenerated(){
+  if(planSignState.status === 'signed'){
+    var msg = document.getElementById('planSaveMsg');
+    msg.textContent = 'This plan was previously signed. Saving now will create a new version.';
+    msg.className = 'tp-msg tp-msg-ok';
+  }
+  planSignState = { status:'draft', clinicianName:'', clinicianCredential:'', clinicianSignedAt:null, supervisorName:'', supervisorCredential:'', supervisorSignedAt:null };
+  refreshPlanSignUI();
+}
+
+function refreshPlanSignUI(){
+  var supBlock = document.getElementById('supervisorSignBlock');
+  var statusEl = document.getElementById('planSignStatus');
+  if(!supBlock || !statusEl) return;
+  if(planSignState.status === 'signed'){
+    supBlock.classList.remove('tp-sign-disabled');
+    statusEl.className = 'tp-sign-status tp-signed';
+    statusEl.textContent = '✓ Signed & saved — Clinician: ' + planSignState.clinicianName + ' · Supervisor: ' + planSignState.supervisorName;
+  } else if(planSignState.status === 'pending_supervisor'){
+    supBlock.classList.remove('tp-sign-disabled');
+    statusEl.className = 'tp-sign-status tp-pending';
+    statusEl.textContent = 'Signed by clinician (' + planSignState.clinicianName + ') — awaiting supervisor signature.';
+  } else {
+    supBlock.classList.add('tp-sign-disabled');
+    statusEl.className = 'tp-sign-status';
+    statusEl.textContent = '';
+  }
+}
+
+// ── REVIEW: LOAD / SAVE / SIGN ──
+function formatPlanAsText(row){
+  var lines = [];
+  lines.push('THRIVE PEER RECOVERY SERVICES — INDIVIDUAL SERVICE PLAN (Case ' + row.case_number + ', v' + row.version + ')');
+  lines.push('Program: ' + (row.program||'—') + '   Frequency: ' + (row.frequency||'—'));
+  lines.push('');
+  if(row.plan_summary){ lines.push('PLAN SUMMARY'); lines.push(row.plan_summary); lines.push(''); }
+  (row.need_areas || []).forEach(function(n){
+    lines.push('NEED: ' + n.need + (n.focus ? ' — ' + n.focus : ''));
+    if(n.goal) lines.push('GOAL: ' + n.goal);
+    if(n.obj) lines.push('OBJECTIVES: ' + n.obj);
+    if(n.intv) lines.push('INTERVENTIONS: ' + n.intv);
+    lines.push('');
+  });
+  if(row.client_goal_statement){ lines.push('INDIVIDUAL GOAL STATEMENT'); lines.push(row.client_goal_statement); lines.push(''); }
+  if(row.sli_justification){ lines.push('SLI 2.0 SUMMARY AND CLINICAL JUSTIFICATION'); lines.push(row.sli_justification); }
+  return lines.join('\n');
+}
+
+async function loadPlanForReview(){
+  var cn = document.getElementById('reviewCaseNumber').value.trim();
+  var msg = document.getElementById('reviewLoadMsg');
+  if(!cn){ msg.textContent = 'Enter a case/reference number.'; msg.className = 'tp-msg tp-msg-err'; return; }
+  msg.textContent = 'Looking up...'; msg.className = 'tp-msg';
+  try {
+    var res = await sb.from('treatment_plans')
+      .select('*')
+      .eq('case_number', cn)
+      .eq('status', 'signed')
+      .order('version', {ascending:false})
+      .limit(1);
+    if(res.error) throw res.error;
+    if(!res.data || res.data.length === 0){
+      msg.textContent = 'No signed plan found for that case number.';
+      msg.className = 'tp-msg tp-msg-err';
+      return;
+    }
+    var row = res.data[0];
+    activeReviewPlanId = row.id;
+    activeReviewCaseNumber = row.case_number;
+    document.getElementById('currentPlanText').value = formatPlanAsText(row);
+    document.getElementById('reviewFrequency').value = row.frequency || '';
+
+    // The 90-day review always re-administers SLI 2.0 fresh — carrying
+    // forward the prior answers would defeat the point of re-scoring —
+    // so only the prior applicability flag is restored; the questionnaire
+    // itself starts blank.
+    var loadedSliApplicable = !(row.sli && row.sli.applicable === false);
+    document.getElementById('rev_sliApplicable').checked = loadedSliApplicable;
+    reviewSliState = sli2NewState();
+    renderReviewSliWidget();
+    onRevSliApplicableChange();
+
+    reviewNeeds = [];
+    document.querySelectorAll('#reviewNeedChips .chip').forEach(function(chip){ chip.classList.remove('selected'); });
+    (row.need_areas || []).forEach(function(n){
+      var chip = document.querySelector('#reviewNeedChips .chip[data-need="' + n.need.replace(/"/g,'\\"') + '"]');
+      if(chip){ chip.classList.add('selected'); if(reviewNeeds.indexOf(n.need)===-1) reviewNeeds.push(n.need); }
+    });
+    renderReviewProgressBlocks();
+
+    currentReviewRowId = null;
+    reviewSignState = { status:'draft', clinicianName:'', clinicianCredential:'', clinicianSignedAt:null, supervisorName:'', supervisorCredential:'', supervisorSignedAt:null };
+    refreshReviewSignUI();
+
+    msg.textContent = 'Loaded plan v' + row.version + ' (case ' + row.case_number + ', next review was ' + (row.next_review_due||'—') + ').';
+    msg.className = 'tp-msg tp-msg-ok';
+  } catch(e){
+    msg.textContent = 'Lookup failed: ' + e.message;
+    msg.className = 'tp-msg tp-msg-err';
+  }
+}
+
+function collectReviewRecord(){
+  var needProgress = reviewNeeds.map(function(need){
+    var id = need.replace(/[^a-zA-Z0-9]/g,'_');
+    return {
+      need: need,
+      status: document.getElementById('revstatus_'+id) ? document.getElementById('revstatus_'+id).value : '',
+      narrative: document.getElementById('revnarrative_'+id) ? document.getElementById('revnarrative_'+id).value.trim() : '',
+      recommendation: document.getElementById('revrecommend_'+id) ? document.getElementById('revrecommend_'+id).value : ''
+    };
+  });
+  var sliRecord = collectReviewSliRecord();
+  sliRecord.reviewTrigger = document.getElementById('reviewTrigger') ? document.getElementById('reviewTrigger').value : '';
+  return {
+    plan_id: activeReviewPlanId,
+    case_number: activeReviewCaseNumber || document.getElementById('reviewCaseNumber').value.trim(),
+    review_date: document.getElementById('reviewDate').value || null,
+    review_period: document.getElementById('reviewPeriod').value,
+    overall_progress: document.getElementById('overallProgress').value.trim(),
+    frequency: document.getElementById('reviewFrequency').value,
+    sli: sliRecord,
+    need_progress: needProgress,
+    addendum_text: document.getElementById('addendumOutput').innerText.trim(),
+    updated_plan_text: document.getElementById('updatedPlanOutput').innerText.trim()
+  };
+}
+
+function reviewValidationError(){
+  if(!activeReviewPlanId) return 'Load a saved plan above before saving this review.';
+  if(!document.getElementById('addendumOutput').innerText.trim()) return 'Generate the review before saving.';
+  if(document.getElementById('reviewTrigger') && !document.getElementById('reviewTrigger').value){
+    return 'Select a reason for this review (required per OAC 5122-27-03 review-trigger documentation) before saving.';
+  }
+  return null;
+}
+
+async function saveDraftReview(){
+  var msg = document.getElementById('reviewSaveMsg');
+  var errText = reviewValidationError();
+  if(errText){ msg.textContent = errText; msg.className = 'tp-msg tp-msg-err'; return; }
+  var record = collectReviewRecord();
+  var btn = document.getElementById('saveDraftReviewBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    if(currentReviewRowId){
+      record.updated_at = new Date().toISOString();
+      var upd = await sb.from('treatment_plan_reviews').update(record).eq('id', currentReviewRowId).select().single();
+      if(upd.error) throw upd.error;
+    } else {
+      record.status = 'draft';
+      record.created_by = currentSession.user.email;
+      var ins = await sb.from('treatment_plan_reviews').insert(record).select().single();
+      if(ins.error) throw ins.error;
+      currentReviewRowId = ins.data.id;
+    }
+    msg.textContent = 'Draft review saved.';
+    msg.className = 'tp-msg tp-msg-ok';
+  } catch(e){
+    msg.textContent = 'Save failed: ' + e.message;
+    msg.className = 'tp-msg tp-msg-err';
+  }
+  btn.disabled = false; btn.textContent = 'Save Draft';
+}
+
+async function signReviewClinician(){
+  var msg = document.getElementById('reviewSaveMsg');
+  var name = document.getElementById('reviewClinicianSigName').value.trim();
+  var credential = document.getElementById('reviewClinicianSigCredential') ? document.getElementById('reviewClinicianSigCredential').value : '';
+  var attested = document.getElementById('reviewClinicianSigAttest').checked;
+  var qaAttested = document.getElementById('reviewConfirmAttestation').checked;
+  if(!qaAttested){ msg.textContent = 'Complete the review confirmation attestation above first.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!name || !attested){ msg.textContent = 'Type your full legal name and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!credential){ msg.textContent = 'Select your credential/title — required per OAC 5122-27-03 for signature documentation.'; msg.className='tp-msg tp-msg-err'; return; }
+  var errText = reviewValidationError();
+  if(errText){ msg.textContent = errText; msg.className = 'tp-msg tp-msg-err'; return; }
+
+  var btn = document.getElementById('signReviewClinicianBtn');
+  btn.disabled = true; btn.textContent = 'Signing...';
+  try {
+    var record = collectReviewRecord();
+    record.clinician_name = name;
+    record.sli.clinicianCredential = credential;
+    record.clinician_signed_at = new Date().toISOString();
+    record.status = 'pending_supervisor';
+    if(currentReviewRowId){
+      var upd = await sb.from('treatment_plan_reviews').update(record).eq('id', currentReviewRowId).select().single();
+      if(upd.error) throw upd.error;
+    } else {
+      record.created_by = currentSession.user.email;
+      var ins = await sb.from('treatment_plan_reviews').insert(record).select().single();
+      if(ins.error) throw ins.error;
+      currentReviewRowId = ins.data.id;
+    }
+    reviewSignState.status = 'pending_supervisor';
+    reviewSignState.clinicianName = name;
+    reviewSignState.clinicianCredential = credential;
+    reviewSignState.clinicianSignedAt = record.clinician_signed_at;
+    msg.textContent = 'Signed as clinician. Awaiting supervisor signature.';
+    msg.className = 'tp-msg tp-msg-ok';
+    refreshReviewSignUI();
+  } catch(e){
+    msg.textContent = 'Signing failed: ' + e.message;
+    msg.className = 'tp-msg tp-msg-err';
+  }
+  btn.disabled = false; btn.textContent = 'Sign as Clinician / PRS';
+}
+
+function parseNeedAreasFromUpdatedPlanText(fullText, needsList){
+  var result = [];
+  var needParts = fullText.split(/\n(?=NEED:)/i);
+  var needSections = needParts.length > 1 ? needParts.slice(1) : (fullText.match(/NEED:[\s\S]*?(?=(?:\nNEED:)|$)/gi) || []);
+  needsList.forEach(function(need){
+    var blockText = '';
+    for(var i=0;i<needSections.length;i++){
+      if(needSections[i].toLowerCase().indexOf(need.toLowerCase()) > -1){ blockText = needSections[i]; break; }
+    }
+    var focusMatch = blockText.match(/FOCUS:\s*([^\n]*)/i);
+    var goalMatch = blockText.match(/GOAL:\s*([\s\S]*?)(?=\nOBJECTIVES:|$)/i);
+    var objMatch = blockText.match(/OBJECTIVES:\s*([\s\S]*?)(?=\nINTERVENTIONS:|$)/i);
+    var intMatch = blockText.match(/INTERVENTIONS:\s*([\s\S]*?)(?=\nNEED:|$)/i);
+    result.push({
+      need: need,
+      focus: focusMatch ? focusMatch[1].trim() : '',
+      goal: goalMatch ? goalMatch[1].trim() : '',
+      obj: objMatch ? objMatch[1].trim() : '',
+      intv: intMatch ? intMatch[1].trim() : ''
+    });
+  });
+  return result;
+}
+
+async function signReviewSupervisor(){
+  var msg = document.getElementById('reviewSaveMsg');
+  var name = document.getElementById('reviewSupervisorSigName').value.trim();
+  var credential = document.getElementById('reviewSupervisorSigCredential') ? document.getElementById('reviewSupervisorSigCredential').value : '';
+  var attested = document.getElementById('reviewSupervisorSigAttest').checked;
+  if(reviewSignState.status !== 'pending_supervisor'){ msg.textContent = 'The clinician must sign first.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!name || !attested){ msg.textContent = 'Type your full legal name and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!credential){ msg.textContent = 'Select your credential/title — required per OAC 5122-27-03 for signature documentation.'; msg.className='tp-msg tp-msg-err'; return; }
+
+  var btn = document.getElementById('signReviewSupervisorBtn');
+  btn.disabled = true; btn.textContent = 'Signing...';
+  try {
+    var signedAt = new Date().toISOString();
+    var reviewDate = document.getElementById('reviewDate').value;
+    var nextDue = addDays(reviewDate, 90) || addDays(signedAt.slice(0,10), 90);
+
+    var curReviewRes = await sb.from('treatment_plan_reviews').select('sli').eq('id', currentReviewRowId).single();
+    var mergedSli = (curReviewRes && curReviewRes.data && curReviewRes.data.sli) ? curReviewRes.data.sli : {};
+    mergedSli.supervisorCredential = credential;
+
+    var revUpd = await sb.from('treatment_plan_reviews').update({
+      supervisor_name: name, supervisor_signed_at: signedAt, status: 'signed', updated_at: signedAt, sli: mergedSli
+    }).eq('id', currentReviewRowId).select().single();
+    if(revUpd.error) throw revUpd.error;
+
+    var oldPlanRes = await sb.from('treatment_plans').select('*').eq('id', activeReviewPlanId).single();
+    if(oldPlanRes.error) throw oldPlanRes.error;
+    var oldPlan = oldPlanRes.data;
+
+    var updatedText = document.getElementById('updatedPlanOutput').innerText;
+    var summaryMatch = updatedText.match(/PLAN SUMMARY[\s\S]*?(?=NEED:|UPDATED INDIVIDUAL GOAL|INDIVIDUAL GOAL STATEMENT|SLI 2)/i);
+    var goalMatch = updatedText.match(/(?:UPDATED )?INDIVIDUAL GOAL STATEMENT[\s\S]*?(?=SLI 2|$)/i);
+    var justMatch = updatedText.match(/SLI 2\.0[\s\S]*/i);
+    var newNeedAreas = parseNeedAreasFromUpdatedPlanText(updatedText, reviewNeeds);
+
+    var newPlanRecord = {
+      case_number: oldPlan.case_number,
+      version: oldPlan.version + 1,
+      supersedes_id: oldPlan.id,
+      status: 'signed',
+      program: oldPlan.program,
+      plan_start_date: oldPlan.plan_start_date,
+      plan_end_date: oldPlan.plan_end_date,
+      frequency: document.getElementById('reviewFrequency').value,
+      stage_of_change: oldPlan.stage_of_change,
+      strengths: oldPlan.strengths,
+      barriers: oldPlan.barriers,
+      clinical_justification: oldPlan.clinical_justification,
+      client_goal_statement: goalMatch ? goalMatch[0].replace(/^(?:UPDATED )?INDIVIDUAL GOAL STATEMENT\s*/i,'').trim() : oldPlan.client_goal_statement,
+      sli: collectReviewSliRecord(),
+      need_areas: newNeedAreas,
+      plan_summary: summaryMatch ? summaryMatch[0].replace(/^PLAN SUMMARY\s*/i,'').trim() : oldPlan.plan_summary,
+      sli_justification: justMatch ? justMatch[0].replace(/^SLI 2\.0[^\n]*/i,'').trim() : oldPlan.sli_justification,
+      sign_off: oldPlan.sign_off,
+      clinician_name: name,
+      clinician_signed_at: signedAt,
+      supervisor_name: name,
+      supervisor_signed_at: signedAt,
+      next_review_due: nextDue,
+      created_by: currentSession.user.email
+    };
+    var newPlanIns = await sb.from('treatment_plans').insert(newPlanRecord).select().single();
+    if(newPlanIns.error) throw newPlanIns.error;
+
+    await sb.from('treatment_plans').update({status:'superseded'}).eq('id', oldPlan.id);
+    await sb.from('treatment_plan_reviews').update({new_plan_id: newPlanIns.data.id}).eq('id', currentReviewRowId);
+
+    reviewSignState.status = 'signed';
+    reviewSignState.supervisorName = name;
+    reviewSignState.supervisorCredential = credential;
+    reviewSignState.supervisorSignedAt = signedAt;
+    msg.textContent = 'Review finalized. New plan version v' + newPlanRecord.version + ' signed and saved — next review due ' + nextDue + '.';
+    msg.className = 'tp-msg tp-msg-ok';
+    refreshReviewSignUI();
+    loadDashboard();
+  } catch(e){
+    msg.textContent = 'Signing failed: ' + e.message;
+    msg.className = 'tp-msg tp-msg-err';
+  }
+  btn.disabled = false; btn.textContent = 'Sign as Supervisor & Finalize';
+}
+
+function resetReviewClinicianSignature(reason){
+  if(!reviewSignState.clinicianSignedAt) return;
+  reviewSignState = { status:'draft', clinicianName:'', clinicianCredential:'', clinicianSignedAt:null, supervisorName:'', supervisorCredential:'', supervisorSignedAt:null };
+  var msg = document.getElementById('reviewSaveMsg');
+  msg.textContent = reason;
+  msg.className = 'tp-msg tp-msg-err';
+  refreshReviewSignUI();
+}
+
+function refreshReviewSignUI(){
+  var supBlock = document.getElementById('reviewSupervisorSignBlock');
+  var statusEl = document.getElementById('reviewSignStatus');
+  if(!supBlock || !statusEl) return;
+  if(reviewSignState.status === 'signed'){
+    supBlock.classList.remove('tp-sign-disabled');
+    statusEl.className = 'tp-sign-status tp-signed';
+    statusEl.textContent = '✓ Review signed & new plan version saved — Clinician: ' + reviewSignState.clinicianName + ' · Supervisor: ' + reviewSignState.supervisorName;
+  } else if(reviewSignState.status === 'pending_supervisor'){
+    supBlock.classList.remove('tp-sign-disabled');
+    statusEl.className = 'tp-sign-status tp-pending';
+    statusEl.textContent = 'Signed by clinician (' + reviewSignState.clinicianName + ') — awaiting supervisor signature.';
+  } else {
+    supBlock.classList.add('tp-sign-disabled');
+    statusEl.className = 'tp-sign-status';
+    statusEl.textContent = '';
+  }
+}
+
+initSupabaseIntegration();
+refreshPlanSignUI();
+refreshReviewSignUI();
+(function(){
+  var mainEl = document.querySelector('.main');
+  if(mainEl){
+    ['input','change'].forEach(function(evt){
+      mainEl.addEventListener(evt, function(e){
+        if(e.target.closest('#reviewPanel') || e.target.closest('.tp-sign-block')) return;
+        resetClinicianSignature('Plan details changed after signing — please re-sign as clinician before supervisor signs.');
+      });
+    });
+  }
+  var reviewPanelEl = document.getElementById('reviewPanel');
+  if(reviewPanelEl){
+    ['input','change'].forEach(function(evt){
+      reviewPanelEl.addEventListener(evt, function(e){
+        if(e.target.closest('.tp-sign-block')) return;
+        resetReviewClinicianSignature('Review details changed after signing — please re-sign as clinician before supervisor signs.');
+      });
+    });
+  }
+})();
 
 // ── PHI SCANNER ──
 function scanForPHI() {
@@ -873,59 +1929,381 @@ var TEMPLATES = {
   }
 };
 
-// ── SLI CALCULATOR ──
-function getNum(id){var v=parseFloat(document.getElementById(id).value);return isNaN(v)?0:v;}
+// ══════════════════════════════════════════════════════════════════
+// SLI 2.0 FULL ASSESSMENT ENGINE
+// Full six-instrument item set (PHQ-9, GAD-7, BAM, ASAM, C-SSRS + risk
+// extras, SDOH), transcribed from the same source used by the standalone
+// SLI 2.0 Assessment tool (SLI 2.0 Staff Training Manual + SLI_2_0.xlsx
+// Pimsy form export). Replaces manual raw-score entry so staff answer the
+// actual items here and the scores are derived, not typed in by hand.
+// Reused for both the new-plan SLI section and the 90-day review's
+// updated SLI section below -- each keeps its own independent state.
+// ══════════════════════════════════════════════════════════════════
+var SLI2_PHQ9_ITEMS = [
+  'Little interest or pleasure in doing things',
+  'Feeling down, depressed, or hopeless',
+  'Trouble falling or staying asleep, or sleeping too much',
+  'Feeling tired or having little energy',
+  'Poor appetite or overeating',
+  "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+  'Trouble concentrating on things, such as reading or watching television',
+  'Moving or speaking so slowly that other people could have noticed, or the opposite — being fidgety or restless',
+  'Thoughts that you would be better off dead, or of hurting yourself in some way'
+];
+var SLI2_FREQ_OPTIONS = ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'];
+var SLI2_GAD7_ITEMS = [
+  'Feeling nervous, anxious, or on edge',
+  'Not being able to stop or control worrying',
+  'Worrying too much about different things',
+  'Trouble relaxing',
+  'Being so restless that it is hard to sit still',
+  'Becoming easily annoyed or irritable',
+  'Feeling afraid, as if something awful might happen'
+];
+var SLI2_BAM_SCALE_030 = ['0', '1-3', '4-8', '9-15', '16-30'];
+var SLI2_BAM_SCALE_EXTREME = ['Not at all', 'Slightly', 'Moderately', 'Considerably', 'Extremely'];
+var SLI2_BAM_SCALE_HEALTH = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'];
+var SLI2_BAM_SCORED_ITEMS = [
+  { key: 'physical_health', label: 'In the past 30 days, would you say the individual\'s physical health has been?', options: SLI2_BAM_SCALE_HEALTH },
+  { key: 'sleep_trouble', label: 'In the past 30 days, how many nights did they have trouble falling or staying asleep?', options: SLI2_BAM_SCALE_030 },
+  { key: 'mood_distress', label: 'In the past 30 days, how many days have they felt depressed, anxious, angry or very upset throughout most of the day?', options: SLI2_BAM_SCALE_030 },
+  { key: 'alcohol_days', label: 'In the past 30 days, how many days did they drink ANY alcohol?', options: SLI2_BAM_SCALE_030 },
+  { key: 'heavy_drinking_days', label: 'In the past 30 days, how many days did they have at least 5 drinks (4 if female or over 65)?', options: SLI2_BAM_SCALE_030 },
+  { key: 'drug_days', label: 'In the past 30 days, how many days did they use any illegal/street drugs or abuse any prescription medications?', options: SLI2_BAM_SCALE_030 },
+  { key: 'cravings', label: 'In the past 30 days, how much were they bothered by cravings or urges to drink alcohol or use drugs?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'abstinence_confidence', label: 'How confident are they in their ability to be completely abstinent (clean) from alcohol and drugs in the next 30 days?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'self_help_days', label: 'In the past 30 days, how many days did they attend self-help meetings like AA or NA?', options: SLI2_BAM_SCALE_030 },
+  { key: 'risky_situations_days', label: 'In the past 30 days, how many days were they in situations or with people that put them at increased risk for using?', options: SLI2_BAM_SCALE_030 },
+  { key: 'spirituality', label: 'Does religion or spirituality help support their recovery?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'work_school_days', label: 'In the past 30 days, how many days did they spend much of the time at work, school, or volunteering?', options: SLI2_BAM_SCALE_030 },
+  { key: 'relationship_problems', label: 'In the past 30 days, how much have they been bothered by arguments or problems with family or friends?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'supportive_contact_days', label: 'In the past 30 days, how many days were they in contact with family or friends supportive of their recovery?', options: SLI2_BAM_SCALE_030 },
+  { key: 'recovery_satisfaction', label: 'How satisfied are they with their progress toward achieving their recovery goals?', options: SLI2_BAM_SCALE_EXTREME }
+];
+var SLI2_CSSRS_ITEMS = [
+  { key: '1a', label: '1a. In the past month, has the individual wished they were dead or wished they could go to sleep and not wake up?' },
+  { key: '1b', label: '1b. In the past month, have they actually had any thoughts of killing themselves?' },
+  { key: '1c', label: '1c. Have they been thinking about how they might kill themselves (specific method)?' },
+  { key: '1d', label: '1d. Have they had these thoughts and had some intention of acting on them?' },
+  { key: '1e', label: '1e. Have they started to work out or worked out the details of how to kill themselves? Do they intend to carry out this plan?' },
+  { key: '1f', label: '1f. In the past 3 months, have they done anything, started to do anything, or prepared to do anything to end their life?' }
+];
+var SLI2_CSSRS_ESCALATION_KEYS = ['1c', '1d', '1e', '1f'];
+var SLI2_RISK_EXTRA_ITEMS = [
+  { key: 'harm_others', label: 'Have they had any thoughts of harming someone else?' },
+  { key: 'abuse', label: 'Are they currently experiencing any form of abuse or violence (physical, emotional, sexual)?' },
+  { key: 'psychosis', label: 'In the past 30 days, have they experienced hallucinations, paranoia, or symptoms of psychosis?' }
+];
+var SLI2_SDOH_ITEMS = [
+  { key: 'housing', label: 'Housing instability, or worried about losing housing?' },
+  { key: 'food_utilities', label: 'Difficulty affording basic needs like food, utilities, or rent?' },
+  { key: 'transportation', label: 'Challenges getting to appointments or places they need to go?' },
+  { key: 'healthcare_access', label: 'Difficult to see a doctor or get healthcare when needed?' },
+  { key: 'isolation', label: 'Feel isolated or like they don\'t have people to turn to for help?' },
+  { key: 'legal_safety', label: 'Dealing with any legal issues or feeling unsafe where they\'re living right now?' }
+];
+// PLACEHOLDER -- per the SLI 2.0 manual, each ASAM dimension is a 10-option
+// picklist scored 0.5-4 by placement level, not by descriptor wording alone.
+// The real Thrive-specific option text wasn't present in the SLI_2_0.xlsx
+// export, so this 5-point severity key stands in. Swap this array for the
+// real picklist text (10 entries per dimension) once available -- nothing
+// else in the scoring logic needs to change.
+var SLI2_ASAM_DIMENSIONS_PLACEHOLDER = [
+  'Acute Intoxication and/or Withdrawal Potential',
+  'Biomedical Conditions and Complications',
+  'Emotional, Behavioral, or Cognitive Conditions and Complications',
+  'Readiness to Change',
+  'Relapse, Continued Use, or Continued Problem Potential',
+  'Recovery/Living Environment'
+];
+var SLI2_ASAM_PLACEHOLDER_OPTIONS = [
+  { label: '0 — No problem: fully stable', points: 0 },
+  { label: '1 — Mild: slight issue, manageable in current setting', points: 1 },
+  { label: '2 — Moderate: requires structured support or intervention', points: 2 },
+  { label: '3 — Serious: presents a clear risk, needs intensive services', points: 3 },
+  { label: '4 — Severe: imminent danger or inability to function without 24/7 care', points: 4 }
+];
+
+function sli2NewState(){
+  return {
+    phq9: new Array(9).fill(null), phq9_hosp: null,
+    gad7: new Array(7).fill(null), gad7_impact: null,
+    bam: {}, bam_substance_use_30d: null, bam_overdoses: null, bam_arrests: null, bam_dentist: null, bam_doctor: null,
+    asam_mh_only: null, asam_dims: new Array(6).fill(null),
+    cssrs: {}, risk_extra: {}, risk_notified_by: '', risk_full_columbia_needed: null,
+    sdoh: {}
+  };
+}
+
+function sli2Sum(arr){ return arr.reduce(function(a,b){ return a + (b === null || b === undefined ? 0 : b); }, 0); }
+function sli2BandFromTable(raw, table){
+  for (var i = 0; i < table.length; i++){ if (raw >= table[i].min && raw <= table[i].max) return table[i]; }
+  return table[table.length - 1];
+}
+
+function sli2ComputeScores(state){
+  var phq9Raw = sli2Sum(state.phq9);
+  var phq9Band = sli2BandFromTable(phq9Raw, [
+    { min:0, max:9, label:'0-9 Minimal', points:1 },
+    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
+    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
+    { min:20, max:27, label:'20-27 Severe', points:4 }
+  ]);
+  var gad7Raw = sli2Sum(state.gad7);
+  var gad7Band = sli2BandFromTable(gad7Raw, [
+    { min:0, max:9, label:'0-9 Minimal', points:1 },
+    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
+    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
+    { min:20, max:21, label:'20-21 Severe', points:4 }
+  ]);
+  var bamRaw = sli2Sum(SLI2_BAM_SCORED_ITEMS.map(function(it){ return state.bam[it.key]; }));
+  var bamBand = sli2BandFromTable(bamRaw, [
+    { min:0, max:20, label:'0-20 Low Risk', points:1 },
+    { min:21, max:35, label:'21-35 Moderate Risk', points:2 },
+    { min:36, max:45, label:'36-45 High Risk', points:3 },
+    { min:46, max:9999, label:'46+ Very High Risk', points:4 }
+  ]);
+  var asamRaw = state.asam_mh_only ? 0 : sli2Sum(state.asam_dims);
+  var asamBand = state.asam_mh_only
+    ? { label: 'N/A (MH Only)', points: 0 }
+    : sli2BandFromTable(asamRaw, [
+        { min:0, max:6, label:'0-6 Early/Outpatient', points:1 },
+        { min:7, max:12, label:'7-12 IOP', points:2 },
+        { min:13, max:17, label:'13-17 Residential', points:3 },
+        { min:18, max:9999, label:'18-24 Intensive', points:4 }
+      ]);
+  var escalation = SLI2_CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
+  var riskExtraRaw = sli2Sum(SLI2_RISK_EXTRA_ITEMS.map(function(it){ return state.risk_extra[it.key]; }));
+  var riskRaw = sli2Sum(SLI2_CSSRS_ITEMS.map(function(it){ return state.cssrs[it.key]; })) + riskExtraRaw;
+  var riskBand;
+  if (escalation || riskRaw >= 4) riskBand = { label: 'High Risk', points: 2 };
+  else if (riskRaw >= 1) riskBand = { label: 'Low-Moderate Risk', points: 1 };
+  else riskBand = { label: 'No Risk', points: 0 };
+  var sdohScore = sli2Sum(SLI2_SDOH_ITEMS.map(function(it){ return state.sdoh[it.key]; }));
+  var clinicalScore = phq9Band.points + gad7Band.points + bamBand.points + asamBand.points + riskBand.points;
+  var adjustedSli = clinicalScore + sdohScore;
+  var lowClinicalFlag = clinicalScore <= 4;
+  var highSdohFlag = sdohScore >= 3;
+  var cap = lowClinicalFlag && highSdohFlag;
+  var levelTable = [
+    { min:0, max:5, level:1, label:'Level 1 — Maintenance', hours:'1-2 hrs/wk' },
+    { min:6, max:8, level:2, label:'Level 2 — Moderate', hours:'2-4 hrs/wk' },
+    { min:9, max:11, level:3, label:'Level 3 — High', hours:'4-6 hrs/wk' },
+    { min:12, max:14, level:4, label:'Level 4 — Intensive', hours:'6-8 hrs/wk' },
+    { min:15, max:9999, level:5, label:'Level 5 — Critical', hours:'8+ hrs/wk (Director approval required)' }
+  ];
+  var calculatedLevel = cap ? levelTable[0] : sli2BandFromTable(adjustedSli, levelTable);
+  var directorReviewRequired = calculatedLevel.level === 5 && !cap;
+  return {
+    phq9Raw: phq9Raw, phq9Band: phq9Band, gad7Raw: gad7Raw, gad7Band: gad7Band,
+    bamRaw: bamRaw, bamBand: bamBand, asamRaw: asamRaw, asamBand: asamBand,
+    escalation: escalation, riskRaw: riskRaw, riskBand: riskBand,
+    sdohScore: sdohScore, clinicalScore: clinicalScore, adjustedSli: adjustedSli,
+    lowClinicalFlag: lowClinicalFlag, highSdohFlag: highSdohFlag, cap: cap,
+    calculatedLevel: calculatedLevel, directorReviewRequired: directorReviewRequired
+  };
+}
+
+function sli2StateComplete(state){
+  if (state.phq9.some(function(v){ return v === null; })) return false;
+  if (state.gad7.some(function(v){ return v === null; })) return false;
+  if (SLI2_BAM_SCORED_ITEMS.some(function(it){ return state.bam[it.key] === undefined || state.bam[it.key] === null; })) return false;
+  if (!state.asam_mh_only && state.asam_dims.some(function(v){ return v === null; })) return false;
+  if (SLI2_CSSRS_ITEMS.some(function(it){ return state.cssrs[it.key] === undefined || state.cssrs[it.key] === null; })) return false;
+  if (SLI2_SDOH_ITEMS.some(function(it){ return state.sdoh[it.key] === undefined || state.sdoh[it.key] === null; })) return false;
+  return true;
+}
+
+function sli2EscapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; });
+}
+
+function sli2OptionRow(groupKey, items, selectedVal, opts){
+  opts = opts || {};
+  return '<div class="chips" data-sli-group="' + groupKey + '">' + items.map(function(label, idx){
+    var val = opts.values ? opts.values[idx] : idx;
+    var isSelected = selectedVal === val;
+    return '<div class="chip' + (isSelected ? ' selected' + (opts.riskStyle ? ' risk' : '') : '') + '" data-sli-group="' + groupKey + '" data-sli-val="' + val + '">' + sli2EscapeHtml(label) + '</div>';
+  }).join('') + '</div>';
+}
+function sli2YesNoRow(groupKey, selectedVal){
+  return sli2OptionRow(groupKey, ['No', 'Yes'], selectedVal, { values: [0, 1], riskStyle: true });
+}
+
+function sli2BuildItemsHtml(state){
+  var html = '';
+
+  html += '<div class="sli-card"><h3>PHQ-9 — Depression</h3><div class="sli-card-sub">Rate each over the past two weeks.</div>';
+  SLI2_PHQ9_ITEMS.forEach(function(q, i){
+    html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(q) + '</div>' + sli2OptionRow('phq9_' + i, SLI2_FREQ_OPTIONS, state.phq9[i]) + '</div>';
+  });
+  if (state.phq9[8] !== null && state.phq9[8] > 0){
+    html += '<div class="sli-crisis-note">Item 9 endorsed — stay with the individual, acknowledge with empathy, don\'t minimize or react with alarm. Revisit in Brief Risk Assessment below.</div>';
+  }
+  html += '<div class="sli-item"><div class="q">How many times hospitalized for MH in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('phq9_hosp', ['0','1','2','3','4+'], state.phq9_hosp) + '</div>';
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>GAD-7 — Anxiety</h3><div class="sli-card-sub">Rate each over the past two weeks.</div>';
+  SLI2_GAD7_ITEMS.forEach(function(q, i){
+    html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(q) + '</div>' + sli2OptionRow('gad7_' + i, SLI2_FREQ_OPTIONS, state.gad7[i]) + '</div>';
+  });
+  html += '<div class="sli-item"><div class="q">If any problems checked, how difficult have they made daily life? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('gad7_impact', ['Not difficult at all','Somewhat difficult','Very difficult','Extremely difficult'], state.gad7_impact) + '</div>';
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>BAM — Brief Addiction Monitor</h3><div class="sli-card-sub">Recovery monitoring across substance use, supports, and life functioning.</div>';
+  html += '<div class="sli-item"><div class="q">Has the individual used any substances within the last 30 days? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_substance_use_30d', state.bam_substance_use_30d) + '</div>';
+  SLI2_BAM_SCORED_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2OptionRow('bam_' + it.key, it.options, state.bam[it.key]) + '</div>';
+  });
+  html += '<div class="sli-item"><div class="q">How many overdoses in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('bam_overdoses', ['0','1','2','3','4+'], state.bam_overdoses) + '</div>';
+  html += '<div class="sli-item"><div class="q">How many arrests in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('bam_arrests', ['0','1','2','3','4+'], state.bam_arrests) + '</div>';
+  html += '<div class="sli-item"><div class="q">Seen a dentist in the last 12 months? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_dentist', state.bam_dentist) + '</div>';
+  html += '<div class="sli-item"><div class="q">Seen a doctor in the last 12 months? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_doctor', state.bam_doctor) + '</div>';
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>ASAM Level of Care Dimensions</h3><div class="sli-card-sub">Six dimensions — clinical staff with ASAM training only.</div>';
+  html += '<div class="sli-item"><div class="q">Is the individual MH Only? (If yes, skip all six dimensions)</div>' + sli2YesNoRow('asam_mh_only', state.asam_mh_only === null ? null : (state.asam_mh_only ? 1 : 0)) + '</div>';
+  if (!state.asam_mh_only){
+    html += '<div class="sli-gap-note"><strong>Placeholder scale in use.</strong> The real 10-option, 0.5&ndash;4 point Thrive picklist for these six dimensions wasn\'t in the SLI_2_0.xlsx export. The 5-point severity key below is standing in for now &mdash; swap in the real picklist text once available; nothing else in the scoring changes.</div>';
+    SLI2_ASAM_DIMENSIONS_PLACEHOLDER.forEach(function(dim, i){
+      html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(dim) + '</div>' + sli2OptionRow('asam_' + i, SLI2_ASAM_PLACEHOLDER_OPTIONS.map(function(o){ return o.label; }), state.asam_dims[i]) + '</div>';
+    });
+  }
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>Brief Risk Assessment</h3><div class="sli-card-sub">C-SSRS suicide risk screen + additional risk items. Handle with care.</div>';
+  SLI2_CSSRS_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2YesNoRow('cssrs_' + it.key, state.cssrs[it.key]) + '</div>';
+  });
+  var escalationNow = SLI2_CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
+  if (escalationNow){
+    html += '<div class="sli-crisis-note">ESCALATION PROTOCOL — STOP. A "Yes" was recorded on 1c, 1d, 1e, or 1f. The full C-SSRS must be administered immediately by qualified clinical staff. Do not leave the individual alone. Risk is automatically scored High (2 pts) below.</div>';
+    html += '<div class="sli-item"><div class="q">Clinical staff notified (name)</div><input type="text" data-sli-text="risk_notified_by" value="' + sli2EscapeHtml(state.risk_notified_by) + '" style="max-width:320px;"/></div>';
+    html += '<div class="sli-item"><div class="q">Based on the response, is a Full Columbia Assessment needed?</div>' + sli2YesNoRow('risk_full_columbia', state.risk_full_columbia_needed === null ? null : (state.risk_full_columbia_needed ? 1 : 0)) + '</div>';
+  }
+  SLI2_RISK_EXTRA_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2YesNoRow('risk_extra_' + it.key, state.risk_extra[it.key]) + '</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>SDOH Critical Barriers</h3><div class="sli-card-sub">Current-situation barriers, not lifetime history.</div>';
+  SLI2_SDOH_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2YesNoRow('sdoh_' + it.key, state.sdoh[it.key]) + '</div>';
+  });
+  html += '</div>';
+
+  return html;
+}
+
+function sli2SetGroupValue(state, group, val){
+  if (group.indexOf('phq9_hosp') === 0){ state.phq9_hosp = val; return; }
+  if (group.indexOf('phq9_') === 0){ state.phq9[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('gad7_impact') === 0){ state.gad7_impact = val; return; }
+  if (group.indexOf('gad7_') === 0){ state.gad7[parseInt(group.slice(5), 10)] = val; return; }
+  if (group === 'bam_substance_use_30d'){ state.bam_substance_use_30d = val; return; }
+  if (group === 'bam_overdoses'){ state.bam_overdoses = val; return; }
+  if (group === 'bam_arrests'){ state.bam_arrests = val; return; }
+  if (group === 'bam_dentist'){ state.bam_dentist = val; return; }
+  if (group === 'bam_doctor'){ state.bam_doctor = val; return; }
+  if (group.indexOf('bam_') === 0){ state.bam[group.slice(4)] = val; return; }
+  if (group === 'asam_mh_only'){ state.asam_mh_only = val === 1; if (state.asam_mh_only) state.asam_dims = new Array(6).fill(null); return; }
+  if (group.indexOf('asam_') === 0){ state.asam_dims[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('cssrs_') === 0){ state.cssrs[group.slice(6)] = val; return; }
+  if (group === 'risk_full_columbia'){ state.risk_full_columbia_needed = val === 1; return; }
+  if (group.indexOf('risk_extra_') === 0){ state.risk_extra[group.slice(11)] = val; return; }
+  if (group.indexOf('sdoh_') === 0){ state.sdoh[group.slice(5)] = val; return; }
+}
+
+function sli2WireEvents(containerEl, state, onChange){
+  containerEl.querySelectorAll('.chip[data-sli-val]').forEach(function(el){
+    el.onclick = function(){
+      var group = el.getAttribute('data-sli-group');
+      var val = parseInt(el.getAttribute('data-sli-val'), 10);
+      sli2SetGroupValue(state, group, val);
+      onChange();
+    };
+  });
+  containerEl.querySelectorAll('input[data-sli-text]').forEach(function(el){
+    el.oninput = function(){ state[el.getAttribute('data-sli-text')] = el.value; };
+  });
+}
+
+// ── Main plan SLI widget instance ──
+var sliState = sli2NewState();
+var sliScores = null;
+
+function renderSliWidget(){
+  var c = document.getElementById('sliItemsContainer');
+  if(!c) return;
+  c.innerHTML = sli2BuildItemsHtml(sliState);
+  sli2WireEvents(c, sliState, onSliStateChange);
+  calcSLI();
+}
+
+function onSliStateChange(){
+  renderSliWidget();
+  if(typeof resetClinicianSignature==='function') resetClinicianSignature('SLI 2.0 answers changed after signing — please re-sign as clinician before supervisor signs.');
+}
+
+function onSliApplicableChange(){
+  var applicable = document.getElementById('sliApplicable').checked;
+  document.getElementById('sliScoringBlock').style.display = applicable ? '' : 'none';
+  document.getElementById('sliNotApplicableNote').style.display = applicable ? 'none' : 'block';
+  if(typeof resetClinicianSignature==='function') resetClinicianSignature('SLI 2.0 applicability changed after signing — please re-sign as clinician before supervisor signs.');
+}
+function isSliApplicable(){
+  var el = document.getElementById('sliApplicable');
+  return !el || el.checked;
+}
+
 function calcSLI(){
-  var phq9raw=getNum('sli_phq9'),gad7raw=getNum('sli_gad7'),bamraw=getNum('sli_bam'),asamraw=getNum('sli_asam'),riskraw=getNum('sli_risk');
-  // PHQ-9 bands per SLI 2.0 manual
-  var phq9pts=phq9raw<=9?1:phq9raw<=14?2:phq9raw<=19?3:4;
-  var phq9lbl=phq9raw<=9?'Minimal (1pt)':phq9raw<=14?'Mild-Moderate (2pts)':phq9raw<=19?'Moderate-Severe (3pts)':'Severe (4pts)';
-  // GAD-7 bands
-  var gad7pts=gad7raw<=9?1:gad7raw<=14?2:gad7raw<=19?3:4;
-  var gad7lbl=gad7raw<=9?'Minimal (1pt)':gad7raw<=14?'Mild-Moderate (2pts)':gad7raw<=19?'Moderate-Severe (3pts)':'Severe (4pts)';
-  // BAM bands
-  var bampts=bamraw<=20?1:bamraw<=35?2:bamraw<=45?3:4;
-  var bamlbl=bamraw<=20?'Low Risk (1pt)':bamraw<=35?'Moderate Risk (2pts)':bamraw<=45?'High Risk (3pts)':'Very High Risk (4pts)';
-  // ASAM bands
-  var asampts=asamraw<=6?1:asamraw<=12?2:asamraw<=17?3:4;
-  var osamlbl=asamraw<=6?'Early/Outpatient (1pt)':asamraw<=12?'IOP (2pts)':asamraw<=17?'Residential (3pts)':'Intensive (4pts)';
-  // Risk — with C-SSRS clinical gate override
-  var riskOv=document.getElementById('riskOverride')&&document.getElementById('riskOverride').checked;
-  var riskpts=riskOv?2:riskraw===0?0:riskraw<=3?1:2;
-  var risklbl=riskOv?'High \u2014 C-SSRS gate (2pts)':riskraw===0?'No Risk (0pts)':riskraw<=3?'Low-Moderate (1pt)':'High Risk (2pts)';
-  // Show band labels
-  var st=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
-  st('phq9band',phq9lbl);st('gad7band',gad7lbl);st('bamband',bamlbl);st('asamband',osamlbl);st('riskband',risklbl);
-  // SDOH barrier count (6 yes/no checkboxes)
-  var sdohCbs=['sdoh_housing','sdoh_food','sdoh_transport','sdoh_healthcare','sdoh_isolation','sdoh_legal'];
-  var sdoh=sdohCbs.filter(function(id){var el=document.getElementById(id);return el&&el.checked;}).length;
-  st('sdohCount',sdoh);
-  var clinical=phq9pts+gad7pts+bampts+asampts+riskpts;
-  var total=clinical+sdoh;
-  st('sliClinical',clinical);st('sliSdoh',sdoh);st('sliTotal',total);
-  // Cap rule: Low Clinical (<=4) AND High SDOH (>=3)
-  var lowClinical=clinical<=4,highSdoh=sdoh>=3,capApplied=lowClinical&&highSdoh;
-  if(document.getElementById('lowClinicalFlag')){st('lowClinicalFlag',lowClinical?'YES (Score \u22644)':'NO (Score \u22655)');document.getElementById('lowClinicalFlag').style.color=lowClinical?'#E8417A':'#1A7A3A';}
-  if(document.getElementById('highSdohFlag')){st('highSdohFlag',highSdoh?'YES (Barriers \u22653)':'NO (Barriers \u22642)');document.getElementById('highSdohFlag').style.color=highSdoh?'#E8417A':'#1A7A3A';}
-  var badge=document.getElementById('levelBadge');
-  var level,hours,cls;
-  if(capApplied){level='Level 1 \u2014 Cap Applied';hours='1\u20132 hrs/wk \u2014 Maintenance';cls='level-standard';}
-  else if(total<=5){level='Level 1';hours='1\u20132 hrs/wk \u2014 Maintenance';cls='level-standard';}
-  else if(total<=8){level='Level 2';hours='2\u20134 hrs/wk \u2014 Moderate';cls='level-standard';}
-  else if(total<=11){level='Level 3';hours='4\u20136 hrs/wk \u2014 High';cls='level-enhanced';}
-  else if(total<=14){level='Level 4';hours='6\u20138 hrs/wk \u2014 Intensive';cls='level-enhanced';}
-  else{level='Level 5';hours='8+ hrs/wk \u2014 Critical';cls='level-intensive';}
-  badge.textContent=level;badge.className='level-badge '+cls;
-  st('sliCapText','Adjusted SLI: '+total+' points');
-  st('sliHoursText',hours);
-  var df=document.getElementById('directorFlag');if(df)df.style.display=(level==='Level 5')?'block':'none';
-  var cf=document.getElementById('capFlag');if(cf)cf.style.display=capApplied?'block':'none';
+  sliScores = sli2ComputeScores(sliState);
+  var s = sliScores;
+  var st = function(id,v){ var el = document.getElementById(id); if(el) el.textContent = v; };
+  st('phq9band', s.phq9Band.label + ' (' + s.phq9Band.points + 'pt' + (s.phq9Band.points===1?'':'s') + ')');
+  st('gad7band', s.gad7Band.label + ' (' + s.gad7Band.points + 'pt' + (s.gad7Band.points===1?'':'s') + ')');
+  st('bamband', s.bamBand.label + ' (' + s.bamBand.points + 'pt' + (s.bamBand.points===1?'':'s') + ')');
+  st('asamband', s.asamBand.label + (sliState.asam_mh_only ? '' : ' (' + s.asamBand.points + 'pt' + (s.asamBand.points===1?'':'s') + ')'));
+  st('riskband', s.riskBand.label + ' (' + s.riskBand.points + 'pt' + (s.riskBand.points===1?'':'s') + ')' + (s.escalation ? ' — C-SSRS escalation' : ''));
+  st('sdohCount', s.sdohScore);
+  st('sliClinical', s.clinicalScore); st('sliSdoh', s.sdohScore); st('sliTotal', s.adjustedSli);
+  if(document.getElementById('lowClinicalFlag')){ st('lowClinicalFlag', s.lowClinicalFlag ? 'YES (Score ≤4)' : 'NO (Score ≥5)'); document.getElementById('lowClinicalFlag').style.color = s.lowClinicalFlag ? '#E8417A' : '#1A7A3A'; }
+  if(document.getElementById('highSdohFlag')){ st('highSdohFlag', s.highSdohFlag ? 'YES (Barriers ≥3)' : 'NO (Barriers ≤2)'); document.getElementById('highSdohFlag').style.color = s.highSdohFlag ? '#E8417A' : '#1A7A3A'; }
+  var badge = document.getElementById('levelBadge');
+  var level = s.cap ? 'Level 1 — Cap Applied' : s.calculatedLevel.label;
+  var hours = s.cap ? '1–2 hrs/wk — Maintenance' : s.calculatedLevel.hours;
+  var cls = s.cap ? 'level-standard' : (s.calculatedLevel.level<=2?'level-standard':s.calculatedLevel.level<=4?'level-enhanced':'level-intensive');
+  badge.textContent = level; badge.className = 'level-badge ' + cls;
+  st('sliCapText','Adjusted SLI: ' + s.adjustedSli + ' points');
+  st('sliHoursText', hours);
+  var df=document.getElementById('directorFlag'); if(df) df.style.display = s.directorReviewRequired ? 'block' : 'none';
+  var cf=document.getElementById('capFlag'); if(cf) cf.style.display = s.cap ? 'block' : 'none';
   document.getElementById('sliResult').className='sli-result visible';
 }
 
 // ── NEED CHIPS & SUB-NEED DROPDOWNS ──
 var selectedNeeds=[];
+function needsAsamLOC(){
+  return selectedNeeds.indexOf('Substance Use / Recovery') > -1;
+}
+
+function refreshAsamRequiredUI(){
+  var required = needsAsamLOC();
+  var labelEl = document.querySelector('label[for="asamLevelOfCare"]') || (document.getElementById('asamLevelOfCare') ? document.getElementById('asamLevelOfCare').closest('.field').querySelector('.field-label') : null);
+  var hintEl = document.getElementById('asamLevelOfCare') ? document.getElementById('asamLevelOfCare').closest('.field').querySelector('.field-hint') : null;
+  if(labelEl){
+    labelEl.innerHTML = 'ASAM Level of Care' + (required ? ' <span class="required-star">*</span>' : '');
+  }
+  if(hintEl){
+    hintEl.textContent = required
+      ? 'Required per OAC 5122-27-03 — this plan includes a Substance Use / Recovery need area, so ASAM Level of Care must be documented before generating.'
+      : 'Required per OAC 5122-27-03 for clients receiving addiction services; leave blank if not applicable to this plan.';
+  }
+}
+
 function toggleNeed(el){
+  if(typeof resetClinicianSignature==='function') resetClinicianSignature('Need areas changed after signing — please re-sign as clinician before supervisor signs.');
   var need=el.getAttribute('data-need');
   el.classList.toggle('selected');
   if(el.classList.contains('selected')){
@@ -934,6 +2312,7 @@ function toggleNeed(el){
     selectedNeeds=selectedNeeds.filter(function(n){return n!==need;});
   }
   renderNeedFields();
+  refreshAsamRequiredUI();
 }
 
 function renderNeedFields(){
@@ -986,6 +2365,23 @@ function renderNeedFields(){
     preview.innerHTML='<div class="sub-need-preview-label">Template Preview</div><div class="sub-need-preview-text" id="previewText_'+id+'"></div>';
     div.appendChild(preview);
 
+    var svcField=document.createElement('div');
+    svcField.className='field';
+    svcField.style.marginTop='14px';
+    svcField.innerHTML='<label class="field-label">Service(s) Provided for This Need <span class="required-star">*</span></label>'
+      +'<div style="font-size:11px;color:#888;margin-bottom:6px;">Named, billable service type addressing this need &mdash; required for Ohio Medicaid documentation standards.</div>'
+      +'<select id="servicetype_'+id+'">'
+      +'<option value="">Select service type...</option>'
+      +'<option value="Individual Peer Support">Individual Peer Support</option>'
+      +'<option value="Group Peer Support">Group Peer Support</option>'
+      +'<option value="Recovery Coaching">Recovery Coaching</option>'
+      +'<option value="Care Coordination / Resource Linkage">Care Coordination / Resource Linkage</option>'
+      +'<option value="Family / Support Person Engagement">Family / Support Person Engagement</option>'
+      +'<option value="Crisis Support / De-escalation">Crisis Support / De-escalation</option>'
+      +'<option value="Skill-Building / Psychoeducation">Skill-Building / Psychoeducation</option>'
+      +'</select>';
+    div.appendChild(svcField);
+
     var ctxField=document.createElement('div');
     ctxField.className='field';
     ctxField.style.marginTop='14px';
@@ -1036,8 +2432,9 @@ function copyEl(id,btn){
   });
 }
 
-function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustification) {
-  var fullPlanText = (planSummary + ' ' + needCardsData.map(function(n){return n.goal+' '+n.obj+' '+n.intv;}).join(' ') + ' ' + clientGoal + ' ' + sliJustification).toLowerCase();
+function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustification, dischargeText) {
+  dischargeText = dischargeText || '';
+  var fullPlanText = (planSummary + ' ' + needCardsData.map(function(n){return n.goal+' '+n.obj+' '+n.intv;}).join(' ') + ' ' + clientGoal + ' ' + sliJustification + ' ' + dischargeText).toLowerCase();
   var results = [];
 
   function check(label, passed) {
@@ -1070,16 +2467,22 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
   });
   check('At least one Need Area has complete Goal, Objectives, and Interventions', allNeedsComplete);
 
-  // 9. SLI scores entered (medical necessity requires documented clinical justification)
-  var sliFields = ['sli_phq9','sli_gad7','sli_bam','sli_asam','sli_risk'];
-  var sliComplete = sliFields.every(function(id){ return document.getElementById(id).value !== ''; });
-  check('SLI 2.0 clinical scores (PHQ-9, GAD-7, BAM, ASAM, Risk) are complete', sliComplete);
+  // 9. SLI scores entered (medical necessity requires documented clinical justification) — skipped when SLI marked not applicable
+  if(isSliApplicable()){
+    check('SLI 2.0 full assessment (PHQ-9, GAD-7, BAM, ASAM, C-SSRS, SDOH) is complete', sli2StateComplete(sliState));
+  } else {
+    check('SLI 2.0 clinical scores — N/A, marked not applicable to this plan', true);
+  }
 
   // 10. SLI Clinical Justification narrative documented (medical necessity)
   check('Clinical justification for service level is documented', !!document.getElementById('clinicalJustification').value.trim());
 
-  // 11. SLI summary/justification generated and substantive
-  check('SLI 2.0 scoring and clinical justification narrative is generated', !!sliJustification && sliJustification.trim().length > 60);
+  // 11. SLI summary/justification generated and substantive — skipped when SLI marked not applicable
+  if(isSliApplicable()){
+    check('SLI 2.0 scoring and clinical justification narrative is generated', !!sliJustification && sliJustification.trim().length > 60);
+  } else {
+    check('SLI 2.0 justification — N/A, marked not applicable to this plan', true);
+  }
 
   // 12. Service frequency documented (required for Ohio Medicaid billing)
   check('Service frequency is documented', !!document.getElementById('frequency').value);
@@ -1101,6 +2504,42 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
   var isDuplicate = prevPlan && prevPlan === fullPlanText;
   check('Plan is not duplicated from a previous treatment plan', !isDuplicate);
   try { localStorage.setItem(storageKey, fullPlanText); } catch(e) {}
+
+  // 17. ASAM Level of Care documented — hard-required by OAC 5122-27-03 whenever Substance Use / Recovery is a selected need area (also gated at generate/save/sign time); advisory otherwise
+  var hasAsamLOC = !!(document.getElementById('asamLevelOfCare') && document.getElementById('asamLevelOfCare').value);
+  if(typeof needsAsamLOC==='function' && needsAsamLOC()){
+    check('ASAM Level of Care is documented (required — Substance Use / Recovery is a selected need area, per OAC 5122-27-03)', hasAsamLOC);
+  } else {
+    check('ASAM Level of Care is documented (not required — no Substance Use / Recovery need area selected)', true);
+  }
+
+  // 18. Reason for non-participation/disagreement documented when applicable — required by OAC 5122-27-03, hard-gated at save/sign time (see planValidationError)
+  check('Reason for any "No" participation/consent answer is documented', !signOffNeedsReason() || !!(document.getElementById('signOffReason') && document.getElementById('signOffReason').value.trim()));
+
+  // 19. Capacity to benefit from treatment documented (required by Ohio Medicaid BH documentation standards)
+  check('Capacity to benefit from treatment is documented', !!document.querySelector('input[name="capacityToBenefit"]:checked'));
+
+  // 20. Preliminary discharge plan / step-down criteria documented (Ohio Medicaid individualized service plan requirement)
+  check('Preliminary discharge plan / step-down criteria is documented', !!dischargeText && dischargeText.trim().length > 15);
+
+  // 21. Presenting diagnosis referenced, consistent with plan (Ohio Medicaid requires the plan be consistent with the member's diagnosis) — advisory, since PRS staff do not diagnose
+  check('Presenting diagnosis is referenced from the assessment on file (or plan is advisory-flagged for follow-up)', !!(document.getElementById('presentingDiagnosis') && document.getElementById('presentingDiagnosis').value.trim()));
+
+  // 22. Each Need Area names/describes a specific billable service type (Ohio Medicaid requires named and described services)
+  var allNeedsHaveService = needCardsData.length > 0 && needCardsData.every(function(n){ return !!n.serviceType; });
+  check('Each Need Area names a specific service type provided (required for Ohio Medicaid billing documentation)', allNeedsHaveService);
+
+  // 23. Measurement-informed care — SLI 2.0 assessment findings are referenced in the clinical justification narrative, not just recorded as a static score (CARF 2026 standard)
+  if(isSliApplicable()){
+    var instrumentMentions = ['phq', 'gad', 'bam', 'asam', 'sdoh', 'risk', 'support level'];
+    var mentionCount = instrumentMentions.filter(function(term){ return fullPlanText.indexOf(term) > -1; }).length;
+    check('SLI 2.0 findings visibly inform the plan narrative (measurement-informed care, per CARF)', mentionCount >= 2);
+  } else {
+    check('Measurement-informed care — N/A, SLI 2.0 marked not applicable to this plan', true);
+  }
+
+  // 24. Signatures include staff credential/title (advisory reminder — hard-gated at sign time)
+  check('Clinician and supervisor signatures will include credential/title (required per OAC 5122-27-03)', true);
 
   // 16. Director approval flag check — if Level 5, flag must be acknowledged (not blocking, informational)
   var directorFlag = document.getElementById('directorFlag');
@@ -1148,6 +2587,9 @@ function getNeedCardsData() {
   document.querySelectorAll('#needBlocksOutput .output-card').forEach(function(card){
     var divs = card.querySelectorAll('[contenteditable="true"]');
     data.push({
+      need: card.getAttribute('data-need') || '',
+      focus: card.getAttribute('data-focus') || '',
+      serviceType: card.getAttribute('data-service') || '',
       goal: divs[0] ? divs[0].innerText.trim() : '',
       obj: divs[1] ? divs[1].innerText.trim() : '',
       intv: divs[2] ? divs[2].innerText.trim() : ''
@@ -1160,15 +2602,31 @@ function rerunPlanQAChecks() {
   var planSummary = document.getElementById('planSummaryOutput').innerText;
   var clientGoal = document.getElementById('clientGoalOutput').innerText;
   var sliJustification = document.getElementById('justificationOutput').innerText;
+  var dischargeText = document.getElementById('dischargeOutput') ? document.getElementById('dischargeOutput').innerText : '';
   var needCardsData = getNeedCardsData();
-  runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustification);
+  runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustification, dischargeText);
+}
+
+function signOffNeedsReason() {
+  var participation = document.querySelector('input[name="clientParticipation"]:checked');
+  var consent = document.querySelector('input[name="clientConsent"]:checked');
+  var guardianConsent = document.querySelector('input[name="guardianConsent"]:checked');
+  return (participation && participation.value === 'No') || (consent && consent.value === 'No') || (guardianConsent && guardianConsent.value === 'No');
 }
 
 function updateSignOff() {
   var attested = document.getElementById('clinicianAttestation').checked;
   var participation = document.querySelector('input[name="clientParticipation"]:checked');
   var consent = document.querySelector('input[name="clientConsent"]:checked');
-  var ready = attested && participation && consent;
+  var needsReason = signOffNeedsReason();
+  var reason = document.getElementById('signOffReason') ? document.getElementById('signOffReason').value.trim() : '';
+  var reasonTag = document.getElementById('signOffReasonRequiredTag');
+  if (reasonTag) {
+    reasonTag.textContent = needsReason ? '(required — OAC 5122-27-03 requires the reason for non-participation/disagreement to be documented)' : '(required only if any answer above is "No")';
+    reasonTag.style.color = needsReason && !reason ? '#E8417A' : '#888';
+    reasonTag.style.fontWeight = needsReason && !reason ? '700' : '400';
+  }
+  var ready = attested && participation && consent && (!needsReason || !!reason);
   var btn = document.getElementById('copyFullPlanBtn');
   if (btn) {
     btn.disabled = !ready;
@@ -1182,6 +2640,9 @@ function getSignOffBlock() {
   var clientConsent = document.querySelector('input[name="clientConsent"]:checked');
   var guardianConsent = document.querySelector('input[name="guardianConsent"]:checked');
   var remarks = document.getElementById('signOffRemarks').value.trim();
+  var reason = document.getElementById('signOffReason') ? document.getElementById('signOffReason').value.trim() : '';
+  var capacity = document.querySelector('input[name="capacityToBenefit"]:checked');
+  var capacityBasis = document.getElementById('capacityToBenefitBasis') ? document.getElementById('capacityToBenefitBasis').value.trim() : '';
   var participants = [];
   if(document.getElementById('partClinician').checked) participants.push('Clinician');
   if(document.getElementById('partCareCoord').checked) participants.push('Care Coordinator');
@@ -1200,28 +2661,45 @@ function getSignOffBlock() {
   b.push('');
   b.push('  Guardian provided verbal consent for implementation:   ' + (guardianConsent ? guardianConsent.value : 'N/A'));
   b.push('');
+  b.push('  Individual has the ability and capacity to benefit');
+  b.push('  from treatment at this level:                          ' + (capacity ? capacity.value : '—'));
+  if(capacityBasis){ b.push('  Basis: ' + capacityBasis); }
+  b.push('');
   b.push('  Who participated in plan development:');
   b.push('  ' + (participants.length ? participants.join(', ') : '\u2014'));
+  if(reason){ b.push(''); b.push('  Reason for non-participation/disagreement: ' + reason); }
   if(remarks){ b.push(''); b.push('  Remarks: ' + remarks); }
   b.push('');
   b.push(thin);
   b.push('');
   b.push('ELECTRONIC AUTHORIZATION & SIGNATURES');
   b.push('');
-  b.push('  This plan was reviewed and authorized through Thrive Peer');
-  b.push('  Recovery Services\' electronic documentation system (Pimsy EHR).');
-  b.push('  Clinician/care coordinator and supervisor co-signatures are');
-  b.push('  recorded in the Pimsy system audit trail per OhioMHAS dual');
-  b.push('  sign-off requirements for non-independently licensed staff.');
-  b.push('  This electronic record is the authoritative signed document');
-  b.push('  and is compliant with CARF, ODBH, and Ohio Medicaid standards.');
-  b.push('');
-  b.push('  NEXT STEPS IN PIMSY:');
-  b.push('  1. Paste this plan into the designated note type in Pimsy');
-  b.push('  2. Complete the Treatment Plan Signatures Q&A (client');
-  b.push('     participation, verbal consent, guardian consent)');
-  b.push('  3. Release note for supervisor review \u2014 dual sign-off');
-  b.push('     required per OhioMHAS for non-independently licensed staff');
+  if (typeof planSignState !== 'undefined' && planSignState.status === 'signed') {
+    b.push('  This plan was electronically signed within Thrive Peer Recovery');
+    b.push('  Services\' Treatment Plan Builder (de-identified Supabase system');
+    b.push('  of record), satisfying OhioMHAS dual sign-off requirements for');
+    b.push('  non-independently licensed staff.');
+    b.push('');
+    b.push('  Clinician / Care Coordinator: ' + (planSignState.clinicianName || '\u2014') + (planSignState.clinicianCredential ? ' (' + planSignState.clinicianCredential + ')' : '') + '   Signed: ' + (planSignState.clinicianSignedAt ? new Date(planSignState.clinicianSignedAt).toLocaleString('en-US') : '\u2014'));
+    b.push('  Supervisor: ' + (planSignState.supervisorName || '\u2014') + (planSignState.supervisorCredential ? ' (' + planSignState.supervisorCredential + ')' : '') + '   Signed: ' + (planSignState.supervisorSignedAt ? new Date(planSignState.supervisorSignedAt).toLocaleString('en-US') : '\u2014'));
+    b.push('');
+    b.push('  This electronic record is the authoritative signed document.');
+    b.push('  Paste into Pimsy for billing/EHR purposes only \u2014 signatures');
+    b.push('  do not need to be re-collected there.');
+  } else {
+    b.push('  This plan has NOT yet been electronically signed in the');
+    b.push('  Treatment Plan Builder. Complete dual sign-off (clinician +');
+    b.push('  supervisor) either in the Sign & Save panel of this tool, or');
+    b.push('  in Pimsy after pasting \u2014 pick one system of record, not both,');
+    b.push('  to avoid ambiguity about which signature set is authoritative.');
+    b.push('');
+    b.push('  NEXT STEPS IN PIMSY (if signing there instead):');
+    b.push('  1. Paste this plan into the designated note type in Pimsy');
+    b.push('  2. Complete the Treatment Plan Signatures Q&A (client');
+    b.push('     participation, verbal consent, guardian consent)');
+    b.push('  3. Release note for supervisor review \u2014 dual sign-off');
+    b.push('     required per OhioMHAS for non-independently licensed staff');
+  }
   return b.join('\n');
 }
 
@@ -1235,6 +2713,10 @@ function copyFullPlan(){
   var startDate = document.getElementById('planStartDate').value || '______';
   var endDate = document.getElementById('planEndDate').value || '______';
   var freq = document.getElementById('frequency').value || '______';
+  var asamLOC = (document.getElementById('asamLevelOfCare') && document.getElementById('asamLevelOfCare').value) || '';
+  var diagnosis = (document.getElementById('presentingDiagnosis') && document.getElementById('presentingDiagnosis').value.trim()) || '';
+  var admissionDate = (document.getElementById('admissionDate') && document.getElementById('admissionDate').value) || '';
+  var capacityEl = document.querySelector('input[name="capacityToBenefit"]:checked');
 
   function fmtDate(d){ if(!d||d==='______') return d; var p=d.split('-'); return p[1]+'/'+p[2]+'/'+p[0]; }
 
@@ -1253,6 +2735,10 @@ function copyFullPlan(){
   lines.push(padLabel('Program:', 20) + program);
   lines.push(padLabel('Plan Period:', 20) + fmtDate(startDate) + '  to  ' + fmtDate(endDate));
   lines.push(padLabel('Frequency:', 20) + freq);
+  if(asamLOC) lines.push(padLabel('ASAM Level of Care:', 20) + asamLOC);
+  if(diagnosis) lines.push(padLabel('Diagnosis:', 20) + diagnosis + ' (per assessment on file)');
+  if(admissionDate) lines.push(padLabel('Admission Date:', 20) + fmtDate(admissionDate));
+  lines.push(padLabel('Capacity to Benefit:', 20) + (capacityEl ? capacityEl.value : '______') + ' (documented per Ohio Medicaid standards)');
   lines.push(padLabel('Date Generated:', 20) + today);
   lines.push(thick);
   lines.push('');
@@ -1291,9 +2777,14 @@ function copyFullPlan(){
       var goalTxt = divs[0] ? divs[0].innerText.trim() : '';
       var objTxt  = divs[1] ? divs[1].innerText.trim() : '';
       var intTxt  = divs[2] ? divs[2].innerText.trim() : '';
+      var serviceTxt = card.getAttribute('data-service') || '';
 
       lines.push('[' + (idx+1) + '] ' + header);
       lines.push('');
+      if(serviceTxt){
+        lines.push('    SERVICE(S) PROVIDED: ' + serviceTxt);
+        lines.push('');
+      }
       if(goalTxt){
         lines.push('    GOAL');
         lines.push('    ' + goalTxt.split('\n').join('\n    '));
@@ -1329,8 +2820,20 @@ function copyFullPlan(){
     lines.push('');
   }
 
-  // SECTION 5 — CONSENT & SIGN-OFF
-  lines.push('SECTION 5 \u2014 CONSENT, PARTICIPATION & SIGNATURES');
+  // SECTION 5 — PRELIMINARY DISCHARGE PLAN / STEP-DOWN CRITERIA
+  var dischargeText = document.getElementById('dischargeOutput') && document.getElementById('dischargeOutput').innerText.trim()
+    ? document.getElementById('dischargeOutput').innerText.trim()
+    : (document.getElementById('dischargeCriteria') ? document.getElementById('dischargeCriteria').value.trim() : '');
+  if(dischargeText){
+    lines.push('SECTION 5 \u2014 PRELIMINARY DISCHARGE PLAN / STEP-DOWN CRITERIA');
+    lines.push(thin);
+    lines.push(dischargeText);
+    lines.push('');
+    lines.push('');
+  }
+
+  // SECTION 6 — CONSENT & SIGN-OFF
+  lines.push('SECTION 6 \u2014 CONSENT, PARTICIPATION & SIGNATURES');
   lines.push(thin);
   lines.push(getSignOffBlock());
 
@@ -1347,20 +2850,35 @@ function resetForm(){
   if(!confirm('Start a new plan? This will clear all entries.')) return;
   document.querySelectorAll('input[type=text],input[type=date],input[type=number],textarea').forEach(function(el){el.value='';});
   document.querySelectorAll('select').forEach(function(el){el.value='';});
+  document.querySelectorAll('input[type=radio]').forEach(function(el){el.checked=false;});
+  var guardianNA = document.querySelector('input[name="guardianConsent"][value="N/A"]');
+  if(guardianNA) guardianNA.checked = true;
   document.querySelectorAll('.chip.selected').forEach(function(el){el.classList.remove('selected');});
   selectedNeeds=[];
   document.getElementById('needDetailFields').innerHTML='';
+  refreshAsamRequiredUI();
   document.getElementById('phiAttestation').checked=false;
   document.getElementById('generateBtn').disabled=true;
   document.getElementById('outputSection').className='output-section';
   document.getElementById('loadingBlock').className='loading';
   document.getElementById('errorMsg').className='error-msg';
   document.getElementById('sliResult').className='sli-result';
+  document.getElementById('sliApplicable').checked=true;
+  sliState = sli2NewState();
+  renderSliWidget();
+  onSliApplicableChange();
   var attestCb = document.getElementById('clinicianAttestation');
   if(attestCb){ attestCb.checked=false; attestCb.disabled=true; }
   if(document.getElementById('tpQaResults')) document.getElementById('tpQaResults').innerHTML='';
   if(document.getElementById('tpQaSummary')){ document.getElementById('tpQaSummary').textContent=''; document.getElementById('tpQaSummary').style.background='transparent'; }
   if(document.getElementById('tpQaGateMessage')) document.getElementById('tpQaGateMessage').textContent='';
+  currentPlanRowId=null; currentPlanVersion=1; currentPlanSupersedesId=null;
+  planSignState={ status:'draft', clinicianName:'', clinicianCredential:'', clinicianSignedAt:null, supervisorName:'', supervisorCredential:'', supervisorSignedAt:null };
+  if(document.getElementById('caseNumberStatus')) document.getElementById('caseNumberStatus').style.display='none';
+  if(document.getElementById('planSaveMsg')){ document.getElementById('planSaveMsg').textContent=''; document.getElementById('planSaveMsg').className='tp-msg'; }
+  ['clinicianSigName','supervisorSigName'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['clinicianSigAttest','supervisorSigAttest'].forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=false; });
+  refreshPlanSignUI();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1384,6 +2902,11 @@ async function runGeneratePlan(){
   var frequency=document.getElementById('frequency').value;
   var clientGoalStatement=document.getElementById('clientGoalStatement').value.trim();
   var clinicalJustification=document.getElementById('clinicalJustification').value.trim();
+  var asamLOC=document.getElementById('asamLevelOfCare') ? document.getElementById('asamLevelOfCare').value : '';
+  var presentingDiagnosis=document.getElementById('presentingDiagnosis') ? document.getElementById('presentingDiagnosis').value.trim() : '';
+  var admissionDate=document.getElementById('admissionDate') ? document.getElementById('admissionDate').value : '';
+  var dischargeCriteria=document.getElementById('dischargeCriteria') ? document.getElementById('dischargeCriteria').value.trim() : '';
+  var capacityToBenefitEl=document.querySelector('input[name="capacityToBenefit"]:checked');
 
   var missing=[];
   if(!planStartDate) missing.push('Plan Start Date');
@@ -1395,12 +2918,17 @@ async function runGeneratePlan(){
   if(!frequency) missing.push('Service Frequency');
   if(selectedNeeds.length===0) missing.push('At least one Need Area');
   if(!clientGoalStatement) missing.push('Client Goal Statement');
+  if(!dischargeCriteria) missing.push('Preliminary Discharge Plan / Step-Down Criteria');
+  if(needsAsamLOC() && !asamLOC) missing.push('ASAM Level of Care (required — Substance Use / Recovery is a selected need area, per OAC 5122-27-03)');
+  if(!capacityToBenefitEl) missing.push('Capacity to Benefit from Treatment');
 
   // Check sub-needs selected
   selectedNeeds.forEach(function(need){
     var id=need.replace(/[^a-zA-Z0-9]/g,'_');
     var sel=document.getElementById('subneed_'+id);
     if(sel && !sel.value) missing.push(need+' focus area');
+    var svcSel=document.getElementById('servicetype_'+id);
+    if(svcSel && !svcSel.value) missing.push(need+' service type');
   });
 
   var errorEl=document.getElementById('errorMsg');
@@ -1412,21 +2940,20 @@ async function runGeneratePlan(){
   errorEl.className='error-msg';
 
   // Collect SLI
+  var sliApplicable=isSliApplicable();
   var sliTotal=parseInt(document.getElementById('sliTotal').textContent)||0;
   var sliLevel=document.getElementById('levelBadge').textContent||'Level 1';
   var sliHours=document.getElementById('sliHoursText')?document.getElementById('sliHoursText').textContent:'';
-  var sdohChkIds=['sdoh_housing','sdoh_food','sdoh_transport','sdoh_healthcare','sdoh_isolation','sdoh_legal'];
-  var sdohChkNames=['Housing instability','Food/utility/rent difficulty','Transportation','Healthcare access','Social isolation','Legal/safety'];
-  var sdohEndorsedList=sdohChkIds.map(function(id,i){return document.getElementById(id)&&document.getElementById(id).checked?sdohChkNames[i]:null;}).filter(Boolean);
-  var riskOvChecked=document.getElementById('riskOverride')&&document.getElementById('riskOverride').checked;
+  var sdohEndorsedList=SLI2_SDOH_ITEMS.filter(function(it){return sliState.sdoh[it.key]===1;}).map(function(it){return it.label;});
+  var escalationApplied = sliScores && sliScores.escalation;
   var getBand=function(id){var el=document.getElementById(id);return el?el.textContent:'';};
   var capEl=document.getElementById('capFlag');
   var sliCap=(capEl&&capEl.style.display==='block')?'Low Clinical/High SDOH Cap Applied':'No cap applied';
-  var sliScores='PHQ-9 raw: '+getNum('sli_phq9')+' | Band: '+getBand('phq9band')
-    +'\nGAD-7 raw: '+getNum('sli_gad7')+' | Band: '+getBand('gad7band')
-    +'\nBAM raw: '+getNum('sli_bam')+' | Band: '+getBand('bamband')
-    +'\nASAM raw: '+getNum('sli_asam')+' | Band: '+getBand('asamband')
-    +'\nRisk raw: '+getNum('sli_risk')+' | Band: '+getBand('riskband')+(riskOvChecked?' [C-SSRS gate applied]':'')
+  var sliScoresText='PHQ-9 raw: '+(sliScores?sliScores.phq9Raw:0)+' | Band: '+getBand('phq9band')
+    +'\nGAD-7 raw: '+(sliScores?sliScores.gad7Raw:0)+' | Band: '+getBand('gad7band')
+    +'\nBAM raw: '+(sliScores?sliScores.bamRaw:0)+' | Band: '+getBand('bamband')
+    +'\nASAM raw: '+(sliState.asam_mh_only?'N/A (MH Only)':(sliScores?sliScores.asamRaw:0))+' | Band: '+getBand('asamband')
+    +'\nRisk raw: '+(sliScores?sliScores.riskRaw:0)+' | Band: '+getBand('riskband')+(escalationApplied?' [C-SSRS escalation]':'')
     +'\nSDOH Barriers ('+sdohEndorsedList.length+'/6): '+(sdohEndorsedList.length>0?sdohEndorsedList.join(', '):'None endorsed')
     +'\nClinical Score: '+document.getElementById('sliClinical').textContent+' | SDOH Score: '+document.getElementById('sliSdoh').textContent
     +'\nAdjusted SLI: '+sliTotal+' | '+sliLevel+' | '+sliHours;
@@ -1436,26 +2963,40 @@ async function runGeneratePlan(){
   selectedNeeds.forEach(function(need){
     var id=need.replace(/[^a-zA-Z0-9]/g,'_');
     var subNeed=document.getElementById('subneed_'+id).value;
+    var serviceType=document.getElementById('servicetype_'+id)?document.getElementById('servicetype_'+id).value:'';
     var context=document.getElementById('needcontext_'+id)?document.getElementById('needcontext_'+id).value.trim():'';
     var template=TEMPLATES[need]&&TEMPLATES[need][subNeed]?TEMPLATES[need][subNeed]:null;
-    needDetailsText+='\nNEED AREA: '+need+'\nFOCUS: '+subNeed+'\n';
+    needDetailsText+='\nNEED AREA: '+need+'\nFOCUS: '+subNeed+'\nSERVICE TYPE: '+serviceType+'\n';
     if(template){
       needDetailsText+='TEMPLATE GOAL: '+template.goal+'\nTEMPLATE OBJECTIVES: '+template.objectives+'\nTEMPLATE INTERVENTIONS: '+template.interventions+'\n';
     }
     if(context) needDetailsText+='CLIENT-SPECIFIC CONTEXT: '+context+'\n';
   });
 
+  var sliSection=sliApplicable
+    ? ('SLI 2.0 SCORES:\n'+sliScoresText+'\nSLI Total: '+sliTotal+' | Support Level: '+sliLevel+' | '+sliCap+'\n\n')
+    : 'SLI 2.0 SCORING: Not applicable to this plan — the clinician has marked SLI 2.0 scoring as not applicable for this program/service type. Do not fabricate or estimate scores.\n\n';
+
   var userContent='Generate an individualized treatment plan using the following data:\n\n'
     +'PROGRAM: '+program+'\nPLAN PERIOD: '+planStartDate+' through '+planEndDate+'\n'
-    +'STAGE OF CHANGE: '+stageOfChange+'\nSERVICE FREQUENCY: '+frequency+'\n\n'
+    +'STAGE OF CHANGE: '+stageOfChange+'\nSERVICE FREQUENCY: '+frequency+'\n'
+    +(asamLOC?'ASAM LEVEL OF CARE: '+asamLOC+'\n':'')
+    +(presentingDiagnosis?'PRESENTING DIAGNOSIS (per assessment on file): '+presentingDiagnosis+'\n':'')
+    +(admissionDate?'ADMISSION/REFERRAL DATE: '+admissionDate+'\n':'')
+    +'CAPACITY TO BENEFIT FROM TREATMENT: '+(capacityToBenefitEl?capacityToBenefitEl.value:'Not documented')+'\n\n'
     +'STRENGTHS & PROTECTIVE FACTORS:\n'+strengths+'\n\nBARRIERS TO RECOVERY:\n'+barriers+'\n\n'
-    +'SLI 2.0 SCORES:\n'+sliScores+'\nSLI Total: '+sliTotal+' | Support Level: '+sliLevel+' | '+sliCap+'\n\n'
+    +sliSection
     +'PRESENTING NEED AREAS WITH PIMSY TEMPLATES:\n'+needDetailsText+'\n'
     +(clinicalJustification?'ADDITIONAL CLINICAL JUSTIFICATION:\n'+clinicalJustification+'\n\n':'')
     +'INDIVIDUAL GOAL STATEMENT: '+clientGoalStatement+'\n\n'
+    +'PRELIMINARY DISCHARGE PLAN / STEP-DOWN CRITERIA (clinician-provided, refine and clarify but preserve intent):\n'+dischargeCriteria+'\n\n'
     +'Generate the treatment plan now. Follow the output format exactly.';
 
-  var systemPrompt='You are a clinical documentation specialist supporting Thrive Peer Recovery Services, a CARF-accredited, OhioMHAS-certified, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate individualized, person-centered treatment plans that meet CARF behavioral health standards, OhioMHAS certification requirements, Ohio Medicaid billing documentation standards, and SAMHSA best practices for peer support services.\n\nCLINICAL FRAMING: This is a peer support treatment plan completed by a clinician or care coordinator. Language should be professional, clinical, and recovery-oriented. Goals, objectives, and interventions must reflect the scope of peer support services — not clinical therapy or case management — but should use proper clinical documentation language appropriate for CARF audit, Medicaid review, and OhioMHAS oversight.\n\nPIMSY TEMPLATE INSTRUCTIONS: You are provided with Thrive\'s Pimsy template language for each need area. Use this as the structural foundation — preserve the core goal, objective, and intervention architecture — but individualize the language to reflect this specific individual\'s assessed strengths, identified barriers, stage of change, and presenting clinical context. Plans must not read as copied templates. Do NOT repeat the Stage of Change in every need block — reference it once in the Plan Summary and once in the SLI Justification only.\n\nTERMINOLOGY:\n- Refer to the person receiving services as "the individual" or by the pronoun appropriate to context in formal clinical sections; use "Peer" when referencing their recovery role or in goal language (e.g., "Peer will...")\n- Refer to the provider as "Peer Recovery Supporter" or "PRS" — never "the worker," "This writer," or "staff"\n- Use clinically appropriate language: presenting needs, identified barriers, assessed strengths, clinical rationale, medical necessity, functional impairment, level of care, service intensity\n- Use \"Peer will...\" ONLY in GOAL statements. Use \"the individual\" everywhere else in plan narrative sections.\n\nOUTPUT FORMAT — follow exactly, each section on its own line:\n\nPLAN SUMMARY\n[4-5 sentences covering: program, plan period, presenting clinical picture, stage of change, assessed strengths, primary barriers including SDOH factors, assigned SLI support level, and authorized service frequency. This section establishes medical necessity and must be suitable for CARF audit and Medicaid review.]\n\nFor EACH need area, output in this exact structure:\nNEED: [need area name]\nFOCUS: [sub-need name]\nGOAL: [Long-term SMART goal individualized to this person. Must be Specific, Measurable, Achievable, Relevant, and Time-bound. Written as: "Peer will [specific, observable outcome] by [timeframe]."]\nOBJECTIVES:\n1. [Short-term, measurable objective that incrementally supports the goal. Time-bound where possible.]\n2. [Short-term, measurable objective.]\n3. [Short-term, measurable objective.]\nINTERVENTIONS:\n1. [Specific peer support intervention the PRS will provide. Use active clinical language: "PRS will [action verb] to support the individual in [outcome]..."]\n2. [Specific intervention.]\n3. [Specific intervention.]\n\nINDIVIDUAL GOAL STATEMENT\n[The individual\'s own recovery goal reframed in strengths-based, recovery-oriented clinical language. 2-3 sentences written in first person or as a direct quote contextually framed. This reflects person-centered planning per CARF standards.]\n\nSLI 2.0 SUMMARY AND CLINICAL JUSTIFICATION\n[State: SLI Clinical Score, SDOH Barrier Score, Adjusted SLI Total, assigned Support Level (1-5), authorized hours per week, and whether the Low Clinical/High SDOH cap was applied. Then provide a 4-5 sentence clinical justification narrative that: (1) connects the individual\'s PHQ-9, GAD-7, BAM, ASAM, and Risk scores to their functional presentation; (2) links identified SDOH barriers to their impact on mental health and/or substance use recovery outcomes; (3) articulates why the assigned service level is clinically necessary and appropriate; (4) references the individual\'s strengths and how peer support at this intensity will leverage them. This section must demonstrate medical necessity and be audit-ready for CARF, ODBH, and Ohio Medicaid.]\n\nCOMPLIANCE REQUIREMENTS:\n- All goals must be SMART and individually tailored — generic or interchangeable goals are non-compliant\n- Interventions must be within PRS scope of practice: lived experience, skill-building, advocacy, resource linkage, accompaniment, motivational support — not therapy or counseling\n- Peer support tenets must be embedded naturally: use of lived experience, fostering self-determination and independence, mutuality, instilling hope\n- SDOH barriers must be explicitly connected to recovery outcomes — never documented as standalone social service tasks\n- Interventions must build individual capacity and self-determination — not create dependency\n- Medical necessity must be demonstrable throughout — link presenting needs to service intensity\n- Never use "goal met" or "goal not met" language\n- Never use vague interventions such as "provide support," "check in," or "offer encouragement"\n- All content in third person except the Individual Goal Statement\n- Person-first, strengths-based, recovery-oriented language throughout'
+  var systemPrompt='You are a clinical documentation specialist supporting Thrive Peer Recovery Services, a CARF-accredited, OhioMHAS-certified, ODBH-compliant peer support agency in Cuyahoga County, Ohio. Generate individualized, person-centered treatment plans that meet CARF behavioral health standards, OhioMHAS certification requirements, Ohio Medicaid billing documentation standards, and SAMHSA best practices for peer support services.\n\nCLINICAL FRAMING: This is a peer support treatment plan completed by a clinician or care coordinator. Language should be professional, clinical, and recovery-oriented. Goals, objectives, and interventions must reflect the scope of peer support services — not clinical therapy or case management — but should use proper clinical documentation language appropriate for CARF audit, Medicaid review, and OhioMHAS oversight.\n\nPIMSY TEMPLATE INSTRUCTIONS: You are provided with Thrive\'s Pimsy template language for each need area. Use this as the structural foundation — preserve the core goal, objective, and intervention architecture — but individualize the language to reflect this specific individual\'s assessed strengths, identified barriers, stage of change, and presenting clinical context. Plans must not read as copied templates. Do NOT repeat the Stage of Change in every need block — reference it once in the Plan Summary and once in the SLI Justification only.\n\nTERMINOLOGY:\n- Refer to the person receiving services as "the individual" or by the pronoun appropriate to context in formal clinical sections; use "Peer" when referencing their recovery role or in goal language (e.g., "Peer will...")\n- Refer to the provider as "Peer Recovery Supporter" or "PRS" — never "the worker," "This writer," or "staff"\n- Use clinically appropriate language: presenting needs, identified barriers, assessed strengths, clinical rationale, medical necessity, functional impairment, level of care, service intensity\n- Use \"Peer will...\" ONLY in GOAL statements. Use \"the individual\" everywhere else in plan narrative sections.\n\nDIAGNOSTIC CONSISTENCY: If a presenting diagnosis is provided, every need area\'s goal and objectives must be consistent with and clearly relevant to that diagnosis, per Ohio Medicaid documentation standards. Do not diagnose or add clinical impressions beyond what is provided.\n\nMEASUREMENT-INFORMED CARE (CARF requirement): Do not treat the SLI 2.0 scores as a number reported once and forgotten. For AT LEAST the two need areas most clinically related to the SLI 2.0 findings, explicitly reference the specific relevant subscale score or band (e.g., an elevated PHQ-9/GAD-7 band, ASAM dimension findings, an endorsed SDOH barrier) within that need area\'s GOAL or INTERVENTIONS text, showing how that specific finding is driving the intensity or focus of the intervention. This demonstrates the assessment data visibly and systematically informs the treatment plan, not just the SLI Summary section.\n\nOUTPUT FORMAT — follow exactly, each section on its own line:\n\nPLAN SUMMARY\n[4-5 sentences covering: program, plan period, presenting clinical picture, stage of change, assessed strengths, primary barriers including SDOH factors, assigned SLI support level, and authorized service frequency. This section establishes medical necessity and must be suitable for CARF audit and Medicaid review.]\n\nFor EACH need area, output in this exact structure:\nNEED: [need area name]\nFOCUS: [sub-need name]\nGOAL: [Long-term SMART goal individualized to this person. Must be Specific, Measurable, Achievable, Relevant, and Time-bound. Written as: "Peer will [specific, observable outcome] by [timeframe]."]\nOBJECTIVES:\n1. [Short-term, measurable objective that incrementally supports the goal. Time-bound where possible.]\n2. [Short-term, measurable objective.]\n3. [Short-term, measurable objective.]\nINTERVENTIONS:\n1. [Specific peer support intervention the PRS will provide. Use active clinical language: "PRS will [action verb] to support the individual in [outcome]..."]\n2. [Specific intervention.]\n3. [Specific intervention.]\n\nINDIVIDUAL GOAL STATEMENT\n[The individual\'s own recovery goal reframed in strengths-based, recovery-oriented clinical language. 2-3 sentences written in first person or as a direct quote contextually framed. This reflects person-centered planning per CARF standards.]\n\nSLI 2.0 SUMMARY AND CLINICAL JUSTIFICATION\n[State: SLI Clinical Score, SDOH Barrier Score, Adjusted SLI Total, assigned Support Level (1-5), authorized hours per week, and whether the Low Clinical/High SDOH cap was applied. Then provide a 4-5 sentence clinical justification narrative that: (1) connects the individual\'s PHQ-9, GAD-7, BAM, ASAM, and Risk scores to their functional presentation; (2) links identified SDOH barriers to their impact on mental health and/or substance use recovery outcomes; (3) articulates why the assigned service level is clinically necessary and appropriate; (4) references the individual\'s strengths and how peer support at this intensity will leverage them. This section must demonstrate medical necessity and be audit-ready for CARF, ODBH, and Ohio Medicaid.]\n\nPRELIMINARY DISCHARGE PLAN / STEP-DOWN CRITERIA\n[2-3 sentences, refined from the clinician-provided discharge/step-down criteria, stating the anticipated, individualized criteria for successful completion of peer support services and/or step-down to a lower service intensity. Must be specific and measurable, not generic (e.g., not simply "when goals are met").]\n\nCOMPLIANCE REQUIREMENTS:\n- All goals must be SMART and individually tailored — generic or interchangeable goals are non-compliant\n- Interventions must be within PRS scope of practice: lived experience, skill-building, advocacy, resource linkage, accompaniment, motivational support — not therapy or counseling\n- Peer support tenets must be embedded naturally: use of lived experience, fostering self-determination and independence, mutuality, instilling hope\n- SDOH barriers must be explicitly connected to recovery outcomes — never documented as standalone social service tasks\n- Interventions must build individual capacity and self-determination — not create dependency\n- Medical necessity must be demonstrable throughout — link presenting needs to service intensity\n- Never use "goal met" or "goal not met" language\n- Never use vague interventions such as "provide support," "check in," or "offer encouragement"\n- All content in third person except the Individual Goal Statement\n- Person-first, strengths-based, recovery-oriented language throughout';
+
+  if(!sliApplicable){
+    systemPrompt += '\n\nSLI 2.0 NOT APPLICABLE OVERRIDE: The clinician has marked SLI 2.0 scoring as not applicable to this plan. For the "SLI 2.0 SUMMARY AND CLINICAL JUSTIFICATION" output section, do NOT invent, estimate, or reference any PHQ-9, GAD-7, BAM, ASAM, or Risk scores, support level number, or hours/week. Instead output only: "SLI 2.0 scoring is not applicable to this plan." followed by 2-3 sentences establishing medical necessity and the appropriateness of the authorized service frequency based on the strengths, barriers, and clinical justification provided instead.';
+  }
 
   document.getElementById('loadingBlock').className='loading visible';
   document.getElementById('outputSection').className='output-section';
@@ -1498,6 +3039,7 @@ async function runGeneratePlan(){
     selectedNeeds.forEach(function(need){
       var id=need.replace(/[^a-zA-Z0-9]/g,'_');
       var subNeed=document.getElementById('subneed_'+id)?document.getElementById('subneed_'+id).value:'';
+      var serviceType=document.getElementById('servicetype_'+id)?document.getElementById('servicetype_'+id).value:'';
 
       // Find the block that matches this need name (case-insensitive partial match)
       var blockText='';
@@ -1522,8 +3064,12 @@ async function runGeneratePlan(){
 
       var card=document.createElement('div');
       card.className='output-card';
+      card.setAttribute('data-need', need);
+      card.setAttribute('data-focus', subNeed || '');
+      card.setAttribute('data-service', serviceType || '');
       card.innerHTML='<div class="output-header"><h3>'+need.toUpperCase()+(subNeed?' — '+subNeed.toUpperCase():'')+'</h3></div>'
         +'<div class="output-body">'
+        +(serviceType?'<div class="need-section-label">Service(s) Provided</div><div style="font-size:13px;color:#555;margin-bottom:12px;">'+serviceType+'</div>':'')
         +'<div class="need-section-label">Goal</div>'
         +'<div contenteditable="true" style="font-size:14px;color:#2d2d2d;line-height:1.7;margin-bottom:12px;">'
         +(goalMatch?goalMatch[1].trim():'[Goal not parsed — check AI output]')
@@ -1544,8 +3090,15 @@ async function runGeneratePlan(){
     document.getElementById('clientGoalOutput').innerText=goalMatch2?goalMatch2[0].replace(/^INDIVIDUAL GOAL STATEMENT\s*/i,'').trim():'';
 
     // Parse SLI JUSTIFICATION
-    var justMatch=fullText.match(/SLI 2\.0 SUMMARY[\s\S]*/i);
+    var justMatch=fullText.match(/SLI 2\.0 SUMMARY[\s\S]*?(?=PRELIMINARY DISCHARGE PLAN|$)/i);
     document.getElementById('justificationOutput').innerText=justMatch?justMatch[0].replace(/^SLI 2\.0[^\r\n]*/i,'').trim():'';
+
+    // Parse PRELIMINARY DISCHARGE PLAN
+    var dischargeMatch=fullText.match(/PRELIMINARY DISCHARGE PLAN[\s\S]*/i);
+    document.getElementById('dischargeOutput').innerText=dischargeMatch?dischargeMatch[0].replace(/^PRELIMINARY DISCHARGE PLAN[^\r\n]*/i,'').trim():'';
+    if(!document.getElementById('dischargeOutput').innerText && dischargeCriteria){
+      document.getElementById('dischargeOutput').innerText = dischargeCriteria;
+    }
 
     // Run CARF/ODBH compliance QA checks
     var qaNeedCardsData = getNeedCardsData();
@@ -1553,12 +3106,14 @@ async function runGeneratePlan(){
       document.getElementById('planSummaryOutput').innerText,
       qaNeedCardsData,
       document.getElementById('clientGoalOutput').innerText,
-      document.getElementById('justificationOutput').innerText
+      document.getElementById('justificationOutput').innerText,
+      document.getElementById('dischargeOutput').innerText
     );
 
     document.getElementById('loadingBlock').className='loading';
     document.getElementById('outputSection').className='output-section visible';
     document.getElementById('outputSection').scrollIntoView({behavior:'smooth',block:'start'});
+    if(typeof onPlanContentRegenerated==='function') onPlanContentRegenerated();
   } catch(err){
     document.getElementById('loadingBlock').className='loading';
     errorEl.textContent='Error generating plan: '+err.message+'. Please check your connection and try again.';
@@ -1582,6 +3137,7 @@ function closeReview() {
 }
 
 function toggleReviewNeed(el) {
+  if(typeof resetReviewClinicianSignature==='function') resetReviewClinicianSignature('Need areas changed after signing — please re-sign as clinician before supervisor signs.');
   var need = el.getAttribute('data-need');
   el.classList.toggle('selected');
   if (el.classList.contains('selected')) {
@@ -1624,30 +3180,98 @@ function renderReviewProgressBlocks() {
   });
 }
 
+// ── Review-panel SLI widget instance (independent state from the main plan's) ──
+var reviewSliState = sli2NewState();
+var reviewSliScores = null;
+
+function renderReviewSliWidget(){
+  var c = document.getElementById('reviewSliItemsContainer');
+  if(!c) return;
+  c.innerHTML = sli2BuildItemsHtml(reviewSliState);
+  sli2WireEvents(c, reviewSliState, onReviewSliStateChange);
+  calcReviewSLI();
+}
+
+function onReviewSliStateChange(){
+  renderReviewSliWidget();
+  if(typeof resetReviewClinicianSignature==='function') resetReviewClinicianSignature('SLI 2.0 answers changed after signing — please re-sign as clinician before supervisor signs.');
+}
+
+function onRevSliApplicableChange(){
+  var applicable = document.getElementById('rev_sliApplicable').checked;
+  document.getElementById('reviewSliScoringBlock').style.display = applicable ? '' : 'none';
+  document.getElementById('revSliNotApplicableNote').style.display = applicable ? 'none' : 'block';
+  calcReviewSLI();
+  if(typeof resetReviewClinicianSignature==='function') resetReviewClinicianSignature('SLI 2.0 applicability changed after signing — please re-sign as clinician before supervisor signs.');
+}
+function isRevSliApplicable(){
+  var el = document.getElementById('rev_sliApplicable');
+  return !el || el.checked;
+}
+
+function collectReviewSliRecord(){
+  if(!isRevSliApplicable()) return { applicable: false };
+  var s = reviewSliScores || sli2ComputeScores(reviewSliState);
+  return {
+    applicable: true,
+    items: reviewSliState,
+    phq9: s.phq9Raw, phq9_band: s.phq9Band.label, phq9_points: s.phq9Band.points,
+    gad7: s.gad7Raw, gad7_band: s.gad7Band.label, gad7_points: s.gad7Band.points,
+    bam: s.bamRaw, bam_band: s.bamBand.label, bam_points: s.bamBand.points,
+    asam: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points, asam_mh_only: !!reviewSliState.asam_mh_only,
+    risk: s.riskRaw, risk_band: s.riskBand.label, risk_points: s.riskBand.points, riskOverride: s.escalation,
+    sdoh: Object.keys(reviewSliState.sdoh).filter(function(k){return reviewSliState.sdoh[k]===1;}),
+    clinicalScore: s.clinicalScore,
+    sdohScore: s.sdohScore,
+    total: s.adjustedSli,
+    level: s.cap ? 'Level 1 (Cap Applied)' : s.calculatedLevel.label,
+    hours: s.cap ? '1-2 hrs/wk' : s.calculatedLevel.hours,
+    capApplied: s.cap,
+    directorReviewRequired: s.directorReviewRequired
+  };
+}
+
 function calcReviewSLI() {
-  function rn(id){var el=document.getElementById(id);if(!el)return 0;var v=parseFloat(el.value);return isNaN(v)?0:v;}
-  // Apply same banding as main SLI
-  var p=rn('rev_sli_phq9'),g=rn('rev_sli_gad7'),b=rn('rev_sli_bam'),a=rn('rev_sli_asam'),ri=rn('rev_sli_risk');
-  var phq9pts=p<=9?1:p<=14?2:p<=19?3:4;
-  var gad7pts=g<=9?1:g<=14?2:g<=19?3:4;
-  var bampts=b<=20?1:b<=35?2:b<=45?3:4;
-  var asampts=a<=6?1:a<=12?2:a<=17?3:4;
-  var riskOv=document.getElementById('rev_risk_override')&&document.getElementById('rev_risk_override').checked;
-  var riskpts=riskOv?2:ri===0?0:ri<=3?1:2;
-  var revSdoh=['rev_sdoh_housing','rev_sdoh_food','rev_sdoh_transport','rev_sdoh_healthcare','rev_sdoh_isolation','rev_sdoh_legal'];
-  var sdoh=revSdoh.filter(function(id){var el=document.getElementById(id);return el&&el.checked;}).length;
-  var clinical=phq9pts+gad7pts+bampts+asampts+riskpts;
-  var total=clinical+sdoh;
-  var capApplied=(clinical<=4)&&(sdoh>=3);
-  var level,cap;
-  if(capApplied||total<=5){level='Level 1'+(capApplied?' (Cap Applied)':'');cap='1-2 hrs/wk';}
-  else if(total<=8){level='Level 2 \u2014 Moderate';cap='2-4 hrs/wk';}
-  else if(total<=11){level='Level 3 \u2014 High';cap='4-6 hrs/wk';}
-  else if(total<=14){level='Level 4 \u2014 Intensive';cap='6-8 hrs/wk';}
-  else{level='Level 5 \u2014 Critical (Director Approval Required)';cap='8+ hrs/wk';}
-  document.getElementById('revSliTotal').textContent=total;
-  document.getElementById('revSliLevel').textContent=level;
-  document.getElementById('revSliCap').textContent=cap;
+  if(!isRevSliApplicable()){
+    document.getElementById('revSliTotal').textContent='N/A';
+    document.getElementById('revSliLevel').textContent='Not applicable';
+    document.getElementById('revSliCap').textContent='—';
+    document.getElementById('revSliClinical').textContent='—';
+    document.getElementById('revSliSdoh').textContent='—';
+    ['revPhq9band','revGad7band','revBamband','revAsamband','revRiskband','revSdohCount'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent='—'; });
+    document.getElementById('revLowClinicalFlag').textContent='—';
+    document.getElementById('revHighSdohFlag').textContent='—';
+    document.getElementById('revLevelBadge').textContent='—'; document.getElementById('revLevelBadge').className='level-badge';
+    document.getElementById('revSliCapText').textContent='';
+    document.getElementById('revSliHoursText').textContent='';
+    document.getElementById('revDirectorFlag').style.display='none';
+    document.getElementById('revCapFlag').style.display='none';
+    document.getElementById('reviewSliResult').className='sli-result visible';
+    return;
+  }
+  reviewSliScores = sli2ComputeScores(reviewSliState);
+  var s = reviewSliScores;
+  var st = function(id,v){ var el = document.getElementById(id); if(el) el.textContent = v; };
+  st('revPhq9band', s.phq9Band.label + ' (' + s.phq9Band.points + 'pt' + (s.phq9Band.points===1?'':'s') + ')');
+  st('revGad7band', s.gad7Band.label + ' (' + s.gad7Band.points + 'pt' + (s.gad7Band.points===1?'':'s') + ')');
+  st('revBamband', s.bamBand.label + ' (' + s.bamBand.points + 'pt' + (s.bamBand.points===1?'':'s') + ')');
+  st('revAsamband', s.asamBand.label + (reviewSliState.asam_mh_only ? '' : ' (' + s.asamBand.points + 'pt' + (s.asamBand.points===1?'':'s') + ')'));
+  st('revRiskband', s.riskBand.label + ' (' + s.riskBand.points + 'pt' + (s.riskBand.points===1?'':'s') + ')' + (s.escalation ? ' — C-SSRS escalation' : ''));
+  st('revSdohCount', s.sdohScore);
+  st('revSliClinical', s.clinicalScore); st('revSliSdoh', s.sdohScore); st('revSliTotal', s.adjustedSli);
+  st('revLowClinicalFlag', s.lowClinicalFlag ? 'YES (Score ≤4)' : 'NO (Score ≥5)'); document.getElementById('revLowClinicalFlag').style.color = s.lowClinicalFlag ? '#E8417A' : '#1A7A3A';
+  st('revHighSdohFlag', s.highSdohFlag ? 'YES (Barriers ≥3)' : 'NO (Barriers ≤2)'); document.getElementById('revHighSdohFlag').style.color = s.highSdohFlag ? '#E8417A' : '#1A7A3A';
+  var level = s.cap ? 'Level 1 — Cap Applied' : s.calculatedLevel.label;
+  var hours = s.cap ? '1–2 hrs/wk — Maintenance' : s.calculatedLevel.hours;
+  var cls = s.cap ? 'level-standard' : (s.calculatedLevel.level<=2?'level-standard':s.calculatedLevel.level<=4?'level-enhanced':'level-intensive');
+  var badge = document.getElementById('revLevelBadge'); badge.textContent = level; badge.className = 'level-badge ' + cls;
+  st('revSliCapText','Adjusted SLI: ' + s.adjustedSli + ' points');
+  st('revSliHoursText', hours);
+  document.getElementById('revDirectorFlag').style.display = s.directorReviewRequired ? 'block' : 'none';
+  document.getElementById('revCapFlag').style.display = s.cap ? 'block' : 'none';
+  // Legacy fields kept in sync for the review/plan text-generation code below, which reads these directly.
+  st('revSliLevel', level);
+  st('revSliCap', hours);
   document.getElementById('reviewSliResult').className='sli-result visible';
 }
 
@@ -1720,14 +3344,18 @@ async function generateReview() {
       + '\nRECOMMENDATION: ' + recommendation + '\n';
   });
 
+  var revSliApplicable = isRevSliApplicable();
   var revTotal = document.getElementById('revSliTotal').textContent;
   var revLevel = document.getElementById('revSliLevel').textContent;
   var revCap = document.getElementById('revSliCap').textContent;
+  var revSliLine = revSliApplicable
+    ? ('UPDATED SLI TOTAL: ' + revTotal + ' | SUPPORT LEVEL: ' + revLevel + ' | SERVICE CAP: ' + revCap + '\n')
+    : 'UPDATED SLI 2.0 SCORING: Not applicable to this plan — do not fabricate or reference scores.\n';
 
   var userContent = 'Generate a 90-day treatment plan review addendum AND an updated treatment plan.\n\n'
     + 'REVIEW DATE: ' + reviewDate + '\n'
     + 'REVIEW PERIOD: ' + reviewPeriod + '\n'
-    + 'UPDATED SLI TOTAL: ' + revTotal + ' | SUPPORT LEVEL: ' + revLevel + ' | SERVICE CAP: ' + revCap + '\n'
+    + revSliLine
     + 'UPDATED FREQUENCY: ' + reviewFrequency + '\n\n'
     + 'CURRENT TREATMENT PLAN:\n' + currentPlan + '\n\n'
     + 'OVERALL PROGRESS SUMMARY:\n' + overallProgress + '\n\n'
@@ -1751,7 +3379,11 @@ async function generateReview() {
     + '- Minimal or no progress: maintain goal language but refine objectives to address identified barriers; adjust interventions based on what has and has not been effective\n'
     + '- Goal achieved or need area closed: document closure with clinical rationale\n'
     + 'Follow the same format as the original plan: PLAN SUMMARY (updated), then per-need blocks (NEED / FOCUS / GOAL / OBJECTIVES / INTERVENTIONS), then UPDATED INDIVIDUAL GOAL STATEMENT, then UPDATED SLI 2.0 SUMMARY AND CLINICAL JUSTIFICATION.\n\n'
-    + 'COMPLIANCE REQUIREMENTS FOR BOTH DOCUMENTS: All goals SMART and individually tailored. Person-first, strengths-based, recovery-oriented language. PRS scope of practice maintained throughout — peer support interventions only, not therapy or case management. Peer support tenets embedded: lived experience, self-determination, mutuality, hope. SDOH barriers connected to recovery outcomes. Medical necessity demonstrable. Never use "goal met" or "goal not met" — describe what was actively worked on and the individual\'s observable response. Never use "canceled" or "cancellation" when a need area or services are ending or being closed out — use "discontinued" or "closed" instead, consistent with the status options provided. All content in third person.'
+    + 'COMPLIANCE REQUIREMENTS FOR BOTH DOCUMENTS: All goals SMART and individually tailored. Person-first, strengths-based, recovery-oriented language. PRS scope of practice maintained throughout — peer support interventions only, not therapy or case management. Peer support tenets embedded: lived experience, self-determination, mutuality, hope. SDOH barriers connected to recovery outcomes. Medical necessity demonstrable. Never use "goal met" or "goal not met" — describe what was actively worked on and the individual\'s observable response. Never use "canceled" or "cancellation" when a need area or services are ending or being closed out — use "discontinued" or "closed" instead, consistent with the status options provided. All content in third person.';
+
+  if(!revSliApplicable){
+    systemPrompt += '\n\nSLI 2.0 NOT APPLICABLE OVERRIDE: SLI 2.0 scoring is marked not applicable to this plan. For the "UPDATED SLI 2.0 SUMMARY" section in both documents, do NOT invent, estimate, or reference any PHQ-9, GAD-7, BAM, ASAM, or Risk scores, support level number, or hours/week. Instead output only: "SLI 2.0 scoring is not applicable to this plan." followed by 2-3 sentences establishing medical necessity for the updated frequency based on the progress and clinical justification provided instead.';
+  }
 
   document.getElementById('generateReviewBtn').textContent = 'Generating...';
   document.getElementById('generateReviewBtn').disabled = true;
@@ -1780,6 +3412,9 @@ async function generateReview() {
 
     document.getElementById('reviewOutputSection').style.display = 'block';
     document.getElementById('reviewOutputSection').scrollIntoView({behavior:'smooth', block:'start'});
+    currentReviewRowId = null;
+    reviewSignState = { status:'draft', clinicianName:'', clinicianCredential:'', clinicianSignedAt:null, supervisorName:'', supervisorCredential:'', supervisorSignedAt:null };
+    if(typeof refreshReviewSignUI==='function') refreshReviewSignUI();
   } catch(err) {
     alert('Error generating review: ' + err.message + '. Please check your connection and try again.');
   }
@@ -1788,6 +3423,9 @@ async function generateReview() {
   document.getElementById('generateReviewBtn').disabled = false;
 }
 
+// Render both SLI 2.0 widgets now that the full engine above has loaded.
+renderSliWidget();
+renderReviewSliWidget();
 </script>
 </body>
 </html>
