@@ -33,6 +33,12 @@ select{cursor:pointer;}
 .chip{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #dde0f0;background:#f4f5f7;color:#555;user-select:none;transition:all 0.15s;}
 .chip:hover{border-color:#4B5EA6;color:#4B5EA6;}
 .chip.selected{background:#4B5EA6;border-color:#4B5EA6;color:#fff;}
+.chip.selected.risk{background:#E8417A;border-color:#E8417A;}
+.sli-item{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #eee;}
+.sli-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.sli-item .q{font-size:13px;color:#2d2d4e;margin-bottom:8px;line-height:1.5;}
+.sli-gap-note{font-size:11.5px;color:#7A5200;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:6px;padding:10px 12px;margin:0 0 14px;line-height:1.55;}
+.sli-crisis-note{font-size:12px;color:#8B1A1A;background:#FDECEA;border:1.5px solid #E8417A;border-radius:6px;padding:10px 12px;margin:12px 0;line-height:1.55;font-weight:600;}
 .toggle-row{display:flex;align-items:center;gap:16px;padding:14px 0;}
 .toggle-label{font-size:14px;font-weight:600;color:#2d2d4e;}
 .toggle-options{display:flex;border:1.5px solid #dde0f0;border-radius:8px;overflow:hidden;}
@@ -87,6 +93,27 @@ select{cursor:pointer;}
 .char-counter{font-size:11px;color:#aaa;margin-top:5px;text-align:right;transition:color 0.15s;}
 .char-counter.ok{color:#1A7A3A;}
 .char-counter.short{color:#B08000;}
+
+/* ── SLI 2.0 (Support Level Indicator) — matches Treatment Plan Builder styling ── */
+.sli-card{background:#f0f2fa;border:1.5px solid #c8cfe8;border-radius:10px;padding:18px;margin-bottom:16px;}
+.sli-card h3{font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;}
+.score-input-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media(max-width:700px){.score-input-row{grid-template-columns:1fr 1fr 1fr;}}
+.score-field label{font-size:12px;font-weight:600;color:#2d2d4e;display:block;margin-bottom:4px;}
+.score-field input{padding:8px 10px;font-size:14px;}
+.sli-result{background:#fff;border:2px solid #4B5EA6;border-radius:10px;padding:16px;margin-top:16px;display:none;}
+.sli-result.visible{display:block;}
+.sli-result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.sli-result-item{text-align:center;padding:12px;background:#f4f5f7;border-radius:8px;}
+.sli-result-item .val{font-size:22px;font-weight:700;color:#4B5EA6;}
+.sli-result-item .lbl{font-size:11px;color:#888;margin-top:4px;}
+.level-badge{display:inline-block;padding:6px 18px;border-radius:20px;font-size:13px;font-weight:700;}
+.level-standard{background:#E8F5EC;color:#1A7A3A;}
+.level-enhanced{background:#FFF8E6;color:#7A5200;}
+.level-intensive{background:#FDECEA;color:#8B1A1A;}
+.output-header-sli{background:#EEF1FB;}
+.output-header-sli h3{color:#2d3f8f;}
+.output-header-sli .copy-btn{color:#2d3f8f;}
 </style>
 </head>
 <body>
@@ -503,6 +530,45 @@ select{cursor:pointer;}
           <option value="Level 5: Medically Monitored Intensive Inpatient Services">Level 5: Medically Monitored Intensive Inpatient Services</option>
         </select>
       </div>
+
+      <div class="field" style="margin-top:24px;padding-top:20px;border-top:1.5px solid #eee;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <input type="checkbox" id="sliIncluded" onchange="onSliIncludedChange()" style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;"/>
+          <label for="sliIncluded" style="font-size:13px;font-weight:600;color:#2d2d4e;cursor:pointer;">Include an SLI 2.0 re-score in this note<br/><span style="font-size:11.5px;font-weight:400;color:#888;">Optional. Use this for a periodic re-assessment session (e.g. an Assessment or Treatment Plan update) where the Support Level Indicator needs to be recalculated — not every session.</span></label>
+        </div>
+      </div>
+
+      <div id="sliBlock" class="conditional-block" style="background:#fff;">
+        <div class="conditional-block-tag">SLI 2.0 &mdash; Support Level Indicator</div>
+        <div style="background:#EEF1FB;border:1.5px solid #c8cfe8;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#2d2d4e;line-height:1.5;">Answer the full instrument below &mdash; the scores, bands, and support level are calculated automatically per the SLI 2.0 Training Manual.</div>
+
+        <div id="sliItemsContainer"></div>
+
+        <div class="sli-result" id="sliResult">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:14px;font-size:12px;color:#2d2d4e;">
+            <div><strong>PHQ-9:</strong> <span id="phq9band"></span></div>
+            <div><strong>GAD-7:</strong> <span id="gad7band"></span></div>
+            <div><strong>BAM:</strong> <span id="bamband"></span></div>
+            <div><strong>ASAM:</strong> <span id="asamband"></span></div>
+            <div><strong>Risk:</strong> <span id="riskband"></span></div>
+            <div><strong>SDOH Barriers:</strong> <span id="sdohCount"></span> / 6</div>
+          </div>
+          <div class="sli-result-grid">
+            <div class="sli-result-item"><div class="val" id="sliClinical">0</div><div class="lbl">Clinical Score</div></div>
+            <div class="sli-result-item"><div class="val" id="sliSdoh">0</div><div class="lbl">SDOH Barrier Score</div></div>
+            <div class="sli-result-item"><div class="val" id="sliTotal">0</div><div class="lbl">Adjusted SLI</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div style="background:#f4f5f7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:11px;color:#888;margin-bottom:4px;">Low Clinical Flag</div><div style="font-size:13px;font-weight:700;" id="lowClinicalFlag">&mdash;</div></div>
+            <div style="background:#f4f5f7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:11px;color:#888;margin-bottom:4px;">High SDOH Flag</div><div style="font-size:13px;font-weight:700;" id="highSdohFlag">&mdash;</div></div>
+          </div>
+          <div style="text-align:center;margin-bottom:8px;"><span class="level-badge" id="levelBadge">&mdash;</span></div>
+          <div style="text-align:center;font-size:13px;color:#555;margin-bottom:4px;" id="sliCapText"></div>
+          <div style="text-align:center;font-size:13px;font-weight:600;color:#2d2d4e;" id="sliHoursText"></div>
+          <div style="display:none;margin-top:10px;padding:10px;background:#FDECEA;border-radius:6px;text-align:center;font-size:12px;color:#8B1A1A;font-weight:600;" id="directorFlag">&#9888; Level 5 &mdash; Director Approval Required before continuing services at this intensity</div>
+          <div style="display:none;margin-top:10px;padding:10px;background:#FFF8E6;border-radius:6px;text-align:center;font-size:12px;color:#7A5200;font-weight:600;" id="capFlag">&#9888; Service Intensity Cap Applied &mdash; Level 1 regardless of Adjusted SLI. Focus on barrier resolution.</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -625,6 +691,14 @@ select{cursor:pointer;}
         <button class="copy-btn" id="copyMseBtn" onclick="copySection('mseOutput', this)" disabled style="opacity:0.4;cursor:not-allowed;">Copy</button>
       </div>
       <div class="output-body" id="mseOutput" contenteditable="true"></div>
+    </div>
+
+    <div class="output-card" id="sliOutputCard" style="display:none;">
+      <div class="output-header output-header-sli">
+        <h3>SLI 2.0 Re-Score (structured &mdash; not AI-generated)</h3>
+        <button class="copy-btn" id="copySliBtn" onclick="copySection('sliOutput', this)" disabled style="opacity:0.4;cursor:not-allowed;">Copy</button>
+      </div>
+      <div class="output-body" id="sliOutput" contenteditable="true"></div>
     </div>
 
     <div class="output-card output-card-remarks" id="remarksOutputCard" style="display:none;">
@@ -991,6 +1065,376 @@ async function runRiskScan(narrativeText) {
 }
 
 // ── MSE STRUCTURED OUTPUT (built directly from selections — never passed through the AI) ──
+// ══════════════════════════════════════════════════════════════════
+// SLI 2.0 FULL ASSESSMENT ENGINE
+// Same full six-instrument item set used by the standalone SLI 2.0
+// Assessment tool and the Treatment Plan Builder (SLI 2.0 Staff Training
+// Manual + SLI_2_0.xlsx Pimsy form export). Replaces manual raw-score
+// entry so the actual items are answered here and the scores derived.
+// ══════════════════════════════════════════════════════════════════
+var SLI2_PHQ9_ITEMS = [
+  'Little interest or pleasure in doing things',
+  'Feeling down, depressed, or hopeless',
+  'Trouble falling or staying asleep, or sleeping too much',
+  'Feeling tired or having little energy',
+  'Poor appetite or overeating',
+  "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+  'Trouble concentrating on things, such as reading or watching television',
+  'Moving or speaking so slowly that other people could have noticed, or the opposite — being fidgety or restless',
+  'Thoughts that you would be better off dead, or of hurting yourself in some way'
+];
+var SLI2_FREQ_OPTIONS = ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'];
+var SLI2_GAD7_ITEMS = [
+  'Feeling nervous, anxious, or on edge',
+  'Not being able to stop or control worrying',
+  'Worrying too much about different things',
+  'Trouble relaxing',
+  'Being so restless that it is hard to sit still',
+  'Becoming easily annoyed or irritable',
+  'Feeling afraid, as if something awful might happen'
+];
+var SLI2_BAM_SCALE_030 = ['0', '1-3', '4-8', '9-15', '16-30'];
+var SLI2_BAM_SCALE_EXTREME = ['Not at all', 'Slightly', 'Moderately', 'Considerably', 'Extremely'];
+var SLI2_BAM_SCALE_HEALTH = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'];
+var SLI2_BAM_SCORED_ITEMS = [
+  { key: 'physical_health', label: 'In the past 30 days, would you say the client\'s physical health has been?', options: SLI2_BAM_SCALE_HEALTH },
+  { key: 'sleep_trouble', label: 'In the past 30 days, how many nights did the client have trouble falling or staying asleep?', options: SLI2_BAM_SCALE_030 },
+  { key: 'mood_distress', label: 'In the past 30 days, how many days has the client felt depressed, anxious, angry or very upset throughout most of the day?', options: SLI2_BAM_SCALE_030 },
+  { key: 'alcohol_days', label: 'In the past 30 days, how many days did the client drink ANY alcohol?', options: SLI2_BAM_SCALE_030 },
+  { key: 'heavy_drinking_days', label: 'In the past 30 days, how many days did the client have at least 5 drinks (4 if female or over 65)?', options: SLI2_BAM_SCALE_030 },
+  { key: 'drug_days', label: 'In the past 30 days, how many days did the client use any illegal/street drugs or abuse any prescription medications?', options: SLI2_BAM_SCALE_030 },
+  { key: 'cravings', label: 'In the past 30 days, how much was the client bothered by cravings or urges to drink alcohol or use drugs?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'abstinence_confidence', label: 'How confident is the client in their ability to be completely abstinent (clean) from alcohol and drugs in the next 30 days?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'self_help_days', label: 'In the past 30 days, how many days did the client attend self-help meetings like AA or NA?', options: SLI2_BAM_SCALE_030 },
+  { key: 'risky_situations_days', label: 'In the past 30 days, how many days was the client in situations or with people that put them at increased risk for using?', options: SLI2_BAM_SCALE_030 },
+  { key: 'spirituality', label: 'Does religion or spirituality help support the client\'s recovery?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'work_school_days', label: 'In the past 30 days, how many days did the client spend much of the time at work, school, or volunteering?', options: SLI2_BAM_SCALE_030 },
+  { key: 'relationship_problems', label: 'In the past 30 days, how much has the client been bothered by arguments or problems with family or friends?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'supportive_contact_days', label: 'In the past 30 days, how many days was the client in contact with family or friends supportive of their recovery?', options: SLI2_BAM_SCALE_030 },
+  { key: 'recovery_satisfaction', label: 'How satisfied is the client with their progress toward achieving their recovery goals?', options: SLI2_BAM_SCALE_EXTREME }
+];
+var SLI2_CSSRS_ITEMS = [
+  { key: '1a', label: '1a. In the past month, has the client wished they were dead or wished they could go to sleep and not wake up?' },
+  { key: '1b', label: '1b. In the past month, has the client actually had any thoughts of killing themselves?' },
+  { key: '1c', label: '1c. Has the client been thinking about how they might kill themselves (specific method)?' },
+  { key: '1d', label: '1d. Has the client had these thoughts and had some intention of acting on them?' },
+  { key: '1e', label: '1e. Has the client started to work out or worked out the details of how to kill themselves? Do they intend to carry out this plan?' },
+  { key: '1f', label: '1f. In the past 3 months, has the client done anything, started to do anything, or prepared to do anything to end their life?' }
+];
+var SLI2_CSSRS_ESCALATION_KEYS = ['1c', '1d', '1e', '1f'];
+var SLI2_RISK_EXTRA_ITEMS = [
+  { key: 'harm_others', label: 'Has the client had any thoughts of harming someone else?' },
+  { key: 'abuse', label: 'Is the client currently experiencing any form of abuse or violence (physical, emotional, sexual)?' },
+  { key: 'psychosis', label: 'In the past 30 days, has the client experienced hallucinations, paranoia, or symptoms of psychosis?' }
+];
+var SLI2_SDOH_ITEMS = [
+  { key: 'housing', label: 'Housing instability, or worried about losing housing?' },
+  { key: 'food_utilities', label: 'Difficulty affording basic needs like food, utilities, or rent?' },
+  { key: 'transportation', label: 'Challenges getting to appointments or places they need to go?' },
+  { key: 'healthcare_access', label: 'Difficult to see a doctor or get healthcare when needed?' },
+  { key: 'isolation', label: 'Feel isolated or like they don\'t have people to turn to for help?' },
+  { key: 'legal_safety', label: 'Dealing with any legal issues or feeling unsafe where they\'re living right now?' }
+];
+// PLACEHOLDER -- per the SLI 2.0 manual, each ASAM dimension is a 10-option
+// picklist scored 0.5-4 by placement level, not by descriptor wording alone.
+// The real Thrive-specific option text wasn't present in the SLI_2_0.xlsx
+// export, so this 5-point severity key stands in. Swap this array for the
+// real picklist text (10 entries per dimension) once available -- nothing
+// else in the scoring logic needs to change.
+var SLI2_ASAM_DIMENSIONS_PLACEHOLDER = [
+  'Acute Intoxication and/or Withdrawal Potential',
+  'Biomedical Conditions and Complications',
+  'Emotional, Behavioral, or Cognitive Conditions and Complications',
+  'Readiness to Change',
+  'Relapse, Continued Use, or Continued Problem Potential',
+  'Recovery/Living Environment'
+];
+var SLI2_ASAM_PLACEHOLDER_OPTIONS = [
+  { label: '0 — No problem: fully stable', points: 0 },
+  { label: '1 — Mild: slight issue, manageable in current setting', points: 1 },
+  { label: '2 — Moderate: requires structured support or intervention', points: 2 },
+  { label: '3 — Serious: presents a clear risk, needs intensive services', points: 3 },
+  { label: '4 — Severe: imminent danger or inability to function without 24/7 care', points: 4 }
+];
+
+function sli2NewState(){
+  return {
+    phq9: new Array(9).fill(null), phq9_hosp: null,
+    gad7: new Array(7).fill(null), gad7_impact: null,
+    bam: {}, bam_substance_use_30d: null, bam_overdoses: null, bam_arrests: null, bam_dentist: null, bam_doctor: null,
+    asam_mh_only: null, asam_dims: new Array(6).fill(null),
+    cssrs: {}, risk_extra: {}, risk_notified_by: '', risk_full_columbia_needed: null,
+    sdoh: {}
+  };
+}
+
+function sli2Sum(arr){ return arr.reduce(function(a,b){ return a + (b === null || b === undefined ? 0 : b); }, 0); }
+function sli2BandFromTable(raw, table){
+  for (var i = 0; i < table.length; i++){ if (raw >= table[i].min && raw <= table[i].max) return table[i]; }
+  return table[table.length - 1];
+}
+
+function sli2ComputeScores(state){
+  var phq9Raw = sli2Sum(state.phq9);
+  var phq9Band = sli2BandFromTable(phq9Raw, [
+    { min:0, max:9, label:'0-9 Minimal', points:1 },
+    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
+    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
+    { min:20, max:27, label:'20-27 Severe', points:4 }
+  ]);
+  var gad7Raw = sli2Sum(state.gad7);
+  var gad7Band = sli2BandFromTable(gad7Raw, [
+    { min:0, max:9, label:'0-9 Minimal', points:1 },
+    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
+    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
+    { min:20, max:21, label:'20-21 Severe', points:4 }
+  ]);
+  var bamRaw = sli2Sum(SLI2_BAM_SCORED_ITEMS.map(function(it){ return state.bam[it.key]; }));
+  var bamBand = sli2BandFromTable(bamRaw, [
+    { min:0, max:20, label:'0-20 Low Risk', points:1 },
+    { min:21, max:35, label:'21-35 Moderate Risk', points:2 },
+    { min:36, max:45, label:'36-45 High Risk', points:3 },
+    { min:46, max:9999, label:'46+ Very High Risk', points:4 }
+  ]);
+  var asamRaw = state.asam_mh_only ? 0 : sli2Sum(state.asam_dims);
+  var asamBand = state.asam_mh_only
+    ? { label: 'N/A (MH Only)', points: 0 }
+    : sli2BandFromTable(asamRaw, [
+        { min:0, max:6, label:'0-6 Early/Outpatient', points:1 },
+        { min:7, max:12, label:'7-12 IOP', points:2 },
+        { min:13, max:17, label:'13-17 Residential', points:3 },
+        { min:18, max:9999, label:'18-24 Intensive', points:4 }
+      ]);
+  var escalation = SLI2_CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
+  var riskExtraRaw = sli2Sum(SLI2_RISK_EXTRA_ITEMS.map(function(it){ return state.risk_extra[it.key]; }));
+  var riskRaw = sli2Sum(SLI2_CSSRS_ITEMS.map(function(it){ return state.cssrs[it.key]; })) + riskExtraRaw;
+  var riskBand;
+  if (escalation || riskRaw >= 4) riskBand = { label: 'High Risk', points: 2 };
+  else if (riskRaw >= 1) riskBand = { label: 'Low-Moderate Risk', points: 1 };
+  else riskBand = { label: 'No Risk', points: 0 };
+  var sdohScore = sli2Sum(SLI2_SDOH_ITEMS.map(function(it){ return state.sdoh[it.key]; }));
+  var clinicalScore = phq9Band.points + gad7Band.points + bamBand.points + asamBand.points + riskBand.points;
+  var adjustedSli = clinicalScore + sdohScore;
+  var lowClinicalFlag = clinicalScore <= 4;
+  var highSdohFlag = sdohScore >= 3;
+  var cap = lowClinicalFlag && highSdohFlag;
+  var levelTable = [
+    { min:0, max:5, level:1, label:'Level 1 — Maintenance', hours:'1-2 hrs/wk' },
+    { min:6, max:8, level:2, label:'Level 2 — Moderate', hours:'2-4 hrs/wk' },
+    { min:9, max:11, level:3, label:'Level 3 — High', hours:'4-6 hrs/wk' },
+    { min:12, max:14, level:4, label:'Level 4 — Intensive', hours:'6-8 hrs/wk' },
+    { min:15, max:9999, level:5, label:'Level 5 — Critical', hours:'8+ hrs/wk (Director approval required)' }
+  ];
+  var calculatedLevel = cap ? levelTable[0] : sli2BandFromTable(adjustedSli, levelTable);
+  var directorReviewRequired = calculatedLevel.level === 5 && !cap;
+  return {
+    phq9Raw: phq9Raw, phq9Band: phq9Band, gad7Raw: gad7Raw, gad7Band: gad7Band,
+    bamRaw: bamRaw, bamBand: bamBand, asamRaw: asamRaw, asamBand: asamBand,
+    escalation: escalation, riskRaw: riskRaw, riskBand: riskBand,
+    sdohScore: sdohScore, clinicalScore: clinicalScore, adjustedSli: adjustedSli,
+    lowClinicalFlag: lowClinicalFlag, highSdohFlag: highSdohFlag, cap: cap,
+    calculatedLevel: calculatedLevel, directorReviewRequired: directorReviewRequired
+  };
+}
+
+function sli2StateComplete(state){
+  if (state.phq9.some(function(v){ return v === null; })) return false;
+  if (state.gad7.some(function(v){ return v === null; })) return false;
+  if (SLI2_BAM_SCORED_ITEMS.some(function(it){ return state.bam[it.key] === undefined || state.bam[it.key] === null; })) return false;
+  if (!state.asam_mh_only && state.asam_dims.some(function(v){ return v === null; })) return false;
+  if (SLI2_CSSRS_ITEMS.some(function(it){ return state.cssrs[it.key] === undefined || state.cssrs[it.key] === null; })) return false;
+  if (SLI2_SDOH_ITEMS.some(function(it){ return state.sdoh[it.key] === undefined || state.sdoh[it.key] === null; })) return false;
+  return true;
+}
+
+function sli2EscapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; });
+}
+
+function sli2OptionRow(groupKey, items, selectedVal, opts){
+  opts = opts || {};
+  return '<div class="chips" data-sli-group="' + groupKey + '">' + items.map(function(label, idx){
+    var val = opts.values ? opts.values[idx] : idx;
+    var isSelected = selectedVal === val;
+    return '<div class="chip' + (isSelected ? ' selected' + (opts.riskStyle ? ' risk' : '') : '') + '" data-sli-group="' + groupKey + '" data-sli-val="' + val + '">' + sli2EscapeHtml(label) + '</div>';
+  }).join('') + '</div>';
+}
+function sli2YesNoRow(groupKey, selectedVal){
+  return sli2OptionRow(groupKey, ['No', 'Yes'], selectedVal, { values: [0, 1], riskStyle: true });
+}
+
+function sli2BuildItemsHtml(state){
+  var html = '';
+
+  html += '<div class="sli-card"><h3>PHQ-9 — Depression</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Rate each over the past two weeks.</div>';
+  SLI2_PHQ9_ITEMS.forEach(function(q, i){
+    html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(q) + '</div>' + sli2OptionRow('phq9_' + i, SLI2_FREQ_OPTIONS, state.phq9[i]) + '</div>';
+  });
+  if (state.phq9[8] !== null && state.phq9[8] > 0){
+    html += '<div class="sli-crisis-note">Item 9 endorsed — stay with the client, acknowledge with empathy, don\'t minimize or react with alarm. Revisit in Section 5 (Safety &amp; Risk).</div>';
+  }
+  html += '<div class="sli-item"><div class="q">How many times hospitalized for MH in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('phq9_hosp', ['0','1','2','3','4+'], state.phq9_hosp) + '</div>';
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>GAD-7 — Anxiety</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Rate each over the past two weeks.</div>';
+  SLI2_GAD7_ITEMS.forEach(function(q, i){
+    html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(q) + '</div>' + sli2OptionRow('gad7_' + i, SLI2_FREQ_OPTIONS, state.gad7[i]) + '</div>';
+  });
+  html += '<div class="sli-item"><div class="q">If any problems checked, how difficult have they made daily life? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('gad7_impact', ['Not difficult at all','Somewhat difficult','Very difficult','Extremely difficult'], state.gad7_impact) + '</div>';
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>BAM — Brief Addiction Monitor</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Recovery monitoring across substance use, supports, and life functioning.</div>';
+  html += '<div class="sli-item"><div class="q">Has the client used any substances within the last 30 days? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_substance_use_30d', state.bam_substance_use_30d) + '</div>';
+  SLI2_BAM_SCORED_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2OptionRow('bam_' + it.key, it.options, state.bam[it.key]) + '</div>';
+  });
+  html += '<div class="sli-item"><div class="q">How many overdoses in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('bam_overdoses', ['0','1','2','3','4+'], state.bam_overdoses) + '</div>';
+  html += '<div class="sli-item"><div class="q">How many arrests in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('bam_arrests', ['0','1','2','3','4+'], state.bam_arrests) + '</div>';
+  html += '<div class="sli-item"><div class="q">Seen a dentist in the last 12 months? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_dentist', state.bam_dentist) + '</div>';
+  html += '<div class="sli-item"><div class="q">Seen a doctor in the last 12 months? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_doctor', state.bam_doctor) + '</div>';
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>ASAM Level of Care Dimensions</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Six dimensions — clinical staff with ASAM training only.</div>';
+  html += '<div class="sli-item"><div class="q">Is the client MH Only? (If yes, skip all six dimensions)</div>' + sli2YesNoRow('asam_mh_only', state.asam_mh_only === null ? null : (state.asam_mh_only ? 1 : 0)) + '</div>';
+  if (!state.asam_mh_only){
+    html += '<div class="sli-gap-note"><strong>Placeholder scale in use.</strong> The real 10-option, 0.5&ndash;4 point Thrive picklist for these six dimensions wasn\'t in the SLI_2_0.xlsx export. The 5-point severity key below is standing in for now &mdash; swap in the real picklist text once available; nothing else in the scoring changes.</div>';
+    SLI2_ASAM_DIMENSIONS_PLACEHOLDER.forEach(function(dim, i){
+      html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(dim) + '</div>' + sli2OptionRow('asam_' + i, SLI2_ASAM_PLACEHOLDER_OPTIONS.map(function(o){ return o.label; }), state.asam_dims[i]) + '</div>';
+    });
+  }
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>Brief Risk Assessment</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">C-SSRS suicide risk screen + additional risk items. Handle with care.</div>';
+  SLI2_CSSRS_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2YesNoRow('cssrs_' + it.key, state.cssrs[it.key]) + '</div>';
+  });
+  var escalationNow = SLI2_CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
+  if (escalationNow){
+    html += '<div class="sli-crisis-note">ESCALATION PROTOCOL — STOP. A "Yes" was recorded on 1c, 1d, 1e, or 1f. The full C-SSRS must be administered immediately by qualified clinical staff. Do not leave the client alone. Risk is automatically scored High (2 pts) below. Document the response in Section 5 (Safety &amp; Risk).</div>';
+    html += '<div class="sli-item"><div class="q">Clinical staff notified (name)</div><input type="text" data-sli-text="risk_notified_by" value="' + sli2EscapeHtml(state.risk_notified_by) + '" style="max-width:320px;"/></div>';
+    html += '<div class="sli-item"><div class="q">Based on the response, is a Full Columbia Assessment needed?</div>' + sli2YesNoRow('risk_full_columbia', state.risk_full_columbia_needed === null ? null : (state.risk_full_columbia_needed ? 1 : 0)) + '</div>';
+  }
+  SLI2_RISK_EXTRA_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2YesNoRow('risk_extra_' + it.key, state.risk_extra[it.key]) + '</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="sli-card"><h3>SDOH Critical Barriers</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Current-situation barriers, not lifetime history.</div>';
+  SLI2_SDOH_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2YesNoRow('sdoh_' + it.key, state.sdoh[it.key]) + '</div>';
+  });
+  html += '</div>';
+
+  return html;
+}
+
+function sli2SetGroupValue(state, group, val){
+  if (group.indexOf('phq9_hosp') === 0){ state.phq9_hosp = val; return; }
+  if (group.indexOf('phq9_') === 0){ state.phq9[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('gad7_impact') === 0){ state.gad7_impact = val; return; }
+  if (group.indexOf('gad7_') === 0){ state.gad7[parseInt(group.slice(5), 10)] = val; return; }
+  if (group === 'bam_substance_use_30d'){ state.bam_substance_use_30d = val; return; }
+  if (group === 'bam_overdoses'){ state.bam_overdoses = val; return; }
+  if (group === 'bam_arrests'){ state.bam_arrests = val; return; }
+  if (group === 'bam_dentist'){ state.bam_dentist = val; return; }
+  if (group === 'bam_doctor'){ state.bam_doctor = val; return; }
+  if (group.indexOf('bam_') === 0){ state.bam[group.slice(4)] = val; return; }
+  if (group === 'asam_mh_only'){ state.asam_mh_only = val === 1; if (state.asam_mh_only) state.asam_dims = new Array(6).fill(null); return; }
+  if (group.indexOf('asam_') === 0){ state.asam_dims[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('cssrs_') === 0){ state.cssrs[group.slice(6)] = val; return; }
+  if (group === 'risk_full_columbia'){ state.risk_full_columbia_needed = val === 1; return; }
+  if (group.indexOf('risk_extra_') === 0){ state.risk_extra[group.slice(11)] = val; return; }
+  if (group.indexOf('sdoh_') === 0){ state.sdoh[group.slice(5)] = val; return; }
+}
+
+function sli2WireEvents(containerEl, state, onChange){
+  containerEl.querySelectorAll('.chip[data-sli-val]').forEach(function(el){
+    el.onclick = function(){
+      var group = el.getAttribute('data-sli-group');
+      var val = parseInt(el.getAttribute('data-sli-val'), 10);
+      sli2SetGroupValue(state, group, val);
+      onChange();
+    };
+  });
+  containerEl.querySelectorAll('input[data-sli-text]').forEach(function(el){
+    el.oninput = function(){ state[el.getAttribute('data-sli-text')] = el.value; };
+  });
+}
+
+// ── SLI widget instance for this note ──
+var sliState = sli2NewState();
+var sliScores = null;
+
+function renderSliWidget(){
+  var c = document.getElementById('sliItemsContainer');
+  if(!c) return;
+  c.innerHTML = sli2BuildItemsHtml(sliState);
+  sli2WireEvents(c, sliState, onSliStateChange);
+  calcSLI();
+}
+
+function onSliStateChange(){
+  renderSliWidget();
+}
+
+function isSliIncluded(){
+  var el = document.getElementById('sliIncluded');
+  return !!(el && el.checked);
+}
+
+function onSliIncludedChange(){
+  var included = isSliIncluded();
+  showConditionalBlock('sliBlock', included);
+  if (included) calcSLI();
+}
+
+function calcSLI(){
+  sliScores = sli2ComputeScores(sliState);
+  var s = sliScores;
+  var st = function(id,v){ var el = document.getElementById(id); if(el) el.textContent = v; };
+  st('phq9band', s.phq9Band.label + ' (' + s.phq9Band.points + 'pt' + (s.phq9Band.points===1?'':'s') + ')');
+  st('gad7band', s.gad7Band.label + ' (' + s.gad7Band.points + 'pt' + (s.gad7Band.points===1?'':'s') + ')');
+  st('bamband', s.bamBand.label + ' (' + s.bamBand.points + 'pt' + (s.bamBand.points===1?'':'s') + ')');
+  st('asamband', s.asamBand.label + (sliState.asam_mh_only ? '' : ' (' + s.asamBand.points + 'pt' + (s.asamBand.points===1?'':'s') + ')'));
+  st('riskband', s.riskBand.label + ' (' + s.riskBand.points + 'pt' + (s.riskBand.points===1?'':'s') + ')' + (s.escalation ? ' — C-SSRS escalation' : ''));
+  st('sdohCount', s.sdohScore);
+  st('sliClinical', s.clinicalScore); st('sliSdoh', s.sdohScore); st('sliTotal', s.adjustedSli);
+  if(document.getElementById('lowClinicalFlag')){ st('lowClinicalFlag', s.lowClinicalFlag ? 'YES (Score ≤4)' : 'NO (Score ≥5)'); document.getElementById('lowClinicalFlag').style.color = s.lowClinicalFlag ? '#E8417A' : '#1A7A3A'; }
+  if(document.getElementById('highSdohFlag')){ st('highSdohFlag', s.highSdohFlag ? 'YES (Barriers ≥3)' : 'NO (Barriers ≤2)'); document.getElementById('highSdohFlag').style.color = s.highSdohFlag ? '#E8417A' : '#1A7A3A'; }
+  var badge = document.getElementById('levelBadge');
+  var level = s.cap ? 'Level 1 — Cap Applied' : s.calculatedLevel.label;
+  var hours = s.cap ? '1–2 hrs/wk — Maintenance' : s.calculatedLevel.hours;
+  var cls = s.cap ? 'level-standard' : (s.calculatedLevel.level<=2?'level-standard':s.calculatedLevel.level<=4?'level-enhanced':'level-intensive');
+  badge.textContent = level; badge.className = 'level-badge ' + cls;
+  st('sliCapText','Adjusted SLI: ' + s.adjustedSli + ' points');
+  st('sliHoursText', hours);
+  var df=document.getElementById('directorFlag'); if(df) df.style.display = s.directorReviewRequired ? 'block' : 'none';
+  var cf=document.getElementById('capFlag'); if(cf) cf.style.display = s.cap ? 'block' : 'none';
+  document.getElementById('sliResult').className='sli-result visible';
+}
+
+// Structured output, built directly from the calculated scores — never passed through the AI,
+// same rationale as the Mental Status Exam: these are objective figures, not narrative to paraphrase.
+function buildSliOutput(){
+  if (!isSliIncluded()) return '';
+  var s = sliScores || sli2ComputeScores(sliState);
+  var sdohEndorsed = SLI2_SDOH_ITEMS.filter(function(it){ return sliState.sdoh[it.key] === 1; }).map(function(it){ return it.label; });
+  var lines = [];
+  lines.push('PHQ-9 raw: ' + s.phq9Raw + ' (' + s.phq9Band.label + ')');
+  lines.push('GAD-7 raw: ' + s.gad7Raw + ' (' + s.gad7Band.label + ')');
+  lines.push('BAM raw: ' + s.bamRaw + ' (' + s.bamBand.label + ')');
+  lines.push('ASAM raw: ' + (sliState.asam_mh_only ? 'N/A (MH Only)' : s.asamRaw) + ' (' + s.asamBand.label + ')');
+  lines.push('Risk raw: ' + s.riskRaw + ' (' + s.riskBand.label + ')' + (s.escalation ? ' [C-SSRS escalation]' : ''));
+  lines.push('SDOH Barriers (' + sdohEndorsed.length + '/6): ' + (sdohEndorsed.length ? sdohEndorsed.join(', ') : 'None endorsed'));
+  lines.push('');
+  lines.push('Clinical Score: ' + s.clinicalScore + '  |  SDOH Barrier Score: ' + s.sdohScore + '  |  Adjusted SLI Total: ' + s.adjustedSli);
+  lines.push('Support Level: ' + (s.cap ? 'Level 1 (Cap Applied)' : s.calculatedLevel.label) + '  |  ' + (s.cap ? '1-2 hrs/wk' : s.calculatedLevel.hours));
+  if (s.cap) lines.push('Low Clinical / High SDOH cap applied — Level 1 regardless of Adjusted SLI.');
+  if (s.directorReviewRequired) lines.push('Level 5 — Director Approval Required before continuing services at this intensity.');
+  return lines.join('\n');
+}
+
 function buildMseOutput() {
   var lines = [];
   var groups = [
@@ -1082,6 +1526,10 @@ function runQAChecks(descText, assessText, planText) {
   check('All Mental Status Exam categories have a selection', mseComplete);
   check('ASAM Level of Care is documented', !!document.getElementById('asamLevel').value);
 
+  if (isSliIncluded()) {
+    check('SLI 2.0 re-score: full assessment (PHQ-9, GAD-7, BAM, ASAM, C-SSRS, SDOH) is complete', sli2StateComplete(sliState));
+  }
+
   // Measurable-progress language check, reused from the DAP tool pattern.
   var measurableMarkers = ['identified', 'practiced', 'completed', 'attended', 'reported', 'demonstrated', 'utilized', 'applied', 'contacted', 'scheduled', 'reduced', 'increased'];
   var hasMeasurableMarker = measurableMarkers.some(function(t){ return assessText.toLowerCase().indexOf(t) > -1; });
@@ -1165,7 +1613,7 @@ function rerunQAChecksIfVisible() {
 
 function toggleCopyButtons() {
   var checked = document.getElementById('reviewAttestation').checked;
-  var btns = ['copyDataBtn', 'copyAssessBtn', 'copyPlanBtn', 'copyMseBtn', 'copyRemarksBtn', 'copyAllBtn'];
+  var btns = ['copyDataBtn', 'copyAssessBtn', 'copyPlanBtn', 'copyMseBtn', 'copySliBtn', 'copyRemarksBtn', 'copyAllBtn'];
   btns.forEach(function(id) {
     var btn = document.getElementById(id);
     if (!btn) return;
@@ -1197,6 +1645,9 @@ function copyAll() {
   var p = document.getElementById('planOutput').innerText;
   var m = document.getElementById('mseOutput').innerText;
   var full = 'Description of Session\n\n' + d + '\n\nAssessment of Progress\n\n' + a + '\n\nPlan\n\n' + p + '\n\nMental Status Exam\n\n' + m;
+  if (isSliIncluded()) {
+    full += '\n\nSLI 2.0 Re-Score\n\n' + document.getElementById('sliOutput').innerText;
+  }
   // NOTE: The "Flagged for Supervisor Review" remarks are intentionally excluded here.
   // That flag + detail is workflow/review metadata tracked in Supabase for supervisor
   // follow-up, not clinical documentation - it must never be copied into the Pimsy note text.
@@ -1261,6 +1712,15 @@ function resetForm() {
   document.getElementById('errorMsg').className = 'error-msg';
   document.getElementById('outputSection').className = 'output-section';
   document.getElementById('remarksOutputCard').style.display = 'none';
+  if (document.getElementById('sliIncluded')) {
+    document.getElementById('sliIncluded').checked = false;
+    showConditionalBlock('sliBlock', false);
+  }
+  sliState = sli2NewState();
+  renderSliWidget();
+  if (document.getElementById('sliResult')) document.getElementById('sliResult').className = 'sli-result';
+  if (document.getElementById('sliOutputCard')) document.getElementById('sliOutputCard').style.display = 'none';
+  if (document.getElementById('sliOutput')) document.getElementById('sliOutput').innerText = '';
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -1493,6 +1953,15 @@ async function runGenerateNote() {
     document.getElementById('planOutput').innerText = planText;
     document.getElementById('mseOutput').innerText = buildMseOutput();
 
+    var sliCard = document.getElementById('sliOutputCard');
+    if (isSliIncluded()) {
+      document.getElementById('sliOutput').innerText = buildSliOutput();
+      sliCard.style.display = 'block';
+    } else {
+      document.getElementById('sliOutput').innerText = '';
+      sliCard.style.display = 'none';
+    }
+
     var remarksCard = document.getElementById('remarksOutputCard');
     if (isTpReviewFlagged()) {
       document.getElementById('remarksOutput').innerText = document.getElementById('tpReviewDetail').value.trim();
@@ -1542,6 +2011,19 @@ async function runGenerateNote() {
       progress_status: progressChips,
       life_change_reported: !!lifeChangeActive,
       asam_level: document.getElementById('asamLevel').value || null,
+      sli_included: isSliIncluded(),
+      sli_scores: isSliIncluded() ? {
+        items: sliState,
+        phq9_raw: sliScores ? sliScores.phq9Raw : null, gad7_raw: sliScores ? sliScores.gad7Raw : null,
+        bam_raw: sliScores ? sliScores.bamRaw : null, asam_raw: sliScores ? sliScores.asamRaw : null, asam_mh_only: !!sliState.asam_mh_only,
+        risk_raw: sliScores ? sliScores.riskRaw : null, risk_escalation: sliScores ? sliScores.escalation : null,
+        sdoh: Object.keys(sliState.sdoh).filter(function(k){ return sliState.sdoh[k] === 1; })
+      } : null,
+      sli_clinical_score: isSliIncluded() ? document.getElementById('sliClinical').textContent : null,
+      sli_sdoh_score: isSliIncluded() ? document.getElementById('sliSdoh').textContent : null,
+      sli_total: isSliIncluded() ? document.getElementById('sliTotal').textContent : null,
+      sli_level: isSliIncluded() ? document.getElementById('levelBadge').textContent : null,
+      sli_cap_applied: isSliIncluded() ? (document.getElementById('capFlag').style.display === 'block') : null,
       concern_flagged: concernActive,
       concern_type: concernActive ? getChipGroup('concernTypeChips') : null,
       tp_review_flagged: isTpReviewFlagged(),
@@ -1571,6 +2053,7 @@ updateCharCounter('concernDescription', 'concernDescriptionCounter', 30);
 updateCharCounter('providerResponse', 'providerResponseCounter', 30);
 updateCharCounter('tpReviewDetail', 'tpReviewDetailCounter', 20);
 updateCharCounter('planNextSteps', 'planNextStepsCounter', 25);
+renderSliWidget();
 
 </script>
 </body>
