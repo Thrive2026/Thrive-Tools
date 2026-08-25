@@ -34,6 +34,12 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .chip{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #dde0f0;background:#f4f5f7;color:#555;user-select:none;transition:all 0.15s;}
 .chip:hover{border-color:#4B5EA6;color:#4B5EA6;}
 .chip.selected{background:#4B5EA6;border-color:#4B5EA6;color:#fff;}
+.chip.selected.risk{background:#E8417A;border-color:#E8417A;}
+.sli-item{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #ddd;}
+.sli-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.sli-item .q{font-size:13px;color:#2d2d4e;margin-bottom:8px;line-height:1.5;}
+.sli-gap-note{font-size:11.5px;color:#7A5200;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:6px;padding:10px 12px;margin:0 0 14px;line-height:1.55;}
+.sli-crisis-note{font-size:12px;color:#8B1A1A;background:#FDECEA;border:1.5px solid #E8417A;border-radius:6px;padding:10px 12px;margin:12px 0;line-height:1.55;font-weight:600;}
 .sli-card{background:#f0f2fa;border:1.5px solid #c8cfe8;border-radius:10px;padding:18px;margin-bottom:16px;}
 .sli-card h3{font-size:13px;font-weight:700;color:#4B5EA6;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;}
 .score-input-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
@@ -291,7 +297,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
     <div class="section-header"><div class="step">2</div><h2>SLI 2.0 Scoring</h2></div>
     <div class="section-body">
       <div style="background:#EEF1FB;border:1.5px solid #c8cfe8;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#2d2d4e;line-height:1.5;">
-        Enter raw scores from Pimsy. Normalization bands, Clinical Score, SDOH Barrier Score, Cap rule, and Support Level are calculated automatically per the SLI 2.0 Training Manual.
+        Answer the full instrument below &mdash; Normalization bands, Clinical Score, SDOH Barrier Score, Cap rule, and Support Level are calculated automatically per the SLI 2.0 Training Manual.
       </div>
 
       <div class="field" style="background:#f4f5f7;border-radius:10px;padding:14px 16px;margin-bottom:4px;">
@@ -303,43 +309,18 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
       <div id="sliNotApplicableNote" style="display:none;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:12.5px;color:#7A5200;line-height:1.5;">SLI 2.0 scoring will be marked <strong>not applicable</strong> in this plan and skipped in the compliance check below.</div>
 
       <div id="sliScoringBlock">
-      <div class="sli-card">
-        <h3>Clinical Instruments &mdash; Raw Scores</h3>
-        <div class="score-input-row">
-          <div class="score-field">
-            <label>PHQ-9 Raw (0&ndash;27)</label>
-            <input type="number" id="sli_phq9" min="0" max="27" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="phq9band"></div>
-          </div>
-          <div class="score-field">
-            <label>GAD-7 Raw (0&ndash;21)</label>
-            <input type="number" id="sli_gad7" min="0" max="21" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="gad7band"></div>
-          </div>
-          <div class="score-field">
-            <label>BAM Raw (0&ndash;60)</label>
-            <input type="number" id="sli_bam" min="0" max="60" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="bamband"></div>
-          </div>
-          <div class="score-field">
-            <label>ASAM Raw (0&ndash;24)</label>
-            <input type="number" id="sli_asam" min="0" max="24" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="asamband"></div>
-          </div>
-          <div class="score-field">
-            <label>Risk Score (0&ndash;6)</label>
-            <input type="number" id="sli_risk" min="0" max="6" placeholder="0" oninput="calcSLI()"/>
-            <div style="font-size:10px;color:#4B5EA6;margin-top:3px;font-weight:600;" id="riskband"></div>
-          </div>
-        </div>
-        <div style="background:#FFF8E6;border:1.5px solid #f0d060;border-radius:6px;padding:8px 12px;margin-top:12px;font-size:11px;color:#7A5200;line-height:1.5;">
-          &#9888; <strong>C-SSRS Clinical Gate:</strong> If Peer endorsed ANY of items 1c, 1d, 1e, or 1f, Risk must be scored as High (2 pts) regardless of raw count.
-        </div>
-        <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
-          <input type="checkbox" id="riskOverride" onchange="calcSLI()" style="accent-color:#E8417A;width:16px;height:16px;cursor:pointer;"/>
-          <label for="riskOverride" style="font-size:12px;color:#8B1A1A;cursor:pointer;font-weight:600;">Apply C-SSRS gate &mdash; Peer endorsed 1c, 1d, 1e, or 1f (force Risk to High, 2 pts)</label>
-        </div>
+      <div style="background:#EEF1FB;border:1.5px solid #c8cfe8;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#2d2d4e;line-height:1.5;">Answer the full instrument below &mdash; the scores, bands, and support level are calculated automatically per the SLI 2.0 Training Manual.</div>
+
+      <div id="sliItemsContainer"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 16px;margin:-4px 0 16px;font-size:11px;color:#4B5EA6;font-weight:600;">
+        <div>PHQ-9: <span id="phq9band"></span></div>
+        <div>GAD-7: <span id="gad7band"></span></div>
+        <div>BAM: <span id="bamband"></span></div>
+        <div>ASAM: <span id="asamband"></span></div>
+        <div>Risk: <span id="riskband"></span></div>
       </div>
+      <input type="hidden" id="sli_phq9"/><input type="hidden" id="sli_gad7"/><input type="hidden" id="sli_bam"/><input type="hidden" id="sli_asam"/><input type="hidden" id="sli_risk"/>
+      <input type="checkbox" id="riskOverride" style="display:none;"/>
 
       <div class="sli-card">
         <h3>SDOH Critical Barriers &mdash; Check All That Apply</h3>
@@ -370,6 +351,11 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         <div style="text-align:center;font-size:13px;font-weight:600;color:#2d2d4e;" id="sliHoursText"></div>
         <div style="display:none;margin-top:10px;padding:10px;background:#FDECEA;border-radius:6px;text-align:center;font-size:12px;color:#8B1A1A;font-weight:600;" id="directorFlag">&#9888; Level 5 &mdash; Director Approval Required before initiating services</div>
         <div style="display:none;margin-top:10px;padding:10px;background:#FFF8E6;border-radius:6px;text-align:center;font-size:12px;color:#7A5200;font-weight:600;" id="capFlag">&#9888; Service Intensity Cap Applied &mdash; Level 1 regardless of Adjusted SLI. Focus on barrier resolution.</div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #e0e2ea;">
+          <button type="button" onclick="saveSliToSharedRecord()" style="width:100%;padding:11px;background:#4B5EA6;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;" id="sliShareSaveBtn">Save SLI 2.0 Assessment to Shared Record</button>
+          <div style="margin-top:8px;font-size:12px;text-align:center;" id="sliShareSaveStatus"></div>
+          <div style="font-size:11px;color:#888;margin-top:6px;line-height:1.5;">Saves this score into the same <code>sli_assessments</code> table the standalone SLI 2.0 Assessment and Psychotherapy Note tools use, keyed to the Case/Reference Number above &mdash; so progress shows up as one history per client regardless of which tool captured it. Requires staff sign-in (use the bar at the top of the page).</div>
+        </div>
       </div>
       </div>
     </div>
@@ -653,18 +639,19 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
             <label for="rev_sliApplicable" style="font-size:12.5px;font-weight:600;color:#2d2d4e;cursor:pointer;">This plan requires SLI 2.0 scoring<span style="font-size:11px;font-weight:400;color:#888;"> &mdash; uncheck if not applicable to this program/service type.</span></label>
           </div>
           <div id="revSliNotApplicableNote" style="display:none;background:#FFF8E6;border:1.5px solid #f0d060;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7A5200;line-height:1.5;">SLI 2.0 scoring will be marked <strong>not applicable</strong> in this review and the updated plan.</div>
+          <div id="revSliPreviousRef" style="display:none;background:#EEF1FB;border:1.5px solid #c8cfe8;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#2d2d4e;line-height:1.5;"></div>
           <div id="reviewSliScoringBlock">
-          <div class="score-input-row">
-            <div class="score-field"><label>PHQ-9 Raw (0-27)</label><input type="number" id="rev_sli_phq9" min="0" max="27" placeholder="0" oninput="calcReviewSLI()"/></div>
-            <div class="score-field"><label>GAD-7 Raw (0-21)</label><input type="number" id="rev_sli_gad7" min="0" max="21" placeholder="0" oninput="calcReviewSLI()"/></div>
-            <div class="score-field"><label>BAM Raw (0-60)</label><input type="number" id="rev_sli_bam" min="0" max="60" placeholder="0" oninput="calcReviewSLI()"/></div>
-            <div class="score-field"><label>ASAM Raw (0-24)</label><input type="number" id="rev_sli_asam" min="0" max="24" placeholder="0" oninput="calcReviewSLI()"/></div>
-            <div class="score-field"><label>Risk Score (0-6)</label><input type="number" id="rev_sli_risk" min="0" max="6" placeholder="0" oninput="calcReviewSLI()"/></div>
+          <div style="font-size:12px;color:#555;margin-bottom:12px;">This is a fresh re-administration of the full instrument for this review period &mdash; answer it the same way you would for a new assessment, not by editing the plan's original scores.</div>
+          <div id="reviewSliItemsContainer"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 16px;margin:-4px 0 16px;font-size:11px;color:#4B5EA6;font-weight:600;">
+            <div>PHQ-9: <span id="rev_phq9band"></span></div>
+            <div>GAD-7: <span id="rev_gad7band"></span></div>
+            <div>BAM: <span id="rev_bamband"></span></div>
+            <div>ASAM: <span id="rev_asamband"></span></div>
+            <div>Risk: <span id="rev_riskband"></span></div>
           </div>
-          <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
-            <input type="checkbox" id="rev_risk_override" onchange="calcReviewSLI()" style="accent-color:#E8417A;width:16px;height:16px;cursor:pointer;"/>
-            <label for="rev_risk_override" style="font-size:12px;color:#8B1A1A;cursor:pointer;font-weight:600;">C-SSRS gate: Peer endorsed 1c/1d/1e/1f &mdash; force Risk to High (2 pts)</label>
-          </div>
+          <input type="hidden" id="rev_sli_phq9"/><input type="hidden" id="rev_sli_gad7"/><input type="hidden" id="rev_sli_bam"/><input type="hidden" id="rev_sli_asam"/><input type="hidden" id="rev_sli_risk"/>
+          <input type="checkbox" id="rev_risk_override" style="display:none;"/>
           <div style="margin-top:14px;">
             <div style="font-size:12px;font-weight:700;color:#4B5EA6;margin-bottom:8px;">SDOH Barriers at Review &mdash; Check All That Apply</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -683,6 +670,11 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
               <div class="sli-result-item"><div class="val" id="revSliTotal">0</div><div class="lbl">Total SLI</div></div>
               <div class="sli-result-item"><div class="val" id="revSliLevel" style="font-size:14px;">—</div><div class="lbl">Support Level</div></div>
               <div class="sli-result-item"><div class="val" id="revSliCap" style="font-size:13px;">—</div><div class="lbl">Service Cap</div></div>
+            </div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid #e0e2ea;">
+              <button type="button" onclick="saveReviewSliToSharedRecord()" style="width:100%;padding:11px;background:#4B5EA6;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;" id="revSliShareSaveBtn">Save SLI 2.0 Assessment to Shared Record</button>
+              <div style="margin-top:8px;font-size:12px;text-align:center;" id="revSliShareSaveStatus"></div>
+              <div style="font-size:11px;color:#888;margin-top:6px;line-height:1.5;">Saves this review's re-score into the same <code>sli_assessments</code> table the standalone SLI 2.0 Assessment and Psychotherapy Note tools use, keyed to the Case/Reference Number above &mdash; so progress shows up as one history per client regardless of which tool captured it. Requires staff sign-in (use the bar at the top of the page).</div>
             </div>
           </div>
         </div>
@@ -1027,6 +1019,80 @@ function addDays(dateStr, n){
   return y+'-'+m+'-'+day;
 }
 
+// Save this plan's SLI 2.0 score into the shared sli_assessments table (same
+// table the standalone SLI 2.0 Assessment and Psychotherapy Note tools write
+// to), so progress across tools shows up as one history per case/client
+// number instead of being siloed inside this plan record alone.
+async function saveSliToSharedRecord(){
+  var statusEl = document.getElementById('sliShareSaveStatus');
+  var btn = document.getElementById('sliShareSaveBtn');
+  var caseNumber = document.getElementById('caseNumber').value.trim();
+  if(!isSliApplicable()){ statusEl.textContent = 'SLI 2.0 is marked not applicable to this plan — nothing to save.'; statusEl.style.color = '#7A5200'; return; }
+  if(!caseNumber){ statusEl.textContent = 'Enter the Case / Reference Number above before saving.'; statusEl.style.color = '#8B1A1A'; return; }
+  requireAuth(async function(){
+    btn.disabled = true; btn.textContent = 'Saving…';
+    statusEl.textContent = ''; statusEl.style.color = '#888';
+    var s = sli2ComputeScores(sliState);
+    // Map this tool's checkbox ids to the canonical SDOH keys used by the
+    // shared sli_assessments table (same keys the standalone SLI 2.0
+    // Assessment and Psychotherapy Note tools write), so the barrier
+    // breakdown is comparable across tools, not just the aggregate score.
+    var sdohKeyMap = { housing:'housing', food:'food_utilities', transport:'transportation', healthcare:'healthcare_access', isolation:'isolation', legal:'legal_safety' };
+    var sdohMap = {};
+    Object.keys(sdohKeyMap).forEach(function(shortKey){
+      var el = document.getElementById('sdoh_' + shortKey);
+      sdohMap[sdohKeyMap[shortKey]] = el && el.checked ? 1 : 0;
+    });
+    var sdohScore = Object.keys(sdohMap).filter(function(k){return sdohMap[k]===1;}).length;
+    var clinicalScore = s.phq9Band.points+s.gad7Band.points+s.bamBand.points+s.asamBand.points+s.riskBand.points;
+    var adjustedSli = clinicalScore + sdohScore;
+    var lowClinicalFlag = clinicalScore<=4, highSdohFlag = sdohScore>=3, cap = lowClinicalFlag && highSdohFlag;
+    var levelTable=[{min:0,max:5,level:1},{min:6,max:8,level:2},{min:9,max:11,level:3},{min:12,max:14,level:4},{min:15,max:9999,level:5}];
+    var calcLevel = cap ? 1 : (levelTable.filter(function(r){return adjustedSli>=r.min && adjustedSli<=r.max;})[0]||levelTable[4]).level;
+    var payload = {
+      client_number: caseNumber,
+      assessed_by: currentSession.user.email,
+      assessment_date: document.getElementById('planStartDate').value || new Date().toISOString().slice(0,10),
+      assessment_type: 'Treatment Plan Scoring',
+      phq9_items: sliState.phq9, phq9_hospitalizations: sliState.phq9_hosp, phq9_raw: s.phq9Raw, phq9_band: s.phq9Band.label, phq9_points: s.phq9Band.points,
+      gad7_items: sliState.gad7, gad7_functional_impact: sliState.gad7_impact, gad7_raw: s.gad7Raw, gad7_band: s.gad7Band.label, gad7_points: s.gad7Band.points,
+      bam_items: sliState.bam, bam_raw: s.bamRaw, bam_band: s.bamBand.label, bam_points: s.bamBand.points,
+      bam_substance_use_30d: sliState.bam_substance_use_30d === 1, bam_overdoses_90d: sliState.bam_overdoses, bam_arrests_90d: sliState.bam_arrests,
+      bam_seen_dentist_12mo: sliState.bam_dentist === 1, bam_seen_doctor_12mo: sliState.bam_doctor === 1,
+      asam_mh_only: !!sliState.asam_mh_only, asam_dimensions: sliState.asam_dims, asam_raw: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points,
+      asam_loc_recommendation: document.getElementById('asamLevelOfCare') ? (document.getElementById('asamLevelOfCare').value || null) : null,
+      risk_cssrs: sliState.cssrs, risk_harm_others: sliState.risk_extra.harm_others, risk_abuse: sliState.risk_extra.abuse, risk_psychosis: sliState.risk_extra.psychosis,
+      risk_raw: s.riskRaw, risk_band: s.riskBand.label, risk_points: s.riskBand.points,
+      risk_escalation_triggered: s.escalation, risk_escalation_notified_by: sliState.risk_notified_by || null,
+      risk_escalation_notified_at: s.escalation ? new Date().toISOString() : null,
+      risk_full_columbia_needed: sliState.risk_full_columbia_needed,
+      sdoh_items: sdohMap, sdoh_barrier_score: sdohScore,
+      clinical_score: clinicalScore, adjusted_sli: adjustedSli,
+      low_clinical_flag: lowClinicalFlag, high_sdoh_flag: highSdohFlag, service_intensity_cap: cap,
+      calculated_support_level: calcLevel, final_support_level: calcLevel,
+      director_review_required: calcLevel === 5 && !cap,
+      is_current: true
+    };
+    try {
+      var prior = await sb.from('sli_assessments').select('id').eq('client_number', caseNumber).eq('is_current', true);
+      if(prior.error) throw prior.error;
+      var inserted = await sb.from('sli_assessments').insert(payload).select('id').single();
+      if(inserted.error) throw inserted.error;
+      if(prior.data && prior.data.length){
+        for(var i=0;i<prior.data.length;i++){
+          await sb.from('sli_assessments').update({is_current:false, superseded_by:inserted.data.id}).eq('id', prior.data[i].id);
+        }
+      }
+      statusEl.textContent = 'Saved to the shared SLI 2.0 record for case ' + caseNumber + ' — Support Level ' + calcLevel + '.';
+      statusEl.style.color = '#1A7A3A';
+    } catch(e){
+      statusEl.textContent = 'Save failed: ' + e.message;
+      statusEl.style.color = '#8B1A1A';
+    }
+    btn.disabled = false; btn.textContent = 'Save SLI 2.0 Assessment to Shared Record';
+  });
+}
+
 function collectSliRecord(){
   if(!isSliApplicable()){
     return { applicable: false };
@@ -1289,19 +1355,30 @@ async function loadPlanForReview(){
     document.getElementById('reviewFrequency').value = row.frequency || '';
 
     var loadedSliApplicable = !(row.sli && row.sli.applicable === false);
+    // The original plan's sli field only stores raw instrument totals and
+    // checked SDOH ids (not full item-level answers), so it can't be
+    // reverse-populated into the new item-level widget. Instead, treat the
+    // review's SLI as a fresh full re-administration: reset the review
+    // state, carry forward only the SDOH checkboxes (still plain
+    // checkboxes, unaffected by this), and show the plan's prior score as
+    // read-only reference text via #revSliPreviousRef.
+    reviewSliState = sli2NewState();
     document.getElementById('rev_sliApplicable').checked = loadedSliApplicable;
     onRevSliApplicableChange();
-    if(loadedSliApplicable && row.sli){
-      var setIf = function(id, val){ var el = document.getElementById(id); if(el && val !== undefined && val !== null) el.value = val; };
-      setIf('rev_sli_phq9', row.sli.phq9); setIf('rev_sli_gad7', row.sli.gad7); setIf('rev_sli_bam', row.sli.bam);
-      setIf('rev_sli_asam', row.sli.asam); setIf('rev_sli_risk', row.sli.risk);
+    var prevRefEl = document.getElementById('revSliPreviousRef');
+    if(loadedSliApplicable && row.sli && row.sli.total !== undefined && row.sli.total !== null){
+      prevRefEl.innerHTML = '<strong>Previous score (from the plan being reviewed):</strong> Total ' + row.sli.total + ' — ' + (row.sli.level || '—') + (row.sli.cap ? ' (' + row.sli.cap + ')' : '') + '. Shown for reference only — the scoring below is a fresh re-administration for this review period.';
+      prevRefEl.style.display = 'block';
       if(row.sli.sdoh){
         ['sdoh_housing','sdoh_food','sdoh_transport','sdoh_healthcare','sdoh_isolation','sdoh_legal'].forEach(function(key){
           var el = document.getElementById('rev_' + key);
           if(el) el.checked = row.sli.sdoh.indexOf(key) > -1;
         });
+        calcReviewSLI();
       }
-      calcReviewSLI();
+    } else {
+      prevRefEl.style.display = 'none';
+      prevRefEl.innerHTML = '';
     }
 
     reviewNeeds = [];
@@ -1851,6 +1928,7 @@ function onSliApplicableChange(){
   var applicable = document.getElementById('sliApplicable').checked;
   document.getElementById('sliScoringBlock').style.display = applicable ? '' : 'none';
   document.getElementById('sliNotApplicableNote').style.display = applicable ? 'none' : 'block';
+  if(applicable && typeof renderSliWidget==='function') renderSliWidget();
   if(typeof resetClinicianSignature==='function') resetClinicianSignature('SLI 2.0 applicability changed after signing — please re-sign as clinician before supervisor signs.');
 }
 function isSliApplicable(){
@@ -1858,7 +1936,274 @@ function isSliApplicable(){
   return !el || el.checked;
 }
 
+// ══════════════════════════════════════════════════════════════════
+// SLI 2.0 FULL ASSESSMENT ENGINE
+// Same full six-instrument item set used by the standalone SLI 2.0
+// Assessment tool and the Psychotherapy Note tool (SLI 2.0 Staff Training
+// Manual + SLI_2_0.xlsx Pimsy form export). SDOH stays as plain checkboxes
+// below (unchanged) — this engine covers PHQ-9/GAD-7/BAM/ASAM/Risk only;
+// its raw totals feed the existing hidden sli_phq9/sli_gad7/... inputs so
+// nothing downstream (collectSliRecord, QA checks, plan generation) had
+// to change.
+// ══════════════════════════════════════════════════════════════════
+var SLI2_PHQ9_ITEMS = [
+  'Little interest or pleasure in doing things',
+  'Feeling down, depressed, or hopeless',
+  'Trouble falling or staying asleep, or sleeping too much',
+  'Feeling tired or having little energy',
+  'Poor appetite or overeating',
+  "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+  'Trouble concentrating on things, such as reading or watching television',
+  'Moving or speaking so slowly that other people could have noticed, or the opposite — being fidgety or restless',
+  'Thoughts that you would be better off dead, or of hurting yourself in some way'
+];
+var SLI2_FREQ_OPTIONS = ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'];
+var SLI2_GAD7_ITEMS = [
+  'Feeling nervous, anxious, or on edge',
+  'Not being able to stop or control worrying',
+  'Worrying too much about different things',
+  'Trouble relaxing',
+  'Being so restless that it is hard to sit still',
+  'Becoming easily annoyed or irritable',
+  'Feeling afraid, as if something awful might happen'
+];
+var SLI2_BAM_SCALE_030 = ['0', '1-3', '4-8', '9-15', '16-30'];
+var SLI2_BAM_SCALE_EXTREME = ['Not at all', 'Slightly', 'Moderately', 'Considerably', 'Extremely'];
+var SLI2_BAM_SCALE_HEALTH = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'];
+var SLI2_BAM_SCORED_ITEMS = [
+  { key: 'physical_health', label: 'In the past 30 days, would you say the individual\'s physical health has been?', options: SLI2_BAM_SCALE_HEALTH },
+  { key: 'sleep_trouble', label: 'In the past 30 days, how many nights did the individual have trouble falling or staying asleep?', options: SLI2_BAM_SCALE_030 },
+  { key: 'mood_distress', label: 'In the past 30 days, how many days has the individual felt depressed, anxious, angry or very upset throughout most of the day?', options: SLI2_BAM_SCALE_030 },
+  { key: 'alcohol_days', label: 'In the past 30 days, how many days did the individual drink ANY alcohol?', options: SLI2_BAM_SCALE_030 },
+  { key: 'heavy_drinking_days', label: 'In the past 30 days, how many days did the individual have at least 5 drinks (4 if female or over 65)?', options: SLI2_BAM_SCALE_030 },
+  { key: 'drug_days', label: 'In the past 30 days, how many days did the individual use any illegal/street drugs or abuse any prescription medications?', options: SLI2_BAM_SCALE_030 },
+  { key: 'cravings', label: 'In the past 30 days, how much was the individual bothered by cravings or urges to drink alcohol or use drugs?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'abstinence_confidence', label: 'How confident is the individual in their ability to be completely abstinent (clean) from alcohol and drugs in the next 30 days?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'self_help_days', label: 'In the past 30 days, how many days did the individual attend self-help meetings like AA or NA?', options: SLI2_BAM_SCALE_030 },
+  { key: 'risky_situations_days', label: 'In the past 30 days, how many days was the individual in situations or with people that put them at increased risk for using?', options: SLI2_BAM_SCALE_030 },
+  { key: 'spirituality', label: 'Does religion or spirituality help support the individual\'s recovery?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'work_school_days', label: 'In the past 30 days, how many days did the individual spend much of the time at work, school, or volunteering?', options: SLI2_BAM_SCALE_030 },
+  { key: 'relationship_problems', label: 'In the past 30 days, how much has the individual been bothered by arguments or problems with family or friends?', options: SLI2_BAM_SCALE_EXTREME },
+  { key: 'supportive_contact_days', label: 'In the past 30 days, how many days was the individual in contact with family or friends supportive of their recovery?', options: SLI2_BAM_SCALE_030 },
+  { key: 'recovery_satisfaction', label: 'How satisfied is the individual with their progress toward achieving their recovery goals?', options: SLI2_BAM_SCALE_EXTREME }
+];
+var SLI2_CSSRS_ITEMS = [
+  { key: '1a', label: '1a. In the past month, has the individual wished they were dead or wished they could go to sleep and not wake up?' },
+  { key: '1b', label: '1b. In the past month, has the individual actually had any thoughts of killing themselves?' },
+  { key: '1c', label: '1c. Has the individual been thinking about how they might kill themselves (specific method)?' },
+  { key: '1d', label: '1d. Has the individual had these thoughts and had some intention of acting on them?' },
+  { key: '1e', label: '1e. Has the individual started to work out or worked out the details of how to kill themselves? Do they intend to carry out this plan?' },
+  { key: '1f', label: '1f. In the past 3 months, has the individual done anything, started to do anything, or prepared to do anything to end their life?' }
+];
+var SLI2_CSSRS_ESCALATION_KEYS = ['1c', '1d', '1e', '1f'];
+var SLI2_RISK_EXTRA_ITEMS = [
+  { key: 'harm_others', label: 'Has the individual had any thoughts of harming someone else?' },
+  { key: 'abuse', label: 'Is the individual currently experiencing any form of abuse or violence (physical, emotional, sexual)?' },
+  { key: 'psychosis', label: 'In the past 30 days, has the individual experienced hallucinations, paranoia, or symptoms of psychosis?' }
+];
+// PLACEHOLDER -- per the SLI 2.0 manual, each ASAM dimension is a 10-option
+// picklist scored 0.5-4 by placement level, not by descriptor wording alone.
+// The real Thrive-specific option text wasn't present in the SLI_2_0.xlsx
+// export, so this 5-point severity key stands in. Swap this array for the
+// real picklist text (10 entries per dimension) once available -- nothing
+// else in the scoring logic needs to change.
+var SLI2_ASAM_DIMENSIONS_PLACEHOLDER = [
+  'Acute Intoxication and/or Withdrawal Potential',
+  'Biomedical Conditions and Complications',
+  'Emotional, Behavioral, or Cognitive Conditions and Complications',
+  'Readiness to Change',
+  'Relapse, Continued Use, or Continued Problem Potential',
+  'Recovery/Living Environment'
+];
+var SLI2_ASAM_PLACEHOLDER_OPTIONS = [
+  { label: '0 — No problem: fully stable', points: 0 },
+  { label: '1 — Mild: slight issue, manageable in current setting', points: 1 },
+  { label: '2 — Moderate: requires structured support or intervention', points: 2 },
+  { label: '3 — Serious: presents a clear risk, needs intensive services', points: 3 },
+  { label: '4 — Severe: imminent danger or inability to function without 24/7 care', points: 4 }
+];
+
+function sli2NewState(){
+  return {
+    phq9: new Array(9).fill(null), phq9_hosp: null,
+    gad7: new Array(7).fill(null), gad7_impact: null,
+    bam: {}, bam_substance_use_30d: null, bam_overdoses: null, bam_arrests: null, bam_dentist: null, bam_doctor: null,
+    asam_mh_only: null, asam_dims: new Array(6).fill(null),
+    cssrs: {}, risk_extra: {}, risk_notified_by: '', risk_full_columbia_needed: null
+  };
+}
+function sli2Sum(arr){ return arr.reduce(function(a,b){ return a + (b === null || b === undefined ? 0 : b); }, 0); }
+function sli2BandFromTable(raw, table){
+  for (var i = 0; i < table.length; i++){ if (raw >= table[i].min && raw <= table[i].max) return table[i]; }
+  return table[table.length - 1];
+}
+function sli2ComputeScores(state){
+  var phq9Raw = sli2Sum(state.phq9);
+  var phq9Band = sli2BandFromTable(phq9Raw, [
+    { min:0, max:9, label:'0-9 Minimal', points:1 },
+    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
+    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
+    { min:20, max:27, label:'20-27 Severe', points:4 }
+  ]);
+  var gad7Raw = sli2Sum(state.gad7);
+  var gad7Band = sli2BandFromTable(gad7Raw, [
+    { min:0, max:9, label:'0-9 Minimal', points:1 },
+    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
+    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
+    { min:20, max:21, label:'20-21 Severe', points:4 }
+  ]);
+  var bamRaw = sli2Sum(SLI2_BAM_SCORED_ITEMS.map(function(it){ return state.bam[it.key]; }));
+  var bamBand = sli2BandFromTable(bamRaw, [
+    { min:0, max:20, label:'0-20 Low Risk', points:1 },
+    { min:21, max:35, label:'21-35 Moderate Risk', points:2 },
+    { min:36, max:45, label:'36-45 High Risk', points:3 },
+    { min:46, max:9999, label:'46+ Very High Risk', points:4 }
+  ]);
+  var asamRaw = state.asam_mh_only ? 0 : sli2Sum(state.asam_dims);
+  var asamBand = state.asam_mh_only
+    ? { label: 'N/A (MH Only)', points: 0 }
+    : sli2BandFromTable(asamRaw, [
+        { min:0, max:6, label:'0-6 Early/Outpatient', points:1 },
+        { min:7, max:12, label:'7-12 IOP', points:2 },
+        { min:13, max:17, label:'13-17 Residential', points:3 },
+        { min:18, max:9999, label:'18-24 Intensive', points:4 }
+      ]);
+  var escalation = SLI2_CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
+  var riskExtraRaw = sli2Sum(SLI2_RISK_EXTRA_ITEMS.map(function(it){ return state.risk_extra[it.key]; }));
+  var riskRaw = sli2Sum(SLI2_CSSRS_ITEMS.map(function(it){ return state.cssrs[it.key]; })) + riskExtraRaw;
+  var riskBand;
+  if (escalation || riskRaw >= 4) riskBand = { label: 'High Risk', points: 2 };
+  else if (riskRaw >= 1) riskBand = { label: 'Low-Moderate Risk', points: 1 };
+  else riskBand = { label: 'No Risk', points: 0 };
+  return {
+    phq9Raw: phq9Raw, phq9Band: phq9Band, gad7Raw: gad7Raw, gad7Band: gad7Band,
+    bamRaw: bamRaw, bamBand: bamBand, asamRaw: asamRaw, asamBand: asamBand,
+    escalation: escalation, riskRaw: riskRaw, riskBand: riskBand
+  };
+}
+function sli2StateComplete(state){
+  if (state.phq9.some(function(v){ return v === null; })) return false;
+  if (state.gad7.some(function(v){ return v === null; })) return false;
+  if (SLI2_BAM_SCORED_ITEMS.some(function(it){ return state.bam[it.key] === undefined || state.bam[it.key] === null; })) return false;
+  if (!state.asam_mh_only && state.asam_dims.some(function(v){ return v === null; })) return false;
+  if (SLI2_CSSRS_ITEMS.some(function(it){ return state.cssrs[it.key] === undefined || state.cssrs[it.key] === null; })) return false;
+  return true;
+}
+function sli2EscapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; });
+}
+function sli2OptionRow(groupKey, items, selectedVal, opts){
+  opts = opts || {};
+  return '<div class="chips" data-sli-group="' + groupKey + '">' + items.map(function(label, idx){
+    var val = opts.values ? opts.values[idx] : idx;
+    var isSelected = selectedVal === val;
+    return '<div class="chip' + (isSelected ? ' selected' + (opts.riskStyle ? ' risk' : '') : '') + '" data-sli-group="' + groupKey + '" data-sli-val="' + val + '">' + sli2EscapeHtml(label) + '</div>';
+  }).join('') + '</div>';
+}
+function sli2YesNoRow(groupKey, selectedVal){
+  return sli2OptionRow(groupKey, ['No', 'Yes'], selectedVal, { values: [0, 1], riskStyle: true });
+}
+function sli2BuildItemsHtml(state){
+  var html = '';
+  html += '<div class="sli-card"><h3>PHQ-9 &mdash; Depression</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Rate each over the past two weeks.</div>';
+  SLI2_PHQ9_ITEMS.forEach(function(q, i){
+    html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(q) + '</div>' + sli2OptionRow('phq9_' + i, SLI2_FREQ_OPTIONS, state.phq9[i]) + '</div>';
+  });
+  if (state.phq9[8] !== null && state.phq9[8] > 0){
+    html += '<div class="sli-crisis-note">Item 9 endorsed &mdash; stay with the individual, acknowledge with empathy, don\'t minimize or react with alarm. Revisit in the Clinical Context / risk discussion below.</div>';
+  }
+  html += '<div class="sli-item"><div class="q">How many times hospitalized for MH in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('phq9_hosp', ['0','1','2','3','4+'], state.phq9_hosp) + '</div>';
+  html += '</div>';
+  html += '<div class="sli-card"><h3>GAD-7 &mdash; Anxiety</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Rate each over the past two weeks.</div>';
+  SLI2_GAD7_ITEMS.forEach(function(q, i){
+    html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(q) + '</div>' + sli2OptionRow('gad7_' + i, SLI2_FREQ_OPTIONS, state.gad7[i]) + '</div>';
+  });
+  html += '<div class="sli-item"><div class="q">If any problems checked, how difficult have they made daily life? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('gad7_impact', ['Not difficult at all','Somewhat difficult','Very difficult','Extremely difficult'], state.gad7_impact) + '</div>';
+  html += '</div>';
+  html += '<div class="sli-card"><h3>BAM &mdash; Brief Addiction Monitor</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Recovery monitoring across substance use, supports, and life functioning.</div>';
+  html += '<div class="sli-item"><div class="q">Has the individual used any substances within the last 30 days? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_substance_use_30d', state.bam_substance_use_30d) + '</div>';
+  SLI2_BAM_SCORED_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2OptionRow('bam_' + it.key, it.options, state.bam[it.key]) + '</div>';
+  });
+  html += '<div class="sli-item"><div class="q">How many overdoses in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('bam_overdoses', ['0','1','2','3','4+'], state.bam_overdoses) + '</div>';
+  html += '<div class="sli-item"><div class="q">How many arrests in the last 90 days? <span style="color:#888;">(not scored)</span></div>' + sli2OptionRow('bam_arrests', ['0','1','2','3','4+'], state.bam_arrests) + '</div>';
+  html += '<div class="sli-item"><div class="q">Seen a dentist in the last 12 months? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_dentist', state.bam_dentist) + '</div>';
+  html += '<div class="sli-item"><div class="q">Seen a doctor in the last 12 months? <span style="color:#888;">(not scored)</span></div>' + sli2YesNoRow('bam_doctor', state.bam_doctor) + '</div>';
+  html += '</div>';
+  html += '<div class="sli-card"><h3>ASAM Level of Care Dimensions</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Six dimensions &mdash; clinical staff with ASAM training only.</div>';
+  html += '<div class="sli-item"><div class="q">Is the individual MH Only? (If yes, skip all six dimensions)</div>' + sli2YesNoRow('asam_mh_only', state.asam_mh_only === null ? null : (state.asam_mh_only ? 1 : 0)) + '</div>';
+  if (!state.asam_mh_only){
+    html += '<div class="sli-gap-note"><strong>Placeholder scale in use.</strong> The real 10-option, 0.5&ndash;4 point Thrive picklist for these six dimensions wasn\'t in the SLI_2_0.xlsx export. The 5-point severity key below is standing in for now &mdash; swap in the real picklist text once available; nothing else in the scoring changes.</div>';
+    SLI2_ASAM_DIMENSIONS_PLACEHOLDER.forEach(function(dim, i){
+      html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(dim) + '</div>' + sli2OptionRow('asam_' + i, SLI2_ASAM_PLACEHOLDER_OPTIONS.map(function(o){ return o.label; }), state.asam_dims[i]) + '</div>';
+    });
+  }
+  html += '</div>';
+  html += '<div class="sli-card"><h3>Brief Risk Assessment</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">C-SSRS suicide risk screen + additional risk items. Handle with care.</div>';
+  SLI2_CSSRS_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2YesNoRow('cssrs_' + it.key, state.cssrs[it.key]) + '</div>';
+  });
+  var escalationNow = SLI2_CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
+  if (escalationNow){
+    html += '<div class="sli-crisis-note">ESCALATION PROTOCOL &mdash; STOP. A "Yes" was recorded on 1c, 1d, 1e, or 1f. The full C-SSRS must be administered immediately by qualified clinical staff. Do not leave the individual alone. Risk is automatically scored High (2 pts) below.</div>';
+    html += '<div class="sli-item"><div class="q">Clinical staff notified (name)</div><input type="text" data-sli-text="risk_notified_by" value="' + sli2EscapeHtml(state.risk_notified_by) + '" style="max-width:320px;"/></div>';
+    html += '<div class="sli-item"><div class="q">Based on the response, is a Full Columbia Assessment needed?</div>' + sli2YesNoRow('risk_full_columbia', state.risk_full_columbia_needed === null ? null : (state.risk_full_columbia_needed ? 1 : 0)) + '</div>';
+  }
+  SLI2_RISK_EXTRA_ITEMS.forEach(function(it){
+    html += '<div class="sli-item"><div class="q">' + sli2EscapeHtml(it.label) + '</div>' + sli2YesNoRow('risk_extra_' + it.key, state.risk_extra[it.key]) + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+function sli2SetGroupValue(state, group, val){
+  if (group.indexOf('phq9_hosp') === 0){ state.phq9_hosp = val; return; }
+  if (group.indexOf('phq9_') === 0){ state.phq9[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('gad7_impact') === 0){ state.gad7_impact = val; return; }
+  if (group.indexOf('gad7_') === 0){ state.gad7[parseInt(group.slice(5), 10)] = val; return; }
+  if (group === 'bam_substance_use_30d'){ state.bam_substance_use_30d = val; return; }
+  if (group === 'bam_overdoses'){ state.bam_overdoses = val; return; }
+  if (group === 'bam_arrests'){ state.bam_arrests = val; return; }
+  if (group === 'bam_dentist'){ state.bam_dentist = val; return; }
+  if (group === 'bam_doctor'){ state.bam_doctor = val; return; }
+  if (group.indexOf('bam_') === 0){ state.bam[group.slice(4)] = val; return; }
+  if (group === 'asam_mh_only'){ state.asam_mh_only = val === 1; if (state.asam_mh_only) state.asam_dims = new Array(6).fill(null); return; }
+  if (group.indexOf('asam_') === 0){ state.asam_dims[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('cssrs_') === 0){ state.cssrs[group.slice(6)] = val; return; }
+  if (group === 'risk_full_columbia'){ state.risk_full_columbia_needed = val === 1; return; }
+  if (group.indexOf('risk_extra_') === 0){ state.risk_extra[group.slice(11)] = val; return; }
+}
+function sli2WireEvents(containerEl, state, onChange){
+  containerEl.querySelectorAll('.chip[data-sli-val]').forEach(function(el){
+    el.onclick = function(){
+      var group = el.getAttribute('data-sli-group');
+      var val = parseInt(el.getAttribute('data-sli-val'), 10);
+      sli2SetGroupValue(state, group, val);
+      onChange();
+    };
+  });
+  containerEl.querySelectorAll('input[data-sli-text]').forEach(function(el){
+    el.oninput = function(){ state[el.getAttribute('data-sli-text')] = el.value; };
+  });
+}
+
+var sliState = sli2NewState();
+function renderSliWidget(){
+  var c = document.getElementById('sliItemsContainer');
+  if(!c) return;
+  c.innerHTML = sli2BuildItemsHtml(sliState);
+  sli2WireEvents(c, sliState, function(){ renderSliWidget(); });
+  calcSLI();
+}
+
 function calcSLI(){
+  var s2 = sli2ComputeScores(sliState);
+  document.getElementById('sli_phq9').value = s2.phq9Raw;
+  document.getElementById('sli_gad7').value = s2.gad7Raw;
+  document.getElementById('sli_bam').value = s2.bamRaw;
+  document.getElementById('sli_asam').value = s2.asamRaw;
+  document.getElementById('sli_risk').value = s2.riskRaw;
+  document.getElementById('riskOverride').checked = s2.escalation;
   var phq9raw=getNum('sli_phq9'),gad7raw=getNum('sli_gad7'),bamraw=getNum('sli_bam'),asamraw=getNum('sli_asam'),riskraw=getNum('sli_risk');
   // PHQ-9 bands per SLI 2.0 manual
   var phq9pts=phq9raw<=9?1:phq9raw<=14?2:phq9raw<=19?3:4;
@@ -1869,9 +2214,10 @@ function calcSLI(){
   // BAM bands
   var bampts=bamraw<=20?1:bamraw<=35?2:bamraw<=45?3:4;
   var bamlbl=bamraw<=20?'Low Risk (1pt)':bamraw<=35?'Moderate Risk (2pts)':bamraw<=45?'High Risk (3pts)':'Very High Risk (4pts)';
-  // ASAM bands
-  var asampts=asamraw<=6?1:asamraw<=12?2:asamraw<=17?3:4;
-  var osamlbl=asamraw<=6?'Early/Outpatient (1pt)':asamraw<=12?'IOP (2pts)':asamraw<=17?'Residential (3pts)':'Intensive (4pts)';
+  // ASAM bands (0 points / N/A when the individual is marked MH Only in the widget above)
+  var asamMhOnly=!!sliState.asam_mh_only;
+  var asampts=asamMhOnly?0:(asamraw<=6?1:asamraw<=12?2:asamraw<=17?3:4);
+  var osamlbl=asamMhOnly?'N/A (MH Only)':(asamraw<=6?'Early/Outpatient (1pt)':asamraw<=12?'IOP (2pts)':asamraw<=17?'Residential (3pts)':'Intensive (4pts)');
   // Risk — with C-SSRS clinical gate override
   var riskOv=document.getElementById('riskOverride')&&document.getElementById('riskOverride').checked;
   var riskpts=riskOv?2:riskraw===0?0:riskraw<=3?1:2;
@@ -2056,9 +2402,8 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
 
   // 9. SLI scores entered (medical necessity requires documented clinical justification) — skipped when SLI marked not applicable
   if(isSliApplicable()){
-    var sliFields = ['sli_phq9','sli_gad7','sli_bam','sli_asam','sli_risk'];
-    var sliComplete = sliFields.every(function(id){ return document.getElementById(id).value !== ''; });
-    check('SLI 2.0 clinical scores (PHQ-9, GAD-7, BAM, ASAM, Risk) are complete', sliComplete);
+    var sliComplete = typeof sli2StateComplete==='function' ? sli2StateComplete(sliState) : ['sli_phq9','sli_gad7','sli_bam','sli_asam','sli_risk'].every(function(id){ return document.getElementById(id).value !== ''; });
+    check('SLI 2.0 full assessment (PHQ-9, GAD-7, BAM, ASAM, C-SSRS) is complete', sliComplete);
   } else {
     check('SLI 2.0 clinical scores — N/A, marked not applicable to this plan', true);
   }
@@ -2388,6 +2733,7 @@ function resetForm(){
   document.getElementById('errorMsg').className='error-msg';
   document.getElementById('sliResult').className='sli-result';
   document.getElementById('sliApplicable').checked=true;
+  sliState = sli2NewState();
   onSliApplicableChange();
   var attestCb = document.getElementById('clinicianAttestation');
   if(attestCb){ attestCb.checked=false; attestCb.disabled=true; }
@@ -2683,12 +3029,28 @@ function onRevSliApplicableChange(){
   var applicable = document.getElementById('rev_sliApplicable').checked;
   document.getElementById('reviewSliScoringBlock').style.display = applicable ? '' : 'none';
   document.getElementById('revSliNotApplicableNote').style.display = applicable ? 'none' : 'block';
-  calcReviewSLI();
+  if(applicable && typeof renderReviewSliWidget==='function') renderReviewSliWidget();
+  else calcReviewSLI();
   if(typeof resetReviewClinicianSignature==='function') resetReviewClinicianSignature('SLI 2.0 applicability changed after signing — please re-sign as clinician before supervisor signs.');
 }
 function isRevSliApplicable(){
   var el = document.getElementById('rev_sliApplicable');
   return !el || el.checked;
+}
+
+// Review panel re-uses the same sli2* item-level engine as the plan's
+// Section 2 SLI (functions defined above), but with its own independent
+// state object -- a 90-day review is a fresh re-administration of the
+// full instrument, not an edit of the original plan's scores. See
+// loadPlanForReview() for how the prior score is shown as read-only
+// reference text instead of being reverse-populated into these items.
+var reviewSliState = sli2NewState();
+function renderReviewSliWidget(){
+  var c = document.getElementById('reviewSliItemsContainer');
+  if(!c) return;
+  c.innerHTML = sli2BuildItemsHtml(reviewSliState);
+  sli2WireEvents(c, reviewSliState, function(){ renderReviewSliWidget(); });
+  calcReviewSLI();
 }
 
 function calcReviewSLI() {
@@ -2699,15 +3061,30 @@ function calcReviewSLI() {
     document.getElementById('reviewSliResult').className='sli-result visible';
     return;
   }
+  var s2 = sli2ComputeScores(reviewSliState);
+  document.getElementById('rev_sli_phq9').value = s2.phq9Raw;
+  document.getElementById('rev_sli_gad7').value = s2.gad7Raw;
+  document.getElementById('rev_sli_bam').value = s2.bamRaw;
+  document.getElementById('rev_sli_asam').value = s2.asamRaw;
+  document.getElementById('rev_sli_risk').value = s2.riskRaw;
+  document.getElementById('rev_risk_override').checked = s2.escalation;
   function rn(id){var el=document.getElementById(id);if(!el)return 0;var v=parseFloat(el.value);return isNaN(v)?0:v;}
   // Apply same banding as main SLI
   var p=rn('rev_sli_phq9'),g=rn('rev_sli_gad7'),b=rn('rev_sli_bam'),a=rn('rev_sli_asam'),ri=rn('rev_sli_risk');
   var phq9pts=p<=9?1:p<=14?2:p<=19?3:4;
+  var phq9lbl=p<=9?'Minimal (1pt)':p<=14?'Mild-Moderate (2pts)':p<=19?'Moderate-Severe (3pts)':'Severe (4pts)';
   var gad7pts=g<=9?1:g<=14?2:g<=19?3:4;
+  var gad7lbl=g<=9?'Minimal (1pt)':g<=14?'Mild-Moderate (2pts)':g<=19?'Moderate-Severe (3pts)':'Severe (4pts)';
   var bampts=b<=20?1:b<=35?2:b<=45?3:4;
-  var asampts=a<=6?1:a<=12?2:a<=17?3:4;
+  var bamlbl=b<=20?'Low Risk (1pt)':b<=35?'Moderate Risk (2pts)':b<=45?'High Risk (3pts)':'Very High Risk (4pts)';
+  var asamMhOnly=!!reviewSliState.asam_mh_only;
+  var asampts=asamMhOnly?0:(a<=6?1:a<=12?2:a<=17?3:4);
+  var asamlbl=asamMhOnly?'N/A (MH Only)':(a<=6?'Early/Outpatient (1pt)':a<=12?'IOP (2pts)':a<=17?'Residential (3pts)':'Intensive (4pts)');
   var riskOv=document.getElementById('rev_risk_override')&&document.getElementById('rev_risk_override').checked;
   var riskpts=riskOv?2:ri===0?0:ri<=3?1:2;
+  var risklbl=riskOv?'High \u2014 C-SSRS gate (2pts)':ri===0?'No Risk (0pts)':ri<=3?'Low-Moderate (1pt)':'High Risk (2pts)';
+  var st=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  st('rev_phq9band',phq9lbl);st('rev_gad7band',gad7lbl);st('rev_bamband',bamlbl);st('rev_asamband',asamlbl);st('rev_riskband',risklbl);
   var revSdoh=['rev_sdoh_housing','rev_sdoh_food','rev_sdoh_transport','rev_sdoh_healthcare','rev_sdoh_isolation','rev_sdoh_legal'];
   var sdoh=revSdoh.filter(function(id){var el=document.getElementById(id);return el&&el.checked;}).length;
   var clinical=phq9pts+gad7pts+bampts+asampts+riskpts;
@@ -2723,6 +3100,72 @@ function calcReviewSLI() {
   document.getElementById('revSliLevel').textContent=level;
   document.getElementById('revSliCap').textContent=cap;
   document.getElementById('reviewSliResult').className='sli-result visible';
+}
+
+async function saveReviewSliToSharedRecord(){
+  var statusEl = document.getElementById('revSliShareSaveStatus');
+  var btn = document.getElementById('revSliShareSaveBtn');
+  var caseNumber = (activeReviewCaseNumber || document.getElementById('reviewCaseNumber').value.trim());
+  if(!isRevSliApplicable()){ statusEl.textContent = 'SLI 2.0 is marked not applicable to this review — nothing to save.'; statusEl.style.color = '#7A5200'; return; }
+  if(!caseNumber){ statusEl.textContent = 'Enter/load a Case / Reference Number above before saving.'; statusEl.style.color = '#8B1A1A'; return; }
+  requireAuth(async function(){
+    btn.disabled = true; btn.textContent = 'Saving…';
+    statusEl.textContent = ''; statusEl.style.color = '#888';
+    var s = sli2ComputeScores(reviewSliState);
+    var sdohKeyMap = { housing:'housing', food:'food_utilities', transport:'transportation', healthcare:'healthcare_access', isolation:'isolation', legal:'legal_safety' };
+    var sdohMap = {};
+    Object.keys(sdohKeyMap).forEach(function(shortKey){
+      var el = document.getElementById('rev_sdoh_' + shortKey);
+      sdohMap[sdohKeyMap[shortKey]] = el && el.checked ? 1 : 0;
+    });
+    var sdohScore = Object.keys(sdohMap).filter(function(k){return sdohMap[k]===1;}).length;
+    var clinicalScore = s.phq9Band.points+s.gad7Band.points+s.bamBand.points+s.asamBand.points+s.riskBand.points;
+    var adjustedSli = clinicalScore + sdohScore;
+    var lowClinicalFlag = clinicalScore<=4, highSdohFlag = sdohScore>=3, cap = lowClinicalFlag && highSdohFlag;
+    var levelTable=[{min:0,max:5,level:1},{min:6,max:8,level:2},{min:9,max:11,level:3},{min:12,max:14,level:4},{min:15,max:9999,level:5}];
+    var calcLevel = cap ? 1 : (levelTable.filter(function(r){return adjustedSli>=r.min && adjustedSli<=r.max;})[0]||levelTable[4]).level;
+    var payload = {
+      client_number: caseNumber,
+      assessed_by: currentSession.user.email,
+      assessment_date: document.getElementById('reviewDate').value || new Date().toISOString().slice(0,10),
+      assessment_type: 'Treatment Plan 90-Day Review',
+      phq9_items: reviewSliState.phq9, phq9_hospitalizations: reviewSliState.phq9_hosp, phq9_raw: s.phq9Raw, phq9_band: s.phq9Band.label, phq9_points: s.phq9Band.points,
+      gad7_items: reviewSliState.gad7, gad7_functional_impact: reviewSliState.gad7_impact, gad7_raw: s.gad7Raw, gad7_band: s.gad7Band.label, gad7_points: s.gad7Band.points,
+      bam_items: reviewSliState.bam, bam_raw: s.bamRaw, bam_band: s.bamBand.label, bam_points: s.bamBand.points,
+      bam_substance_use_30d: reviewSliState.bam_substance_use_30d === 1, bam_overdoses_90d: reviewSliState.bam_overdoses, bam_arrests_90d: reviewSliState.bam_arrests,
+      bam_seen_dentist_12mo: reviewSliState.bam_dentist === 1, bam_seen_doctor_12mo: reviewSliState.bam_doctor === 1,
+      asam_mh_only: !!reviewSliState.asam_mh_only, asam_dimensions: reviewSliState.asam_dims, asam_raw: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points,
+      asam_loc_recommendation: null,
+      risk_cssrs: reviewSliState.cssrs, risk_harm_others: reviewSliState.risk_extra.harm_others, risk_abuse: reviewSliState.risk_extra.abuse, risk_psychosis: reviewSliState.risk_extra.psychosis,
+      risk_raw: s.riskRaw, risk_band: s.riskBand.label, risk_points: s.riskBand.points,
+      risk_escalation_triggered: s.escalation, risk_escalation_notified_by: reviewSliState.risk_notified_by || null,
+      risk_escalation_notified_at: s.escalation ? new Date().toISOString() : null,
+      risk_full_columbia_needed: reviewSliState.risk_full_columbia_needed,
+      sdoh_items: sdohMap, sdoh_barrier_score: sdohScore,
+      clinical_score: clinicalScore, adjusted_sli: adjustedSli,
+      low_clinical_flag: lowClinicalFlag, high_sdoh_flag: highSdohFlag, service_intensity_cap: cap,
+      calculated_support_level: calcLevel, final_support_level: calcLevel,
+      director_review_required: calcLevel === 5 && !cap,
+      is_current: true
+    };
+    try {
+      var prior = await sb.from('sli_assessments').select('id').eq('client_number', caseNumber).eq('is_current', true);
+      if(prior.error) throw prior.error;
+      var inserted = await sb.from('sli_assessments').insert(payload).select('id').single();
+      if(inserted.error) throw inserted.error;
+      if(prior.data && prior.data.length){
+        for(var i=0;i<prior.data.length;i++){
+          await sb.from('sli_assessments').update({is_current:false, superseded_by:inserted.data.id}).eq('id', prior.data[i].id);
+        }
+      }
+      statusEl.textContent = 'Saved to the shared SLI 2.0 record for case ' + caseNumber + ' — Support Level ' + calcLevel + '.';
+      statusEl.style.color = '#1A7A3A';
+    } catch(e){
+      statusEl.textContent = 'Save failed: ' + e.message;
+      statusEl.style.color = '#8B1A1A';
+    }
+    btn.disabled = false; btn.textContent = 'Save SLI 2.0 Assessment to Shared Record';
+  });
 }
 
 function toggleReviewCopyButtons() {
@@ -2873,6 +3316,8 @@ async function generateReview() {
   document.getElementById('generateReviewBtn').disabled = false;
 }
 
+renderSliWidget();
+if(typeof renderReviewSliWidget==='function') renderReviewSliWidget();
 </script>
 </body>
 </html>
