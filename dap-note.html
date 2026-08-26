@@ -994,6 +994,68 @@ async function logNoteAnalytics(payload) {
   }
 }
 
+// ── NOTE SECTION PARSING ──
+// Splits a raw Claude completion into Description / Assessment / Plan text.
+// Written to tolerate the header-formatting variance a model can produce
+// even when the system prompt asks for one specific format: trailing
+// colons ("Description:"), markdown bold ("**Description**"), missing
+// blank lines between sections, or the longer header variants
+// ("Assessment of Progress" / "Plans to Follow Up"). The previous version
+// used fullText.split() with a regex that required the header to be the
+// only thing on its own line -- headers with a colon or markdown bold
+// didn't match, which meant descText/assessText/planText all saved as
+// empty strings to Supabase (a real row was written, just with blank
+// text -- not a failed insert, which is why it wasn't showing up as an
+// error anywhere).
+//
+// This version never returns three blank strings for non-empty input:
+// if no headers are recognized at all, or all recognized segments come
+// back empty, the full cleaned text is placed in descText so a reviewer
+// always sees *something* rather than "No note content was logged."
+function parseNoteSections(fullText) {
+  if (!fullText) return { descText: '', assessText: '', planText: '' };
+
+  // Strip markdown bold/italic markers and heading hashes that sometimes
+  // wrap section headers despite the system prompt asking for plain text.
+  var cleaned = fullText.replace(/\*\*/g, '').replace(/^#+\s*/gm, '');
+
+  var headerPattern = /^[ \t]*(DESCRIPTION|ASSESSMENT(?:\s*OF\s*PROGRESS)?|PLANS?(?:\s*TO\s*FOLLOW\s*UP)?)[ \t]*:?[ \t]*/gim;
+
+  var matches = [];
+  var m;
+  while ((m = headerPattern.exec(cleaned)) !== null) {
+    var raw = m[1].toUpperCase();
+    var type = /^DESCRIPTION/.test(raw) ? 'description' : (/^ASSESSMENT/.test(raw) ? 'assessment' : 'plan');
+    matches.push({ type: type, start: m.index, end: m.index + m[0].length });
+  }
+
+  var descText = '', assessText = '', planText = '';
+
+  if (matches.length === 0) {
+    // No recognizable headers at all -- never silently save blank text.
+    descText = cleaned.trim();
+    return { descText: descText, assessText: assessText, planText: planText };
+  }
+
+  for (var i = 0; i < matches.length; i++) {
+    var segStart = matches[i].end;
+    var segEnd = (i + 1 < matches.length) ? matches[i + 1].start : cleaned.length;
+    var segment = cleaned.slice(segStart, segEnd).trim();
+    if (matches[i].type === 'description' && !descText) descText = segment;
+    else if (matches[i].type === 'assessment' && !assessText) assessText = segment;
+    else if (matches[i].type === 'plan' && !planText) planText = segment;
+  }
+
+  // Headers were found but every segment was empty (e.g. a stray
+  // header-looking line with no body) -- fall back to raw text rather
+  // than saving three blank strings.
+  if (!descText && !assessText && !planText) {
+    descText = cleaned.trim();
+  }
+
+  return { descText: descText, assessText: assessText, planText: planText };
+}
+
 function getSelectedOptionText(selectId) {
   var el = document.getElementById(selectId);
   if (!el || el.selectedIndex < 0) return null;
@@ -1845,22 +1907,8 @@ async function runGenerateLinkageNote(code) {
     if (!response.ok) throw new Error(data.error || 'API error');
 
     var fullText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
-    var sections = fullText.split(/\n(?=\s*(DESCRIPTION|ASSESSMENT|PLAN)\s*\n)/i);
-    var descText = '', assessText = '', planText = '';
-    for (var i = 0; i < sections.length; i++) {
-      var s = sections[i].trim();
-      if (/^DESCRIPTION/i.test(s)) descText = s.replace(/^DESCRIPTION\s*/i, '').trim();
-      else if (/^ASSESSMENT/i.test(s)) assessText = s.replace(/^ASSESSMENT\s*/i, '').trim();
-      else if (/^PLAN/i.test(s)) planText = s.replace(/^PLANS?\s*/i, '').trim();
-    }
-    if (!descText && !assessText && !planText) {
-      var dm = fullText.match(/(DESCRIPTION)([\s\S]*?)(?=\nASSESSMENT|\nPLAN|$)/i);
-      var am = fullText.match(/(ASSESSMENT)([\s\S]*?)(?=\nPLAN|$)/i);
-      var pm = fullText.match(/(PLANS?)([\s\S]*?)$/i);
-      descText = dm ? dm[2].trim() : fullText;
-      assessText = am ? am[2].trim() : '';
-      planText = pm ? pm[2].trim() : '';
-    }
+    var parsed = parseNoteSections(fullText);
+    var descText = parsed.descText, assessText = parsed.assessText, planText = parsed.planText;
     document.getElementById('dataOutput').innerText = descText || fullText;
     document.getElementById('assessmentOutput').innerText = assessText;
     document.getElementById('planOutput').innerText = planText;
@@ -1870,6 +1918,10 @@ async function runGenerateLinkageNote(code) {
 
     var riskScanInput = [result.narrative, result.engagement, result.planNext].filter(Boolean).join('\n\n');
     var riskResult = await runRiskScan(riskScanInput);
+
+    if (!descText && !assessText && !planText) {
+      console.warn('[DAP analytics] parsed note sections are all blank -- raw model output:', fullText);
+    }
 
     logNoteAnalytics({
       client_number: document.getElementById('clientNumber').value.trim(),
@@ -2604,26 +2656,8 @@ async function runGenerateNote() {
     if (!response.ok) throw new Error(data.error || 'API error');
 
     var fullText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
-    var sections = fullText.split(/\n(?=\s*(DESCRIPTION|ASSESSMENT OF PROGRESS|ASSESSMENT|PLANS TO FOLLOW UP|PLAN)\s*\n)/i);
-    var descText = '', assessText = '', planText = '';
-    for (var i = 0; i < sections.length; i++) {
-      var s = sections[i].trim();
-      if (/^DESCRIPTION/i.test(s)) {
-        descText = s.replace(/^DESCRIPTION\s*/i, '').trim();
-      } else if (/^ASSESSMENT/i.test(s)) {
-        assessText = s.replace(/^ASSESSMENT(\s*OF\s*PROGRESS)?\s*/i, '').trim();
-      } else if (/^PLAN/i.test(s)) {
-        planText = s.replace(/^PLANS?\s*(TO\s*FOLLOW\s*UP)?\s*/i, '').trim();
-      }
-    }
-    if (!descText && !assessText && !planText) {
-      var dm = fullText.match(/(DESCRIPTION)([\s\S]*?)(?=\nASSESSMENT|\nPLAN|$)/i);
-      var am = fullText.match(/(ASSESSMENT(?:\s*OF\s*PROGRESS)?)([\s\S]*?)(?=\nPLAN|$)/i);
-      var pm = fullText.match(/(PLANS?(?:\s*TO\s*FOLLOW\s*UP)?)([\s\S]*?)$/i);
-      descText = dm ? dm[2].trim() : fullText;
-      assessText = am ? am[2].trim() : '';
-      planText = pm ? pm[2].trim() : '';
-    }
+    var parsed = parseNoteSections(fullText);
+    var descText = parsed.descText, assessText = parsed.assessText, planText = parsed.planText;
     document.getElementById('dataOutput').innerText = descText || fullText;
     document.getElementById('assessmentOutput').innerText = assessText;
     document.getElementById('planOutput').innerText = planText;
@@ -2641,6 +2675,10 @@ async function runGenerateNote() {
 
     var riskScanInput = [sessionFlow, document.getElementById('concernDescription').value.trim(), document.getElementById('providerResponse').value.trim(), presentationDetail].filter(Boolean).join('\n\n');
     var riskResult = await runRiskScan(riskScanInput);
+
+    if (!descText && !assessText && !planText) {
+      console.warn('[DAP analytics] parsed note sections are all blank -- raw model output:', fullText);
+    }
 
     logNoteAnalytics({
       client_number: document.getElementById('clientNumber').value.trim(),
