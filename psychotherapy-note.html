@@ -1899,6 +1899,43 @@ function resetForm() {
 }
 
 // ── GENERATE ──
+// Robust section parser -- ported from dap-note.html's fix for the same bug.
+// The original split-regex here required each header (DESCRIPTION/ASSESSMENT/
+// PLAN) to be alone on its own line with no trailing punctuation. A colon
+// after the header, markdown bold, or a missing blank line between sections
+// all made it silently save empty strings for one or more fields. This
+// version tolerates all of that, and never returns three blank strings for
+// non-empty input -- if nothing is recognized, the full text goes into
+// descText so a reviewer always sees something instead of a false "no note
+// content" gap.
+function parseNoteSections(fullText) {
+  if (!fullText) return { descText: '', assessText: '', planText: '' };
+  var cleaned = fullText.replace(/\*\*/g, '').replace(/^#+\s*/gm, '');
+  var headerPattern = /^[ \t]*(DESCRIPTION|ASSESSMENT(?:\s*OF\s*PROGRESS)?|PLANS?(?:\s*TO\s*FOLLOW\s*UP)?)[ \t]*:?[ \t]*/gim;
+  var matches = [];
+  var m;
+  while ((m = headerPattern.exec(cleaned)) !== null) {
+    var raw = m[1].toUpperCase();
+    var type = /^DESCRIPTION/.test(raw) ? 'description' : (/^ASSESSMENT/.test(raw) ? 'assessment' : 'plan');
+    matches.push({ type: type, start: m.index, end: m.index + m[0].length });
+  }
+  var descText = '', assessText = '', planText = '';
+  if (matches.length === 0) {
+    descText = cleaned.trim();
+    return { descText: descText, assessText: assessText, planText: planText };
+  }
+  for (var i = 0; i < matches.length; i++) {
+    var segStart = matches[i].end;
+    var segEnd = (i + 1 < matches.length) ? matches[i + 1].start : cleaned.length;
+    var segment = cleaned.slice(segStart, segEnd).trim();
+    if (matches[i].type === 'description' && !descText) descText = segment;
+    else if (matches[i].type === 'assessment' && !assessText) assessText = segment;
+    else if (matches[i].type === 'plan' && !planText) planText = segment;
+  }
+  if (!descText && !assessText && !planText) descText = cleaned.trim();
+  return { descText: descText, assessText: assessText, planText: planText };
+}
+
 async function generateNote() {
   var errorEl = document.getElementById('errorMsg');
   errorEl.className = 'error-msg';
@@ -2106,21 +2143,12 @@ async function runGenerateNote() {
     if (!response.ok) throw new Error(data.error || 'API error');
 
     var fullText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
-    var sections = fullText.split(/\n(?=\s*(DESCRIPTION|ASSESSMENT|PLAN)\s*\n)/i);
-    var descText = '', assessText = '', planText = '';
-    for (var i = 0; i < sections.length; i++) {
-      var s = sections[i].trim();
-      if (/^DESCRIPTION/i.test(s)) descText = s.replace(/^DESCRIPTION\s*/i, '').trim();
-      else if (/^ASSESSMENT/i.test(s)) assessText = s.replace(/^ASSESSMENT\s*/i, '').trim();
-      else if (/^PLAN/i.test(s)) planText = s.replace(/^PLAN\s*/i, '').trim();
-    }
-    if (!descText && !assessText && !planText) {
-      var dm = fullText.match(/(DESCRIPTION)([\s\S]*?)(?=\nASSESSMENT|\nPLAN|$)/i);
-      var am = fullText.match(/(ASSESSMENT)([\s\S]*?)(?=\nPLAN|$)/i);
-      var pm = fullText.match(/(PLAN)([\s\S]*?)$/i);
-      descText = dm ? dm[2].trim() : fullText;
-      assessText = am ? am[2].trim() : '';
-      planText = pm ? pm[2].trim() : '';
+    var wasTruncated = data.stop_reason === 'max_tokens';
+    if (wasTruncated) console.warn('[Psychotherapy Note] response truncated by token limit -- note below may be incomplete.');
+    var parsed = parseNoteSections(fullText);
+    var descText = parsed.descText, assessText = parsed.assessText, planText = parsed.planText;
+    if (wasTruncated) {
+      descText += '\n\n[WARNING: This note may have been cut off before completion -- the token limit was reached. Review carefully and regenerate if the Plan section looks incomplete.]';
     }
     document.getElementById('dataOutput').innerText = descText || fullText;
     document.getElementById('assessmentOutput').innerText = assessText;
