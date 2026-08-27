@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SLI 2.0 Assessment — Thrive Peer Recovery Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --thrive-blue:#3c50a0; --thrive-blue-deep:#283c8c; --thrive-blue-dark:#1a2861;
+  --thrive-yellow:#f0c814; --thrive-pink:#c83c8c; --thrive-green:#3cb43c;
+  --bg:#f7f3ec; --paper:#ffffff; --ink:#1a2861; --ink-soft:#3e4a78;
+  --muted:#8089a8; --rule:#e6dfd2; --rule-strong:#cdc4b2;
+  --good:#2d8c30; --good-bg:#dcf0dc;
+  --warn:#a07e0a; --warn-bg:#fbf0c4;
+  --bad:#a52d6d; --bad-bg:#f7dde6;
+  --esc:#5B3A8C; --esc-bg:#EFE7F7;
+  --shadow:0 1px 0 rgba(40,60,140,.04), 0 8px 28px -12px rgba(40,60,140,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased;}
+.topbar{background:linear-gradient(95deg, var(--thrive-blue-deep) 0%, var(--thrive-blue) 100%);color:#f5f1e8;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:3px solid var(--thrive-yellow);position:sticky;top:0;z-index:100;}
+.topbar .badge{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:#fff;font-weight:400;}
+.topbar .badge .sub{font-family:'IBM Plex Mono',monospace;font-style:normal;font-size:11px;letter-spacing:.08em;color:#cdd4f0;text-transform:uppercase;margin-left:8px;}
+.content{max-width:760px;margin:0 auto;padding:24px 24px 80px;}
+
+.section{background:var(--paper);border:1px solid var(--rule);border-radius:4px;margin-bottom:20px;box-shadow:var(--shadow);overflow:hidden;}
+.section-head{padding:16px 20px;border-bottom:1px solid var(--rule);background:var(--bg);}
+.section-head h2{font-family:'Fraunces',serif;font-size:18px;font-weight:400;color:var(--ink);letter-spacing:-0.01em;}
+.section-head .sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.section-body{padding:18px 20px;}
+
+.item{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--rule);}
+.item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.item .q{font-size:13.5px;color:var(--ink);margin-bottom:9px;line-height:1.5;}
+.opt-row{display:flex;gap:6px;flex-wrap:wrap;}
+.opt-btn{padding:7px 12px;border:1px solid var(--rule-strong);background:var(--paper);color:var(--ink-soft);border-radius:14px;font-size:12px;cursor:pointer;font-family:inherit;}
+.opt-btn:hover{border-color:var(--thrive-blue);}
+.opt-btn.selected{background:var(--thrive-blue);color:#fff;border-color:var(--thrive-blue);}
+.opt-btn.selected.risk{background:var(--bad);border-color:var(--bad);}
+
+.field-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
+input[type=text], input[type=date], select, textarea{width:100%;border:1px solid var(--rule-strong);border-radius:2px;padding:9px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;background:#fdfbf6;}
+textarea{resize:vertical;min-height:60px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+.banner{padding:14px 16px;border-radius:3px;margin-bottom:16px;font-size:13px;line-height:1.6;}
+.banner.crisis{background:var(--bad-bg);border:1.5px solid var(--bad);color:var(--bad);font-weight:600;}
+.banner.warn{background:var(--warn-bg);border:1px solid var(--warn);color:var(--warn);}
+.banner.note{background:var(--esc-bg);border:1px solid var(--esc);color:var(--esc);}
+.banner strong{display:block;margin-bottom:4px;font-size:13.5px;}
+
+.results{background:var(--paper);border:2px solid var(--thrive-blue);border-radius:4px;padding:22px;margin-top:24px;box-shadow:var(--shadow);}
+.results h2{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);margin-bottom:14px;}
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+.score-tile{background:var(--bg);border:1px solid var(--rule);border-radius:3px;padding:12px 14px;}
+.score-tile .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:600;margin-bottom:4px;}
+.score-tile .val{font-family:'Fraunces',serif;font-size:22px;color:var(--ink);}
+.level-banner{padding:18px;border-radius:3px;background:var(--thrive-blue);color:#fff;margin-bottom:16px;}
+.level-banner .level-title{font-family:'Fraunces',serif;font-size:24px;margin-bottom:4px;}
+.level-banner .level-desc{font-size:12.5px;color:#dde3f7;line-height:1.6;}
+.level-banner.capped{background:var(--warn);}
+.level-banner.level5{background:var(--bad);}
+
+.save-btn{width:100%;padding:13px;background:var(--thrive-blue);color:#fff;border:none;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;margin-top:10px;}
+.save-btn:hover{background:var(--thrive-blue-deep);}
+.save-btn:disabled{background:#AEB6BE;cursor:not-allowed;}
+.save-status{margin-top:10px;font-size:12.5px;color:var(--muted);text-align:center;}
+
+.override-box{margin-top:14px;padding:14px;background:var(--bg);border:1px solid var(--rule);border-radius:3px;}
+.gap-note{font-size:11.5px;color:var(--muted);background:#fff9e8;border:1px solid var(--thrive-yellow);border-radius:2px;padding:10px 12px;margin-top:10px;line-height:1.55;}
+.login-wrap{max-width:400px;margin:100px auto;background:var(--paper);border:1px solid var(--rule);border-radius:3px;box-shadow:var(--shadow);padding:34px;}
+.login-wrap h2{font-family:'Fraunces',serif;font-weight:400;font-size:22px;color:var(--ink);margin-bottom:16px;}
+.login-btn{width:100%;margin-top:16px;padding:11px;background:var(--thrive-blue);color:#fff;border:none;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
+.login-error{margin-top:12px;font-size:12.5px;color:var(--bad);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// SLI 2.0 DIGITAL ASSESSMENT TOOL
+// Digitizes the six-instrument Service Level Indicator screener
+// (PHQ-9, GAD-7, BAM, ASAM LOC, Brief Risk/C-SSRS, SDOH) so it becomes
+// the authoritative, queryable record of a client's support level --
+// instead of living only inside Pimsy, where it can't be joined
+// against session/utilization data.
+//
+// Scoring logic is transcribed directly from "SLI 2.0 Staff Training
+// Manual" (May 2026) and the SLI_2_0.xlsx Pimsy form export. See the
+// gap-note in the ASAM section for the one piece that could NOT be
+// verified against source material -- the six ASAM dimension
+// descriptor picklists were not present in the xlsx export.
+// ══════════════════════════════════════════════════════════════════
+
+const SUPABASE_URL = 'https://fussjixekyhwuromauff.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1c3NqaXhla3lod3Vyb21hdWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjMzNzYsImV4cCI6MjA5ODI5OTM3Nn0.3yfRu5LMDlIasvc0cu_GOcXAquji6ZYUkp3dgxk1j2M';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const TABLE = 'sli_assessments';
+
+var app = document.getElementById('app');
+var currentReviewer = null;
+
+// ── DATA MODEL ──
+
+var PHQ9_ITEMS = [
+  'Little interest or pleasure in doing things',
+  'Feeling down, depressed, or hopeless',
+  'Trouble falling or staying asleep, or sleeping too much',
+  'Feeling tired or having little energy',
+  'Poor appetite or overeating',
+  "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+  'Trouble concentrating on things, such as reading or watching television',
+  'Moving or speaking so slowly that other people could have noticed, or the opposite — being fidgety or restless',
+  'Thoughts that you would be better off dead, or of hurting yourself in some way'
+];
+var FREQ_OPTIONS = ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'];
+
+var GAD7_ITEMS = [
+  'Feeling nervous, anxious, or on edge',
+  'Not being able to stop or control worrying',
+  'Worrying too much about different things',
+  'Trouble relaxing',
+  'Being so restless that it is hard to sit still',
+  'Becoming easily annoyed or irritable',
+  'Feeling afraid, as if something awful might happen'
+];
+
+var BAM_SCALE_030 = ['0', '1-3', '4-8', '9-15', '16-30'];
+var BAM_SCALE_EXTREME = ['Not at all', 'Slightly', 'Moderately', 'Considerably', 'Extremely'];
+var BAM_SCALE_HEALTH = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'];
+
+// Each scored BAM item: label, response option set, and whether it counts
+// toward the BAM raw score (per "Include In Score 3" flags in the Pimsy
+// export). Point value = index of the selected option (0-4).
+var BAM_SCORED_ITEMS = [
+  { key: 'physical_health', label: 'In the past 30 days, would you say your physical health has been?', options: BAM_SCALE_HEALTH },
+  { key: 'sleep_trouble', label: 'In the past 30 days, how many nights did you have trouble falling or staying asleep?', options: BAM_SCALE_030 },
+  { key: 'mood_distress', label: 'In the past 30 days, how many days have you felt depressed, anxious, angry or very upset throughout most of the day?', options: BAM_SCALE_030 },
+  { key: 'alcohol_days', label: 'In the past 30 days, how many days did you drink ANY alcohol?', options: BAM_SCALE_030 },
+  { key: 'heavy_drinking_days', label: 'In the past 30 days, how many days did you have at least 5 drinks (4 if female or over 65)?', options: BAM_SCALE_030 },
+  { key: 'drug_days', label: 'In the past 30 days, how many days did you use any illegal/street drugs or abuse any prescription medications?', options: BAM_SCALE_030 },
+  { key: 'cravings', label: 'In the past 30 days, how much were you bothered by cravings or urges to drink alcohol or use drugs?', options: BAM_SCALE_EXTREME },
+  { key: 'abstinence_confidence', label: 'How confident are you in your ability to be completely abstinent (clean) from alcohol and drugs in the next 30 days?', options: BAM_SCALE_EXTREME },
+  { key: 'self_help_days', label: 'In the past 30 days, how many days did you attend self-help meetings like AA or NA?', options: BAM_SCALE_030 },
+  { key: 'risky_situations_days', label: 'In the past 30 days, how many days were you in situations or with people that put you at increased risk for using?', options: BAM_SCALE_030 },
+  { key: 'spirituality', label: 'Does your religion or spirituality help support your recovery?', options: BAM_SCALE_EXTREME },
+  { key: 'work_school_days', label: 'In the past 30 days, how many days did you spend much of the time at work, school, or volunteering?', options: BAM_SCALE_030 },
+  { key: 'relationship_problems', label: 'In the past 30 days, how much have you been bothered by arguments or problems with family or friends?', options: BAM_SCALE_EXTREME },
+  { key: 'supportive_contact_days', label: 'In the past 30 days, how many days were you in contact with family or friends supportive of your recovery?', options: BAM_SCALE_030 },
+  { key: 'recovery_satisfaction', label: 'How satisfied are you with your progress toward achieving your recovery goals?', options: BAM_SCALE_EXTREME }
+];
+
+var CSSRS_ITEMS = [
+  { key: '1a', label: '1a. In the past month, have you wished you were dead or wished you could go to sleep and not wake up?' },
+  { key: '1b', label: '1b. In the past month, have you actually had any thoughts of killing yourself?' },
+  { key: '1c', label: '1c. Have you been thinking about how you might kill yourself (specific method)?' },
+  { key: '1d', label: '1d. Have you had these thoughts and had some intention of acting on them?' },
+  { key: '1e', label: '1e. Have you started to work out or worked out the details of how to kill yourself? Do you intend to carry out this plan?' },
+  { key: '1f', label: '1f. In the past 3 months, have you done anything, started to do anything, or prepared to do anything to end your life?' }
+];
+var CSSRS_ESCALATION_KEYS = ['1c', '1d', '1e', '1f'];
+
+var RISK_EXTRA_ITEMS = [
+  { key: 'harm_others', label: 'Have you had any thoughts of harming someone else?' },
+  { key: 'abuse', label: 'Are you currently experiencing any form of abuse or violence (physical, emotional, sexual)?' },
+  { key: 'psychosis', label: 'In the past 30 days, have you experienced hallucinations, paranoia, or symptoms of psychosis?' }
+];
+
+var SDOH_ITEMS = [
+  { key: 'housing', label: 'Are you currently experiencing housing instability or worried about losing your housing?' },
+  { key: 'food_utilities', label: 'Are you having difficulty affording basic needs like food, utilities, or rent?' },
+  { key: 'transportation', label: 'Do you have challenges getting to appointments or places you need to go?' },
+  { key: 'healthcare_access', label: 'Is it difficult for you to see a doctor or get healthcare when you need it?' },
+  { key: 'isolation', label: "Do you feel isolated or like you don't have people to turn to for help?" },
+  { key: 'legal_safety', label: "Are you dealing with any legal issues or feeling unsafe where you're living right now?" }
+];
+
+// PLACEHOLDER — see gap-note rendered in the ASAM section. Per the manual,
+// each dimension is a 10-option picklist scored 0.5-4 by placement level,
+// not by the descriptor wording alone. The real Thrive-specific option
+// text was not present in the SLI_2_0.xlsx export. Swap this array for
+// the real picklist text (10 entries per dimension, {label, points}) once
+// available -- nothing else in the scoring logic needs to change.
+var ASAM_DIMENSIONS_PLACEHOLDER = [
+  'Acute Intoxication and/or Withdrawal Potential',
+  'Biomedical Conditions and Complications',
+  'Emotional, Behavioral, or Cognitive Conditions and Complications',
+  'Readiness to Change',
+  'Relapse, Continued Use, or Continued Problem Potential',
+  'Recovery/Living Environment'
+];
+var ASAM_PLACEHOLDER_OPTIONS = [
+  { label: '0 — No problem: fully stable', points: 0 },
+  { label: '1 — Mild: slight issue, manageable in current setting', points: 1 },
+  { label: '2 — Moderate: requires structured support or intervention', points: 2 },
+  { label: '3 — Serious: presents a clear risk, needs intensive services', points: 3 },
+  { label: '4 — Severe: imminent danger or inability to function without 24/7 care', points: 4 }
+];
+
+// ── STATE ──
+var state = {
+  client_number: '', assessment_type: 'Initial', assessment_date: new Date().toISOString().slice(0,10),
+  phq9: new Array(9).fill(null), phq9_hosp: null,
+  gad7: new Array(7).fill(null), gad7_impact: null,
+  bam: {}, bam_substance_use_30d: null, bam_overdoses: null, bam_arrests: null, bam_dentist: null, bam_doctor: null,
+  asam_mh_only: null, asam_dims: new Array(6).fill(null), asam_loc_recommendation: '', asam_override_rationale: '',
+  cssrs: {}, risk_extra: {}, risk_notified_by: '', risk_full_columbia_needed: null,
+  sdoh: {},
+  level_override: null, level_override_rationale: ''
+};
+
+function render() { app.innerHTML = buildHtml(); wireEvents(); }
+
+// ── SCORING ──
+
+function sum(arr) { return arr.reduce(function(a,b){ return a + (b === null || b === undefined ? 0 : b); }, 0); }
+
+function bandFromTable(raw, table) {
+  for (var i = 0; i < table.length; i++) {
+    if (raw >= table[i].min && raw <= table[i].max) return table[i];
+  }
+  return table[table.length - 1];
+}
+
+function computeScores() {
+  var phq9Raw = sum(state.phq9);
+  var phq9Band = bandFromTable(phq9Raw, [
+    { min:0, max:9, label:'0-9 Minimal', points:1 },
+    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
+    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
+    { min:20, max:27, label:'20-27 Severe', points:4 }
+  ]);
+
+  var gad7Raw = sum(state.gad7);
+  var gad7Band = bandFromTable(gad7Raw, [
+    { min:0, max:9, label:'0-9 Minimal', points:1 },
+    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
+    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
+    { min:20, max:21, label:'20-21 Severe', points:4 }
+  ]);
+
+  var bamRaw = sum(BAM_SCORED_ITEMS.map(function(it){ return state.bam[it.key]; }));
+  var bamBand = bandFromTable(bamRaw, [
+    { min:0, max:20, label:'0-20 Low Risk', points:1 },
+    { min:21, max:35, label:'21-35 Moderate Risk', points:2 },
+    { min:36, max:45, label:'36-45 High Risk', points:3 },
+    { min:46, max:9999, label:'46+ Very High Risk', points:4 }
+  ]);
+
+  var asamRaw = state.asam_mh_only ? 0 : sum(state.asam_dims);
+  var asamBand = state.asam_mh_only
+    ? { label: 'N/A (MH Only)', points: 0 }
+    : bandFromTable(asamRaw, [
+        { min:0, max:6, label:'0-6 Early/Outpatient', points:1 },
+        { min:7, max:12, label:'7-12 IOP', points:2 },
+        { min:13, max:17, label:'13-17 Residential', points:3 },
+        { min:18, max:9999, label:'18-24 Intensive', points:4 }
+      ]);
+
+  var cssrsYes = CSSRS_ITEMS.map(function(it){ return state.cssrs[it.key] === 1; });
+  var escalation = CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
+  var riskExtraRaw = sum(RISK_EXTRA_ITEMS.map(function(it){ return state.risk_extra[it.key]; }));
+  var riskRaw = sum(state.cssrs && Object.keys(state.cssrs).length ? CSSRS_ITEMS.map(function(it){ return state.cssrs[it.key]; }) : []) + riskExtraRaw;
+  var riskBand;
+  if (escalation || riskRaw >= 4) riskBand = { label: '2 High Risk', points: 2 };
+  else if (riskRaw >= 1) riskBand = { label: '1 Low-Moderate Risk', points: 1 };
+  else riskBand = { label: '0 No Risk', points: 0 };
+
+  var sdohScore = sum(SDOH_ITEMS.map(function(it){ return state.sdoh[it.key]; }));
+
+  var clinicalScore = phq9Band.points + gad7Band.points + bamBand.points + asamBand.points + riskBand.points;
+  var adjustedSli = clinicalScore + sdohScore;
+
+  var lowClinicalFlag = clinicalScore <= 4;
+  var highSdohFlag = sdohScore >= 3;
+  var cap = lowClinicalFlag && highSdohFlag;
+
+  var levelTable = [
+    { min:0, max:5, level:1, label:'Level 1 — Maintenance', hours:'1-2 hours/week' },
+    { min:6, max:8, level:2, label:'Level 2 — Moderate', hours:'2-4 hours/week' },
+    { min:9, max:11, level:3, label:'Level 3 — High', hours:'4-6 hours/week' },
+    { min:12, max:14, level:4, label:'Level 4 — Intensive', hours:'6-8 hours/week' },
+    { min:15, max:9999, level:5, label:'Level 5 — Critical', hours:'8+ hours/week (Director approval required)' }
+  ];
+  var calculatedLevel = cap ? levelTable[0] : bandFromTable(adjustedSli, levelTable);
+  var directorReviewRequired = calculatedLevel.level === 5;
+
+  return {
+    phq9Raw: phq9Raw, phq9Band: phq9Band,
+    gad7Raw: gad7Raw, gad7Band: gad7Band,
+    bamRaw: bamRaw, bamBand: bamBand,
+    asamRaw: asamRaw, asamBand: asamBand,
+    escalation: escalation, riskRaw: riskRaw, riskBand: riskBand,
+    sdohScore: sdohScore,
+    clinicalScore: clinicalScore, adjustedSli: adjustedSli,
+    lowClinicalFlag: lowClinicalFlag, highSdohFlag: highSdohFlag, cap: cap,
+    calculatedLevel: calculatedLevel, directorReviewRequired: directorReviewRequired
+  };
+}
+
+// ── RENDER HELPERS ──
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, function(c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+
+function optionRow(items, selectedVal, groupKey, opts) {
+  opts = opts || {};
+  return '<div class="opt-row" data-group="' + groupKey + '">' + items.map(function(label, idx) {
+    var val = opts.values ? opts.values[idx] : idx;
+    var isSelected = selectedVal === val;
+    return '<button type="button" class="opt-btn' + (isSelected ? ' selected' + (opts.riskStyle ? ' risk' : '') : '') + '" data-group="' + groupKey + '" data-val="' + val + '">' + escapeHtml(label) + '</button>';
+  }).join('') + '</div>';
+}
+
+function yesNoRow(groupKey, selectedVal) {
+  return optionRow(['No', 'Yes'], selectedVal, groupKey, { values: [0, 1], riskStyle: true });
+}
+
+function buildHtml() {
+  var scores = computeScores();
+  var phq9Item9 = state.phq9[8];
+  var showItem9Note = phq9Item9 !== null && phq9Item9 > 0;
+
+  var html = '<div class="topbar"><span class="badge">Thrive<span class="sub">SLI 2.0 Assessment</span></span></div>';
+  html += '<div class="content">';
+
+  // Client info
+  html += '<div class="section"><div class="section-head"><h2>Client &amp; Assessment Info</h2></div><div class="section-body">';
+  html += '<div class="row2">';
+  html += '<div><label class="field-label">Client Number</label><input type="text" id="clientNumber" value="' + escapeHtml(state.client_number) + '" placeholder="e.g. 10234"></div>';
+  html += '<div><label class="field-label">Assessment Date</label><input type="date" id="assessmentDate" value="' + escapeHtml(state.assessment_date) + '"></div>';
+  html += '</div>';
+  html += '<label class="field-label">Assessment Type</label><select id="assessmentType">' +
+    ['Initial','30-day','90-day','Ad-hoc'].map(function(t){ return '<option value="' + t + '"' + (state.assessment_type === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') +
+    '</select>';
+  html += '</div></div>';
+
+  // PHQ-9
+  html += '<div class="section"><div class="section-head"><h2>PHQ-9 — Depression</h2><div class="sub">Rate each over the past two weeks.</div></div><div class="section-body">';
+  PHQ9_ITEMS.forEach(function(q, i) {
+    html += '<div class="item"><div class="q">' + (i+1) + '. ' + escapeHtml(q) + '</div>' + optionRow(FREQ_OPTIONS, state.phq9[i], 'phq9_' + i) + '</div>';
+  });
+  if (showItem9Note) {
+    html += '<div class="banner warn"><strong>Item 9 endorsed</strong>Per protocol: stay with the client, acknowledge with empathy, don\'t minimize or react with alarm. This will be revisited in the Brief Risk Assessment section below.</div>';
+  }
+  html += '<div class="item"><div class="q">How many times were you hospitalized for your MH in the last 90 days? <span style="color:var(--muted)">(not scored)</span></div>' + optionRow(['0','1','2','3','4+'], state.phq9_hosp, 'phq9_hosp') + '</div>';
+  html += '</div></div>';
+
+  // GAD-7
+  html += '<div class="section"><div class="section-head"><h2>GAD-7 — Anxiety</h2><div class="sub">Rate each over the past two weeks.</div></div><div class="section-body">';
+  GAD7_ITEMS.forEach(function(q, i) {
+    html += '<div class="item"><div class="q">' + (i+1) + '. ' + escapeHtml(q) + '</div>' + optionRow(FREQ_OPTIONS, state.gad7[i], 'gad7_' + i) + '</div>';
+  });
+  html += '<div class="item"><div class="q">If you checked any problems, how difficult have they made daily life? <span style="color:var(--muted)">(not scored)</span></div>' + optionRow(['Not difficult at all','Somewhat difficult','Very difficult','Extremely difficult'], state.gad7_impact, 'gad7_impact') + '</div>';
+  html += '</div></div>';
+
+  // BAM
+  html += '<div class="section"><div class="section-head"><h2>BAM — Brief Addiction Monitor</h2><div class="sub">Recovery monitoring across substance use, supports, and life functioning.</div></div><div class="section-body">';
+  html += '<div class="item"><div class="q">Has the client used any substances within the last 30 days? <span style="color:var(--muted)">(not scored — gates items below)</span></div>' + yesNoRow('bam_substance_use_30d', state.bam_substance_use_30d) + '</div>';
+  BAM_SCORED_ITEMS.forEach(function(it) {
+    html += '<div class="item"><div class="q">' + escapeHtml(it.label) + '</div>' + optionRow(it.options, state.bam[it.key], 'bam_' + it.key) + '</div>';
+  });
+  html += '<div class="item"><div class="q">How many overdoses in the last 90 days? <span style="color:var(--muted)">(not scored)</span></div>' + optionRow(['0','1','2','3','4+'], state.bam_overdoses, 'bam_overdoses') + '</div>';
+  html += '<div class="item"><div class="q">How many arrests in the last 90 days? <span style="color:var(--muted)">(not scored)</span></div>' + optionRow(['0','1','2','3','4+'], state.bam_arrests, 'bam_arrests') + '</div>';
+  html += '<div class="item"><div class="q">Seen a dentist in the last 12 months? <span style="color:var(--muted)">(not scored)</span></div>' + yesNoRow('bam_dentist', state.bam_dentist) + '</div>';
+  html += '<div class="item"><div class="q">Seen a doctor in the last 12 months? <span style="color:var(--muted)">(not scored)</span></div>' + yesNoRow('bam_doctor', state.bam_doctor) + '</div>';
+  html += '</div></div>';
+
+  // ASAM
+  html += '<div class="section"><div class="section-head"><h2>ASAM Level of Care</h2><div class="sub">Six dimensions — clinical staff with ASAM training only.</div></div><div class="section-body">';
+  html += '<div class="item"><div class="q">Is client MH Only? (If yes, skip all six dimensions)</div>' + yesNoRow('asam_mh_only', state.asam_mh_only) + '</div>';
+  if (!state.asam_mh_only) {
+    html += '<div class="gap-note"><strong>Placeholder scale in use.</strong> The real 10-option, 0.5&ndash;4 point Thrive picklist for these six dimensions wasn\'t in the SLI_2_0.xlsx export. The 5-point severity key below (from the same file) is standing in for now &mdash; swap in the real picklist text once available; nothing else in the scoring changes.</div>';
+    ASAM_DIMENSIONS_PLACEHOLDER.forEach(function(dim, i) {
+      html += '<div class="item"><div class="q">' + (i+1) + '. ' + escapeHtml(dim) + '</div>' + optionRow(ASAM_PLACEHOLDER_OPTIONS.map(function(o){return o.label;}), state.asam_dims[i], 'asam_' + i) + '</div>';
+    });
+    html += '<label class="field-label">ASAM Level of Care Recommendation (clinician overall placement)</label><input type="text" id="asamLoc" value="' + escapeHtml(state.asam_loc_recommendation) + '" placeholder="e.g. 3.5">';
+    html += '<div style="margin-top:12px;"><label class="field-label">If score-suggested level differs from clinician-assigned level, explain</label><textarea id="asamOverride">' + escapeHtml(state.asam_override_rationale) + '</textarea></div>';
+  }
+  html += '</div></div>';
+
+  // Risk
+  html += '<div class="section"><div class="section-head"><h2>Brief Risk Assessment</h2><div class="sub">C-SSRS suicide risk screen + additional risk items. Handle with care.</div></div><div class="section-body">';
+  CSSRS_ITEMS.forEach(function(it) {
+    html += '<div class="item"><div class="q">' + escapeHtml(it.label) + '</div>' + yesNoRow('cssrs_' + it.key, state.cssrs[it.key]) + '</div>';
+  });
+  if (scores.escalation) {
+    html += '<div class="banner crisis"><strong>ESCALATION PROTOCOL — STOP</strong>A "Yes" was recorded on 1c, 1d, 1e, or 1f. The full C-SSRS must be administered immediately by qualified clinical staff. Do not leave the client alone. Document who was notified and the disposition below before continuing.</div>';
+    html += '<div><label class="field-label">Clinical staff notified (name)</label><input type="text" id="riskNotifiedBy" value="' + escapeHtml(state.risk_notified_by) + '"></div>';
+    html += '<div style="margin-top:10px;"><div class="q">Based on the client\'s response, is a Full Columbia Assessment needed?</div>' + yesNoRow('risk_full_columbia', state.risk_full_columbia_needed) + '</div>';
+  }
+  RISK_EXTRA_ITEMS.forEach(function(it) {
+    html += '<div class="item"><div class="q">' + escapeHtml(it.label) + '</div>' + yesNoRow('risk_extra_' + it.key, state.risk_extra[it.key]) + '</div>';
+  });
+  html += '</div></div>';
+
+  // SDOH
+  html += '<div class="section"><div class="section-head"><h2>SDOH Critical Barriers</h2><div class="sub">Current-situation barriers, not lifetime history.</div></div><div class="section-body">';
+  SDOH_ITEMS.forEach(function(it) {
+    html += '<div class="item"><div class="q">' + escapeHtml(it.label) + '</div>' + yesNoRow('sdoh_' + it.key, state.sdoh[it.key]) + '</div>';
+  });
+  html += '</div></div>';
+
+  // Results
+  html += buildResultsHtml(scores);
+
+  html += '</div>';
+  return html;
+}
+
+function buildResultsHtml(s) {
+  var levelClass = s.cap ? 'capped' : (s.calculatedLevel.level === 5 ? 'level5' : '');
+  var levelTitle = s.cap ? 'Level 1 — Capped' : s.calculatedLevel.label;
+  var levelHours = s.cap ? '1-2 hours/week — Service Intensity Cap applied' : s.calculatedLevel.hours;
+
+  var html = '<div class="results">';
+  html += '<h2>Results</h2>';
+
+  html += '<div class="score-grid">';
+  html += scoreTile('PHQ-9', s.phq9Raw, s.phq9Band.label);
+  html += scoreTile('GAD-7', s.gad7Raw, s.gad7Band.label);
+  html += scoreTile('BAM', s.bamRaw, s.bamBand.label);
+  html += scoreTile('ASAM', s.asamRaw, s.asamBand.label);
+  html += scoreTile('Risk', s.riskRaw, s.riskBand.label);
+  html += scoreTile('SDOH Barriers', s.sdohScore, s.sdohScore + ' of 6 endorsed');
+  html += '</div>';
+
+  html += '<div class="score-grid" style="grid-template-columns:1fr 1fr;">';
+  html += scoreTile('Clinical Score', s.clinicalScore, null);
+  html += scoreTile('Adjusted SLI', s.adjustedSli, 'Clinical + SDOH');
+  html += '</div>';
+
+  if (s.cap) {
+    html += '<div class="banner warn"><strong>Service Intensity Cap Applied</strong>Clinical Score is 4 or less AND SDOH Barrier Score is 3 or more &mdash; capped at Level 1 regardless of Adjusted SLI. This does not mean less support: focus peer time on active barrier resolution (housing, benefits, healthcare linkage), not symptom-focused work.</div>';
+  }
+
+  html += '<div class="level-banner ' + levelClass + '">';
+  html += '<div class="level-title">' + escapeHtml(levelTitle) + '</div>';
+  html += '<div class="level-desc">' + escapeHtml(levelHours) + '</div>';
+  html += '</div>';
+
+  if (s.directorReviewRequired && !s.cap) {
+    html += '<div class="banner crisis"><strong>Director Review Required</strong>Level 5 requires director approval before services begin at this intensity. Notify the clinical director or designee now and document the date/time of notification. Do not initiate Level 5 services without documented approval.</div>';
+  }
+
+  html += '<div class="override-box">';
+  html += '<label class="field-label">Final Support Level (defaults to calculated — change only with documented clinical rationale)</label>';
+  html += '<select id="levelOverride">' + [1,2,3,4,5].map(function(lv){
+    var calcLevel = s.cap ? 1 : s.calculatedLevel.level;
+    return '<option value="' + lv + '"' + ((state.level_override !== null ? state.level_override : calcLevel) === lv ? ' selected' : '') + '>Level ' + lv + '</option>';
+  }).join('') + '</select>';
+  html += '<div style="margin-top:10px;"><label class="field-label">Override rationale (required if different from calculated level)</label><textarea id="levelOverrideRationale">' + escapeHtml(state.level_override_rationale) + '</textarea></div>';
+  html += '</div>';
+
+  html += '<label class="field-label" style="margin-top:16px;display:block;">Assessed By</label><input type="text" id="assessedBy" placeholder="Your name">';
+
+  html += '<button class="save-btn" id="saveBtn">Save Assessment</button>';
+  html += '<div class="save-status" id="saveStatus"></div>';
+  html += '</div>';
+  return html;
+}
+
+function scoreTile(label, val, sub) {
+  return '<div class="score-tile"><div class="lbl">' + escapeHtml(label) + '</div><div class="val">' + val + '</div>' + (sub ? '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + escapeHtml(sub) + '</div>' : '') + '</div>';
+}
+
+// ── EVENTS ──
+
+function wireEvents() {
+  document.getElementById('clientNumber').oninput = function(e){ state.client_number = e.target.value; };
+  document.getElementById('assessmentDate').oninput = function(e){ state.assessment_date = e.target.value; };
+  document.getElementById('assessmentType').onchange = function(e){ state.assessment_type = e.target.value; };
+
+  document.querySelectorAll('.opt-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      var group = btn.getAttribute('data-group');
+      var val = parseInt(btn.getAttribute('data-val'), 10);
+      setGroupValue(group, val);
+      render();
+    };
+  });
+
+  var asamLoc = document.getElementById('asamLoc');
+  if (asamLoc) asamLoc.oninput = function(e){ state.asam_loc_recommendation = e.target.value; };
+  var asamOverride = document.getElementById('asamOverride');
+  if (asamOverride) asamOverride.oninput = function(e){ state.asam_override_rationale = e.target.value; };
+  var riskNotifiedBy = document.getElementById('riskNotifiedBy');
+  if (riskNotifiedBy) riskNotifiedBy.oninput = function(e){ state.risk_notified_by = e.target.value; };
+
+  var levelOverride = document.getElementById('levelOverride');
+  if (levelOverride) levelOverride.onchange = function(e){ state.level_override = parseInt(e.target.value, 10); };
+  var levelOverrideRationale = document.getElementById('levelOverrideRationale');
+  if (levelOverrideRationale) levelOverrideRationale.oninput = function(e){ state.level_override_rationale = e.target.value; };
+
+  var assessedBy = document.getElementById('assessedBy');
+  if (assessedBy && currentReviewer) assessedBy.value = currentReviewer.name || '';
+  if (assessedBy) assessedBy.oninput = function(e){ state._assessedBy = e.target.value; };
+
+  document.getElementById('saveBtn').onclick = saveAssessment;
+}
+
+function setGroupValue(group, val) {
+  if (group.indexOf('phq9_hosp') === 0) { state.phq9_hosp = val; return; }
+  if (group.indexOf('phq9_') === 0) { state.phq9[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('gad7_impact') === 0) { state.gad7_impact = val; return; }
+  if (group.indexOf('gad7_') === 0) { state.gad7[parseInt(group.slice(5), 10)] = val; return; }
+  if (group === 'bam_substance_use_30d') { state.bam_substance_use_30d = val; return; }
+  if (group === 'bam_overdoses') { state.bam_overdoses = val; return; }
+  if (group === 'bam_arrests') { state.bam_arrests = val; return; }
+  if (group === 'bam_dentist') { state.bam_dentist = val; return; }
+  if (group === 'bam_doctor') { state.bam_doctor = val; return; }
+  if (group.indexOf('bam_') === 0) { state.bam[group.slice(4)] = val; return; }
+  if (group === 'asam_mh_only') { state.asam_mh_only = val === 1; if (state.asam_mh_only) state.asam_dims = new Array(6).fill(null); return; }
+  if (group.indexOf('asam_') === 0) { state.asam_dims[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('cssrs_') === 0) { state.cssrs[group.slice(6)] = val; return; }
+  if (group === 'risk_full_columbia') { state.risk_full_columbia_needed = val === 1; return; }
+  if (group.indexOf('risk_extra_') === 0) { state.risk_extra[group.slice(11)] = val; return; }
+  if (group.indexOf('sdoh_') === 0) { state.sdoh[group.slice(5)] = val; return; }
+}
+
+async function saveAssessment() {
+  var btn = document.getElementById('saveBtn');
+  var statusEl = document.getElementById('saveStatus');
+  if (!state.client_number) { statusEl.textContent = 'Enter a client number before saving.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  var s = computeScores();
+  var finalLevel = state.level_override !== null ? state.level_override : (s.cap ? 1 : s.calculatedLevel.level);
+
+  var payload = {
+    client_number: state.client_number,
+    assessed_by: state._assessedBy || (currentReviewer ? currentReviewer.name : null),
+    assessment_date: state.assessment_date,
+    assessment_type: state.assessment_type,
+    phq9_items: state.phq9, phq9_hospitalizations: state.phq9_hosp, phq9_raw: s.phq9Raw, phq9_band: s.phq9Band.label, phq9_points: s.phq9Band.points,
+    gad7_items: state.gad7, gad7_functional_impact: state.gad7_impact, gad7_raw: s.gad7Raw, gad7_band: s.gad7Band.label, gad7_points: s.gad7Band.points,
+    bam_items: state.bam, bam_raw: s.bamRaw, bam_band: s.bamBand.label, bam_points: s.bamBand.points,
+    bam_substance_use_30d: state.bam_substance_use_30d === 1, bam_overdoses_90d: state.bam_overdoses, bam_arrests_90d: state.bam_arrests,
+    bam_seen_dentist_12mo: state.bam_dentist === 1, bam_seen_doctor_12mo: state.bam_doctor === 1,
+    asam_mh_only: !!state.asam_mh_only, asam_dimensions: state.asam_dims, asam_raw: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points,
+    asam_loc_recommendation: state.asam_loc_recommendation || null, asam_override_rationale: state.asam_override_rationale || null,
+    risk_cssrs: state.cssrs, risk_harm_others: state.risk_extra.harm_others, risk_abuse: state.risk_extra.abuse, risk_psychosis: state.risk_extra.psychosis,
+    risk_raw: s.riskRaw, risk_band: s.riskBand.label, risk_points: s.riskBand.points,
+    risk_escalation_triggered: s.escalation, risk_escalation_notified_by: state.risk_notified_by || null,
+    risk_escalation_notified_at: s.escalation ? new Date().toISOString() : null,
+    risk_full_columbia_needed: state.risk_full_columbia_needed,
+    sdoh_items: state.sdoh, sdoh_barrier_score: s.sdohScore,
+    clinical_score: s.clinicalScore, adjusted_sli: s.adjustedSli,
+    low_clinical_flag: s.lowClinicalFlag, high_sdoh_flag: s.highSdohFlag, service_intensity_cap: s.cap,
+    calculated_support_level: s.cap ? 1 : s.calculatedLevel.level, final_support_level: finalLevel,
+    level_override_rationale: state.level_override_rationale || null,
+    director_review_required: s.directorReviewRequired && !s.cap,
+    is_current: true
+  };
+
+  try {
+    // Supersede any prior "current" assessment for this client before
+    // inserting the new one, so is_current always points at exactly one
+    // row per client -- what the tracker's utilization view will join on.
+    var { data: prior, error: priorErr } = await sb.from(TABLE).select('id').eq('client_number', state.client_number).eq('is_current', true);
+    if (priorErr) throw priorErr;
+
+    var { data: inserted, error: insertErr } = await sb.from(TABLE).insert(payload).select('id').single();
+    if (insertErr) throw insertErr;
+
+    if (prior && prior.length) {
+      for (var i = 0; i < prior.length; i++) {
+        await sb.from(TABLE).update({ is_current: false, superseded_by: inserted.id }).eq('id', prior[i].id);
+      }
+    }
+
+    statusEl.textContent = 'Saved. Final Support Level ' + finalLevel + ' recorded for client ' + state.client_number + '.';
+    btn.textContent = 'Save Assessment';
+    btn.disabled = false;
+  } catch (e) {
+    statusEl.textContent = 'Save failed: ' + e.message;
+    btn.textContent = 'Save Assessment';
+    btn.disabled = false;
+  }
+}
+
+// ── LOGIN (reuses the same reviewers table as the Flagged Notes Tracker) ──
+
+function renderLogin() {
+  app.innerHTML = '<div class="login-wrap"><h2>SLI 2.0 Assessment</h2>' +
+    '<label class="field-label">Email</label><input type="text" id="loginEmail">' +
+    '<label class="field-label" style="margin-top:12px;">Password</label><input type="text" id="loginPassword">' +
+    '<button class="login-btn" id="loginBtn">Sign In</button>' +
+    '<div class="login-error" id="loginError"></div></div>';
+  document.getElementById('loginBtn').onclick = handleLogin;
+}
+
+async function handleLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
+  if (error) { document.getElementById('loginError').textContent = error.message; return; }
+  var reviewerLookup = await sb.from('reviewers').select('name, role, divisions, email').eq('id', data.user.id).single();
+  if (!reviewerLookup.error && reviewerLookup.data) currentReviewer = reviewerLookup.data;
+  render();
+}
+
+(async function init() {
+  var { data } = await sb.auth.getSession();
+  if (data && data.session) {
+    var reviewerLookup = await sb.from('reviewers').select('name, role, divisions, email').eq('id', data.session.user.id).single();
+    if (!reviewerLookup.error && reviewerLookup.data) currentReviewer = reviewerLookup.data;
+    render();
+    return;
+  }
+  renderLogin();
+})();
+</script>
+</body>
+</html>
