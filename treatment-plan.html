@@ -2867,10 +2867,15 @@ async function runGeneratePlan(){
     var data=await response.json();
     if(!response.ok) throw new Error(data.error||'API error');
     var fullText=(data.content&&data.content[0]&&data.content[0].text)?data.content[0].text:'';
+    var wasTruncated = data.stop_reason === 'max_tokens';
+    if (wasTruncated) console.warn('[Treatment Plan] response truncated by token limit -- plan below may be incomplete, especially if many need areas were selected.');
 
     // Parse PLAN SUMMARY
     var summaryMatch=fullText.match(/PLAN SUMMARY[\s\S]*?(?=NEED:|INDIVIDUAL GOAL STATEMENT|SLI 2)/i);
     document.getElementById('planSummaryOutput').innerText=summaryMatch?summaryMatch[0].replace(/^PLAN SUMMARY\s*/i,'').trim():'';
+    if (wasTruncated) {
+      document.getElementById('planSummaryOutput').innerText += '\n\n[WARNING: This plan may have been cut off before completion -- the token limit was reached. Review every need area and the SLI Justification section carefully, and regenerate with fewer need areas selected at once if anything looks incomplete.]';
+    }
 
     // Parse per-need blocks — split full text on NEED: headers first
     var needBlocksContainer=document.getElementById('needBlocksOutput');
@@ -3290,11 +3295,16 @@ async function generateReview() {
     var data = await response.json();
     if(!response.ok) throw new Error(data.error||'API error');
     var fullText = (data.content&&data.content[0]&&data.content[0].text)?data.content[0].text:'';
+    var wasTruncated2 = data.stop_reason === 'max_tokens';
+    if (wasTruncated2) console.warn('[Treatment Plan] 90-day review response truncated by token limit.');
 
     // Split at UPDATED TREATMENT PLAN
     var splitIdx = fullText.search(/UPDATED TREATMENT PLAN/i);
     var addendumText = splitIdx > -1 ? fullText.substring(0, splitIdx).replace(/^90-DAY REVIEW ADDENDUM\s*/i,'').trim() : fullText;
     var updatedPlanText = splitIdx > -1 ? fullText.substring(splitIdx).replace(/^UPDATED TREATMENT PLAN\s*/i,'').trim() : '';
+    if (wasTruncated2) {
+      addendumText += '\n\n[WARNING: This review may have been cut off before completion -- the token limit was reached. Review carefully and regenerate if anything looks incomplete.]';
+    }
 
     document.getElementById('addendumOutput').innerText = addendumText;
     document.getElementById('updatedPlanOutput').innerText = updatedPlanText;
