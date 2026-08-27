@@ -1907,9 +1907,15 @@ async function runGenerateLinkageNote(code) {
     if (!response.ok) throw new Error(data.error || 'API error');
 
     var fullText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+    if (data.stop_reason === 'max_tokens') {
+      console.warn('[DAP note] response was truncated by the token limit -- the note below may be cut off mid-sentence.');
+    }
     var parsed = parseNoteSections(fullText);
     var descText = parsed.descText, assessText = parsed.assessText, planText = parsed.planText;
     document.getElementById('dataOutput').innerText = descText || fullText;
+    if (data.stop_reason === 'max_tokens') {
+      document.getElementById('dataOutput').innerText += '\n\n[WARNING: This note may have been cut off before completion. Please review carefully and regenerate if the Plan section looks incomplete.]';
+    }
     document.getElementById('assessmentOutput').innerText = assessText;
     document.getElementById('planOutput').innerText = planText;
     document.getElementById('remarksOutputCard').style.display = 'none';
@@ -2656,9 +2662,15 @@ async function runGenerateNote() {
     if (!response.ok) throw new Error(data.error || 'API error');
 
     var fullText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+    if (data.stop_reason === 'max_tokens') {
+      console.warn('[DAP note] response was truncated by the token limit -- the note below may be cut off mid-sentence.');
+    }
     var parsed = parseNoteSections(fullText);
     var descText = parsed.descText, assessText = parsed.assessText, planText = parsed.planText;
     document.getElementById('dataOutput').innerText = descText || fullText;
+    if (data.stop_reason === 'max_tokens') {
+      document.getElementById('dataOutput').innerText += '\n\n[WARNING: This note may have been cut off before completion. Please review carefully and regenerate if the Plan section looks incomplete.]';
+    }
     document.getElementById('assessmentOutput').innerText = assessText;
     document.getElementById('planOutput').innerText = planText;
 
