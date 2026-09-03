@@ -594,10 +594,17 @@ const HELPFUL_OPTIONS = [
   "Help with engagement",
 ];
 
-let supabase = null;
+// Named sbClient (not "supabase") on purpose — on at least one real device
+// we saw "Identifier 'supabase' has already been declared" thrown before
+// this script ever ran, meaning something outside this file (a network
+// security/DLP appliance rewriting the page, or similar) was independently
+// declaring a global named exactly "supabase". We don't control that, so we
+// stop competing for the name instead. window.supabase (the CDN library
+// itself) is untouched below — only our own local variable is renamed.
+let sbClient = null;
 try {
   if (SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "PASTE_YOUR_ANON_KEY_HERE") {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 } catch (e) { console.warn("Supabase client not initialized:", e); }
 
@@ -607,16 +614,16 @@ let STAFF = []; // real roster, read-only, loaded from Data & Staff Hub's shared
    JSON-stringified string in Supabase, matching Data & Staff Hub's
    convention (JSON.stringify on write, JSON.parse on read). ---------- */
 async function loadBlob(key) {
-  if (!supabase) return null;
-  const { data, error } = await supabase.from("appdata").select("value").eq("key", key).maybeSingle();
+  if (!sbClient) return null;
+  const { data, error } = await sbClient.from("appdata").select("value").eq("key", key).maybeSingle();
   if (error) { console.warn("load error", key, error); return null; }
   if (!data || data.value == null) return null;
   try { return typeof data.value === "string" ? JSON.parse(data.value) : data.value; }
   catch (e) { console.warn("parse error", key, e); return null; }
 }
 async function saveBlob(key, value) {
-  if (!supabase) return { ok: false, reason: "no-key" };
-  const { error } = await supabase.from("appdata").upsert({ key, value: JSON.stringify(value) }, { onConflict: "key" });
+  if (!sbClient) return { ok: false, reason: "no-key" };
+  const { error } = await sbClient.from("appdata").upsert({ key, value: JSON.stringify(value) }, { onConflict: "key" });
   if (error) { console.error("save error", key, error); return { ok: false, reason: error.message }; }
   return { ok: true };
 }
