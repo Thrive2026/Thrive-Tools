@@ -1,112 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Thrive Clinical Tools</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f0f4f5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-    .header .org {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #00707A;
-      margin-bottom: 10px;
-    }
-    .header h1 {
-      font-size: 32px;
-      font-weight: 700;
-      color: #1a1a1a;
-      margin-bottom: 10px;
-    }
-    .header p {
-      font-size: 15px;
-      color: #666;
-    }
-    .tools {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 860px;
-      width: 100%;
-    }
-    .tool-card {
-      background: white;
-      border-radius: 12px;
-      padding: 36px 32px;
-      flex: 1;
-      min-width: 300px;
-      max-width: 400px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      text-decoration: none;
-      color: inherit;
-      border: 2px solid transparent;
-      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
-      display: flex;
-      flex-direction: column;
-    }
-    .tool-card:hover {
-      border-color: #00707A;
-      box-shadow: 0 6px 24px rgba(0,112,122,0.15);
-      transform: translateY(-2px);
-    }
-    .tool-icon {
-      width: 48px;
-      height: 48px;
-      background: #e6f4f5;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    .tool-card h2 {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1a1a1a;
-      margin-bottom: 10px;
-    }
-    .tool-card p {
-      font-size: 14px;
-      color: #666;
-      line-height: 1.6;
-      flex: 1;
-    }
-    .tool-badge {
-      display: inline-block;
-      margin-top: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #00707A;
-      background: #e6f4f5;
-      border-radius: 20px;
-      padding: 4px 12px;
-      align-self: flex-start;
-    }
-    .footer {
-      margin-top: 48px;
-      font-size: 12px;
-      color: #999;
-      text-align: center;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Thrive Clinical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!--
+  FIX (BUG-36, 9/4): rebuilt on the same design system every other hub/landing page in this
+  ecosystem uses (navy/yellow Thrive branding, Fraunces + IBM Plex Sans, the same CSS custom
+  property names as index_21.html's Director Tools page) -- this was the 5th distinct landing
+  page with its own teal (#00707A) palette and Segoe UI font, a copy-paste-from-a-different-brief
+  origin rather than an intentional design choice.
+  Also fixed the linked filenames per BUG-36's own note: these pointed at a hyphenated
+  convention (dap-note.html, treatment-plan.html, psychotherapy-note.html, sli-assessment.html,
+  case-review-hub.html) that doesn't match this batch's actual filenames. Standardized on the
+  no-hyphen, no-version-suffix convention confirmed live on the Program Hub and Director Tools
+  landing pages (community.html, hospital.html, linkage.html, tracker.html, clinicaldirectorhub.html):
+  dapnote.html, treatmentplan.html, psychotherapynote.html, sliassessment.html, casereviewhub.html.
+  treatmentplan.html directly confirmed by Brandon (9/4/26); the other three follow the same
+  established convention as every other hub filename in this ecosystem.
+-->
+<style>
+:root{
+  --thrive-blue:#3c50a0; --thrive-blue-deep:#283c8c; --thrive-blue-dark:#1a2861;
+  --thrive-yellow:#f0c814; --bg:#f7f3ec; --paper:#ffffff; --ink:#1a2861; --ink-soft:#3e4a78;
+  --muted:#8089a8; --rule:#e6dfd2; --rule-strong:#cdc4b2;
+  --shadow:0 1px 0 rgba(40,60,140,.04), 0 8px 28px -12px rgba(40,60,140,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;-webkit-font-smoothing:antialiased;
+}
+.header{text-align:center;margin-bottom:48px;}
+.header .org{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--thrive-blue);margin-bottom:12px;}
+.header h1{font-family:'Fraunces',serif;font-weight:500;font-size:32px;color:var(--ink);letter-spacing:-0.01em;margin-bottom:10px;}
+.header p{font-size:14.5px;color:var(--muted);}
+.tools{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;max-width:1180px;width:100%;}
+.tool-card{
+  background:var(--paper);border-radius:4px;padding:32px 30px;flex:1;min-width:280px;max-width:360px;
+  box-shadow:var(--shadow);text-decoration:none;color:inherit;border:1px solid var(--rule);
+  border-top:3px solid var(--thrive-blue);transition:border-color .2s, box-shadow .2s, transform .15s;
+  display:flex;flex-direction:column;
+}
+.tool-card:hover{border-top-color:var(--thrive-yellow);box-shadow:0 10px 30px -10px rgba(40,60,140,.28);transform:translateY(-2px);}
+.tool-icon{width:44px;height:44px;background:#e9ecf7;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px;}
+.tool-card h2{font-family:'Fraunces',serif;font-weight:500;font-size:19px;color:var(--ink);margin-bottom:9px;letter-spacing:-0.01em;}
+.tool-card p{font-size:13.5px;color:var(--ink-soft);line-height:1.6;flex:1;}
+.tool-badge{display:inline-block;margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--thrive-blue);background:#e9ecf7;border-radius:20px;padding:4px 12px;align-self:flex-start;}
+.footer{margin-top:44px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-align:center;letter-spacing:.02em;}
+</style>
 </head>
 <body>
   <div class="header">
@@ -116,31 +62,31 @@
   </div>
 
   <div class="tools">
-    <a class="tool-card" href="dap-note.html">
+    <a class="tool-card" href="dapnote.html">
       <div class="tool-icon">📝</div>
       <h2>DAP Progress Note</h2>
       <p>Generate CARF, ODBH, and Medicaid-compliant progress notes from structured session input. Formats directly for Pimsy copy-paste.</p>
       <span class="tool-badge">Peer Support Staff</span>
     </a>
-    <a class="tool-card" href="treatment-plan.html">
+    <a class="tool-card" href="treatmentplan.html">
       <div class="tool-icon">📋</div>
       <h2>Treatment Plan Builder</h2>
       <p>Create individualized SMART goal treatment plans with SLI 2.0 integration, clinical justification, and per-need block output for CARF review.</p>
-      <span class="tool-badge">Care Coordinators & Clinical Staff</span>
+      <span class="tool-badge">Care Coordinators &amp; Clinical Staff</span>
     </a>
-    <a class="tool-card" href="psychotherapy-note.html">
+    <a class="tool-card" href="psychotherapynote.html">
       <div class="tool-icon">🧠</div>
       <h2>Psychotherapy Note</h2>
       <p>Generate individualized psychotherapy session notes with QA review flags, banned-phrase checks, and compliant session-focus branching.</p>
       <span class="tool-badge">Clinical Staff</span>
     </a>
-    <a class="tool-card" href="sli-assessment.html">
+    <a class="tool-card" href="sliassessment.html">
       <div class="tool-icon">📊</div>
       <h2>SLI 2.0 Assessment</h2>
       <p>Digital Service Level Indicator screener covering PHQ-9, GAD-7, BAM, ASAM Level of Care, Brief Risk (C-SSRS), and SDOH. Auto-scores and assigns a support level.</p>
-      <span class="tool-badge">Clinical & Peer Support Staff</span>
+      <span class="tool-badge">Clinical &amp; Peer Support Staff</span>
     </a>
-    <a class="tool-card" href="case-review-hub.html">
+    <a class="tool-card" href="casereviewhub.html">
       <div class="tool-icon">👥</div>
       <h2>Case Review &amp; Peer Consultation</h2>
       <p>Log a case consultation with your team &mdash; client snapshot, presenting focus, risk factors, and what you need help with from the group. Submitting emails you and your manager a copy automatically. No PHI, ever.</p>
@@ -148,8 +94,6 @@
     </a>
   </div>
 
-  <div class="footer">
-    Internal use only &nbsp;·&nbsp; Thrive Peer Support Services &nbsp;·&nbsp; Do not enter client names or PHI
-  </div>
+  <div class="footer">Internal use only &middot; Thrive Peer Support Services &middot; Do not enter client names or PHI</div>
 </body>
 </html>
