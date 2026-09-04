@@ -13,15 +13,16 @@
   property names as index_21.html's Director Tools page) -- this was the 5th distinct landing
   page with its own teal (#00707A) palette and Segoe UI font, a copy-paste-from-a-different-brief
   origin rather than an intentional design choice.
-  Also fixed the linked filenames per BUG-36's own note: these pointed at a hyphenated
-  convention (dap-note.html, treatment-plan.html, psychotherapy-note.html, sli-assessment.html,
-  case-review-hub.html) that doesn't match this batch's actual filenames. Standardized on the
-  no-hyphen, no-version-suffix convention confirmed live on the Program Hub and Director Tools
-  landing pages (community.html, hospital.html, linkage.html, tracker.html, clinicaldirectorhub.html):
-  dapnote.html, treatmentplan.html, psychotherapynote.html, sliassessment.html, casereviewhub.html.
-  treatmentplan.html directly confirmed by Brandon (9/4/26); the other three follow the same
-  established convention as every other hub filename in this ecosystem.
+  CORRECTION (9/4, later same day): the link-filename portion of the BUG-36 fix above was
+  reverted. It had assumed the non-hyphenated names used when these files were uploaded for
+  review (dapnote.html, treatmentplan_2.html, etc.) were the real deployed filenames -- that
+  was just an artifact of how they were exported for review. Brandon's actual "Thrive2026"
+  clinical-tools repo confirms the live filenames keep their original hyphenated form:
+  dap-note.html, treatment-plan.html, psychotherapy-note.html, sli-assessment.html,
+  case-review-hub.html. Links below restored to match. The design-system rebuild (navy/yellow,
+  Fraunces + IBM Plex Sans) stands as originally fixed.
 -->
+
 <style>
 :root{
   --thrive-blue:#3c50a0; --thrive-blue-deep:#283c8c; --thrive-blue-dark:#1a2861;
@@ -62,31 +63,31 @@ body{
   </div>
 
   <div class="tools">
-    <a class="tool-card" href="dapnote.html">
+    <a class="tool-card" href="dap-note.html">
       <div class="tool-icon">📝</div>
       <h2>DAP Progress Note</h2>
       <p>Generate CARF, ODBH, and Medicaid-compliant progress notes from structured session input. Formats directly for Pimsy copy-paste.</p>
       <span class="tool-badge">Peer Support Staff</span>
     </a>
-    <a class="tool-card" href="treatmentplan.html">
+    <a class="tool-card" href="treatment-plan.html">
       <div class="tool-icon">📋</div>
       <h2>Treatment Plan Builder</h2>
       <p>Create individualized SMART goal treatment plans with SLI 2.0 integration, clinical justification, and per-need block output for CARF review.</p>
       <span class="tool-badge">Care Coordinators &amp; Clinical Staff</span>
     </a>
-    <a class="tool-card" href="psychotherapynote.html">
+    <a class="tool-card" href="psychotherapy-note.html">
       <div class="tool-icon">🧠</div>
       <h2>Psychotherapy Note</h2>
       <p>Generate individualized psychotherapy session notes with QA review flags, banned-phrase checks, and compliant session-focus branching.</p>
       <span class="tool-badge">Clinical Staff</span>
     </a>
-    <a class="tool-card" href="sliassessment.html">
+    <a class="tool-card" href="sli-assessment.html">
       <div class="tool-icon">📊</div>
       <h2>SLI 2.0 Assessment</h2>
       <p>Digital Service Level Indicator screener covering PHQ-9, GAD-7, BAM, ASAM Level of Care, Brief Risk (C-SSRS), and SDOH. Auto-scores and assigns a support level.</p>
       <span class="tool-badge">Clinical &amp; Peer Support Staff</span>
     </a>
-    <a class="tool-card" href="casereviewhub.html">
+    <a class="tool-card" href="case-review-hub.html">
       <div class="tool-icon">👥</div>
       <h2>Case Review &amp; Peer Consultation</h2>
       <p>Log a case consultation with your team &mdash; client snapshot, presenting focus, risk factors, and what you need help with from the group. Submitting emails you and your manager a copy automatically. No PHI, ever.</p>
