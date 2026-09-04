@@ -150,6 +150,10 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .case-ref-hint{background:#EEF1FB;border:1.5px solid #c8cfe8;border-radius:8px;padding:10px 12px;font-size:11.5px;color:#2d2d4e;line-height:1.5;margin-top:6px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- FIX (BUG-13/BUG-33, 9/4): SLI 2.0 scoring math now lives in one shared, same-origin file
+     (sli-scoring.js) included by this tool, sliassessment.html, and psychotherapynote.html --
+     see that file's header comment for why. Must load before this page's own <script> block. -->
+<script src="sli-scoring.js"></script>
 </head>
 <body>
 
@@ -254,12 +258,12 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
       </div>
       <div class="field">
         <label class="field-label">Strengths &amp; Protective Factors <span class="required-star">*</span></label>
-        <div class="field-hint">What does Peer bring to their recovery? Include personal strengths, support systems, and protective factors.</div>
+        <div class="field-hint">What does Peer bring to their recovery? Include personal strengths, support systems, and protective factors. <strong>Do not include Peer's name</strong> — refer to them as "Peer" or "the client."</div>
         <textarea id="strengths" placeholder="e.g. Strong family support, motivated to maintain sobriety, employed part-time, connected to faith community... (no names)" rows="3"></textarea>
       </div>
       <div class="field">
         <label class="field-label">Barriers to Recovery <span class="required-star">*</span></label>
-        <div class="field-hint">Document presenting needs, identified barriers, SDOH factors, trauma history, risk factors, and clinical context relevant to service intensity and medical necessity.</div>
+        <div class="field-hint">Document presenting needs, identified barriers, SDOH factors, trauma history, risk factors, and clinical context relevant to service intensity and medical necessity. <strong>Do not include Peer's name</strong> — refer to them as "Peer" or "the client."</div>
         <textarea id="barriers" placeholder="e.g. Unstable housing, limited transportation, history of trauma, limited social support network... (no names)" rows="3"></textarea>
       </div>
       <div class="field">
@@ -410,7 +414,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
       </div>
       <div class="field">
         <label class="field-label">Client Goal Statement <span class="required-star">*</span></label>
-        <div class="field-hint">In Peer's own words &mdash; what does recovery look like to them?</div>
+        <div class="field-hint">In Peer's own words &mdash; what does recovery look like to them? <strong>Do not include Peer's name</strong> — quote directly, but swap in "I" as they said it, not their name.</div>
         <textarea id="clientGoalStatement" placeholder="e.g. I want to get my own apartment and stay sober so I can be there for my kids... (quote directly, no name)" rows="3"></textarea>
       </div>
     </div>
@@ -1032,7 +1036,6 @@ async function saveSliToSharedRecord(){
   requireAuth(async function(){
     btn.disabled = true; btn.textContent = 'Saving…';
     statusEl.textContent = ''; statusEl.style.color = '#888';
-    var s = sli2ComputeScores(sliState);
     // Map this tool's checkbox ids to the canonical SDOH keys used by the
     // shared sli_assessments table (same keys the standalone SLI 2.0
     // Assessment and Psychotherapy Note tools write), so the barrier
@@ -1043,12 +1046,16 @@ async function saveSliToSharedRecord(){
       var el = document.getElementById('sdoh_' + shortKey);
       sdohMap[sdohKeyMap[shortKey]] = el && el.checked ? 1 : 0;
     });
-    var sdohScore = Object.keys(sdohMap).filter(function(k){return sdohMap[k]===1;}).length;
-    var clinicalScore = s.phq9Band.points+s.gad7Band.points+s.bamBand.points+s.asamBand.points+s.riskBand.points;
-    var adjustedSli = clinicalScore + sdohScore;
-    var lowClinicalFlag = clinicalScore<=4, highSdohFlag = sdohScore>=3, cap = lowClinicalFlag && highSdohFlag;
-    var levelTable=[{min:0,max:5,level:1},{min:6,max:8,level:2},{min:9,max:11,level:3},{min:12,max:14,level:4},{min:15,max:9999,level:5}];
-    var calcLevel = cap ? 1 : (levelTable.filter(function(r){return adjustedSli>=r.min && adjustedSli<=r.max;})[0]||levelTable[4]).level;
+    // FIX (BUG-13/BUG-33, 9/4): clinicalScore/adjustedSli/cap/calcLevel now come straight from
+    // the shared sliComputeScores() result (s) instead of being re-derived here by hand -- this
+    // used to be one of several places that math lived (also calcSLI() above and
+    // saveReviewSliToSharedRecord() below). See sli-scoring.js's header for the full rationale.
+    var s = sli2ComputeScores(sliState, { sdoh: sdohMap });
+    var sdohScore = s.sdohScore;
+    var clinicalScore = s.clinicalScore;
+    var adjustedSli = s.adjustedSli;
+    var lowClinicalFlag = s.lowClinicalFlag, highSdohFlag = s.highSdohFlag, cap = s.cap;
+    var calcLevel = s.cap ? 1 : s.calculatedLevel.level;
     var payload = {
       client_number: caseNumber,
       assessed_by: currentSession.user.email,
@@ -1578,8 +1585,14 @@ async function signReviewSupervisor(){
       plan_summary: summaryMatch ? summaryMatch[0].replace(/^PLAN SUMMARY\s*/i,'').trim() : oldPlan.plan_summary,
       sli_justification: justMatch ? justMatch[0].replace(/^SLI 2\.0[^\n]*/i,'').trim() : oldPlan.sli_justification,
       sign_off: oldPlan.sign_off,
-      clinician_name: name,
-      clinician_signed_at: signedAt,
+      // FIX (BUG-04, 9/4): this was reading the supervisor's just-typed signature field (`name`)
+      // for clinician_name too, so every plan version created via a signed 90-day review showed
+      // the supervisor as the clinician of record. The real clinician's name was already captured
+      // when they signed earlier in this same review flow (see reviewSignState.clinicianName,
+      // set at the clinician-signs step above) — use that instead of re-reading `name`, which by
+      // this point in the function is the supervisor's signature.
+      clinician_name: reviewSignState.clinicianName,
+      clinician_signed_at: reviewSignState.clinicianSignedAt,
       supervisor_name: name,
       supervisor_signed_at: signedAt,
       next_review_due: nextDue,
@@ -1675,6 +1688,41 @@ function scanForPHI() {
     {name: 'Street Address', regex: /\b\d+\s+[a-zA-Z]+\s+(street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|way|court|ct|place|pl)\b/gi}
   ];
 
+  // FIX (BUG-15, 9/4 — flagged critical): the patterns above only ever caught structured PHI
+  // (SSN/phone/email/DOB/address). The most likely real leak — a client's actual name typed into
+  // a narrative box — was never checked at all. This tool identifies clients only by case_number
+  // and deliberately never loads real client names into the browser (no `clients` table lookup
+  // anywhere in this file), so a true roster match isn't possible here without introducing a new
+  // PHI exposure of its own (fetching and holding real names client-side just to compare against
+  // themselves). Instead: a heuristic scan for what a typed name actually looks like — two or more
+  // consecutive Capitalized Words — filtered against a stoplist of the clinical/organizational
+  // phrases that legitimately look the same way in this tool's narrative fields, so it flags for
+  // human review rather than claiming a definitive match. This runs alongside the same
+  // confirm-to-proceed flow as every other PHI warning below (see showPHIWarning) — it never
+  // silently blocks saving, since a heuristic like this will have false positives.
+  var NAME_HEURISTIC_STOPLIST = [
+    'recovery resources','behavioral health','mental health','substance use','case number',
+    'treatment plan','individual service','service plan','support level','stage of',
+    'goal statement','clinical justification','peer support','peer recovery','thrive peer',
+    'crisis center','recovery campus','glick recovery','community peer','warm line',
+    'protective factors','risk factor','risk factors','action plan','next steps',
+    'monday tuesday','january february','march april','may june','july august',
+    'september october','november december','united states','social security',
+    'medicaid medicare','ohio department','cuyahoga county','lake county','summit county',
+    'lorain county','trumbull county','mahoning county','franklin county','montgomery county'
+  ];
+  function scanForLikelyNames(text) {
+    var hits = [];
+    var re = /\b([A-Z][a-z]+(?:['-][A-Z]?[a-z]+)?)\s+([A-Z][a-z]+(?:['-][A-Z]?[a-z]+)?)\b/g;
+    var m;
+    while ((m = re.exec(text)) !== null) {
+      var phrase = (m[1] + ' ' + m[2]).toLowerCase();
+      if (NAME_HEURISTIC_STOPLIST.indexOf(phrase) !== -1) continue;
+      hits.push(m[1] + ' ' + m[2]);
+    }
+    return hits;
+  }
+
   fieldsToScan.forEach(function(field) {
     var el = document.getElementById(field.id);
     if (!el) return;
@@ -1686,6 +1734,9 @@ function scanForPHI() {
         warnings.push({field: field.label, type: pattern.name});
       }
       pattern.regex.lastIndex = 0;
+    });
+    scanForLikelyNames(val).forEach(function(hit) {
+      warnings.push({field: field.label, type: 'Possible name ("' + hit + '") — review before saving'});
     });
   });
 
@@ -1706,6 +1757,9 @@ function scanForPHI() {
         warnings.push({field: need + ' Context', type: p.name});
       }
       p.regex.lastIndex = 0;
+    });
+    scanForLikelyNames(val).forEach(function(hit) {
+      warnings.push({field: need + ' Context', type: 'Possible name ("' + hit + '") — review before saving'});
     });
   });
 
@@ -2001,27 +2055,14 @@ var SLI2_RISK_EXTRA_ITEMS = [
   { key: 'abuse', label: 'Is the individual currently experiencing any form of abuse or violence (physical, emotional, sexual)?' },
   { key: 'psychosis', label: 'In the past 30 days, has the individual experienced hallucinations, paranoia, or symptoms of psychosis?' }
 ];
-// PLACEHOLDER -- per the SLI 2.0 manual, each ASAM dimension is a 10-option
-// picklist scored 0.5-4 by placement level, not by descriptor wording alone.
-// The real Thrive-specific option text wasn't present in the SLI_2_0.xlsx
-// export, so this 5-point severity key stands in. Swap this array for the
-// real picklist text (10 entries per dimension) once available -- nothing
-// else in the scoring logic needs to change.
-var SLI2_ASAM_DIMENSIONS_PLACEHOLDER = [
-  'Acute Intoxication and/or Withdrawal Potential',
-  'Biomedical Conditions and Complications',
-  'Emotional, Behavioral, or Cognitive Conditions and Complications',
-  'Readiness to Change',
-  'Relapse, Continued Use, or Continued Problem Potential',
-  'Recovery/Living Environment'
-];
-var SLI2_ASAM_PLACEHOLDER_OPTIONS = [
-  { label: '0 — No problem: fully stable', points: 0 },
-  { label: '1 — Mild: slight issue, manageable in current setting', points: 1 },
-  { label: '2 — Moderate: requires structured support or intervention', points: 2 },
-  { label: '3 — Serious: presents a clear risk, needs intensive services', points: 3 },
-  { label: '4 — Severe: imminent danger or inability to function without 24/7 care', points: 4 }
-];
+// FIX (BUG-13/BUG-33, 9/4): these two constants now come from the shared sli-scoring.js (loaded
+// in <head>) -- they used to be an independent copy kept in sync by hand with sliassessment.html
+// and psychotherapynote.html. Aliased under their original local names so the rest of this file
+// (sli2BuildItemsHtml, etc.) didn't need to change. The real Thrive-specific ASAM picklist
+// (BUG-07) now only needs to replace SLI_ASAM_DIMENSIONS_PLACEHOLDER / SLI_ASAM_PLACEHOLDER_OPTIONS
+// in sli-scoring.js, once, for all three tools at once.
+var SLI2_ASAM_DIMENSIONS_PLACEHOLDER = SLI_ASAM_DIMENSIONS_PLACEHOLDER;
+var SLI2_ASAM_PLACEHOLDER_OPTIONS = SLI_ASAM_PLACEHOLDER_OPTIONS;
 
 function sli2NewState(){
   return {
@@ -2032,54 +2073,17 @@ function sli2NewState(){
     cssrs: {}, risk_extra: {}, risk_notified_by: '', risk_full_columbia_needed: null
   };
 }
-function sli2Sum(arr){ return arr.reduce(function(a,b){ return a + (b === null || b === undefined ? 0 : b); }, 0); }
-function sli2BandFromTable(raw, table){
-  for (var i = 0; i < table.length; i++){ if (raw >= table[i].min && raw <= table[i].max) return table[i]; }
-  return table[table.length - 1];
-}
-function sli2ComputeScores(state){
-  var phq9Raw = sli2Sum(state.phq9);
-  var phq9Band = sli2BandFromTable(phq9Raw, [
-    { min:0, max:9, label:'0-9 Minimal', points:1 },
-    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
-    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
-    { min:20, max:27, label:'20-27 Severe', points:4 }
-  ]);
-  var gad7Raw = sli2Sum(state.gad7);
-  var gad7Band = sli2BandFromTable(gad7Raw, [
-    { min:0, max:9, label:'0-9 Minimal', points:1 },
-    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
-    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
-    { min:20, max:21, label:'20-21 Severe', points:4 }
-  ]);
-  var bamRaw = sli2Sum(SLI2_BAM_SCORED_ITEMS.map(function(it){ return state.bam[it.key]; }));
-  var bamBand = sli2BandFromTable(bamRaw, [
-    { min:0, max:20, label:'0-20 Low Risk', points:1 },
-    { min:21, max:35, label:'21-35 Moderate Risk', points:2 },
-    { min:36, max:45, label:'36-45 High Risk', points:3 },
-    { min:46, max:9999, label:'46+ Very High Risk', points:4 }
-  ]);
-  var asamRaw = state.asam_mh_only ? 0 : sli2Sum(state.asam_dims);
-  var asamBand = state.asam_mh_only
-    ? { label: 'N/A (MH Only)', points: 0 }
-    : sli2BandFromTable(asamRaw, [
-        { min:0, max:6, label:'0-6 Early/Outpatient', points:1 },
-        { min:7, max:12, label:'7-12 IOP', points:2 },
-        { min:13, max:17, label:'13-17 Residential', points:3 },
-        { min:18, max:9999, label:'18-24 Intensive', points:4 }
-      ]);
-  var escalation = SLI2_CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
-  var riskExtraRaw = sli2Sum(SLI2_RISK_EXTRA_ITEMS.map(function(it){ return state.risk_extra[it.key]; }));
-  var riskRaw = sli2Sum(SLI2_CSSRS_ITEMS.map(function(it){ return state.cssrs[it.key]; })) + riskExtraRaw;
-  var riskBand;
-  if (escalation || riskRaw >= 4) riskBand = { label: 'High Risk', points: 2 };
-  else if (riskRaw >= 1) riskBand = { label: 'Low-Moderate Risk', points: 1 };
-  else riskBand = { label: 'No Risk', points: 0 };
-  return {
-    phq9Raw: phq9Raw, phq9Band: phq9Band, gad7Raw: gad7Raw, gad7Band: gad7Band,
-    bamRaw: bamRaw, bamBand: bamBand, asamRaw: asamRaw, asamBand: asamBand,
-    escalation: escalation, riskRaw: riskRaw, riskBand: riskBand
-  };
+// FIX (BUG-13/BUG-33, 9/4): sli2Sum/sli2BandFromTable and the whole scoring engine that used to
+// live in sli2ComputeScores() now come from the shared sli-scoring.js (loaded in <head>) -- this
+// used to be one of four independent copies of the same math in this file (the others were
+// calcSLI(), the inline math in saveSliToSharedRecord(), and calcReviewSLI()/
+// saveReviewSliToSharedRecord() below) that had to be kept in sync by hand. All four are now
+// wired to the one shared function -- see sli-scoring.js's header for the full rationale.
+// Note: this file doesn't keep SDOH on sliState/reviewSliState (it reads 6 checkboxes straight
+// from the DOM instead) -- callers here pass an SDOH map built from those checkboxes via
+// opts.sdoh rather than relying on state.sdoh.
+function sli2ComputeScores(state, opts){
+  return sliComputeScores(state, opts);
 }
 function sli2StateComplete(state){
   if (state.phq9.some(function(v){ return v === null; })) return false;
@@ -2196,59 +2200,55 @@ function renderSliWidget(){
   calcSLI();
 }
 
+// FIX (BUG-13/BUG-33, 9/4): this used to be an independent hand-rolled re-implementation of the
+// same banding/cap/level-table math as sli2ComputeScores() (driven off the DOM input values it
+// sets two lines below, rather than off sliState directly) -- now it computes once, via the
+// shared sliComputeScores(), and only formats the existing on-screen text from that one result.
+// See sli-scoring.js's header for the full rationale.
 function calcSLI(){
-  var s2 = sli2ComputeScores(sliState);
+  var sdohCbs=['sdoh_housing','sdoh_food','sdoh_transport','sdoh_healthcare','sdoh_isolation','sdoh_legal'];
+  var sdohDomKeyMap={sdoh_housing:'housing',sdoh_food:'food_utilities',sdoh_transport:'transportation',sdoh_healthcare:'healthcare_access',sdoh_isolation:'isolation',sdoh_legal:'legal_safety'};
+  var sdohMap={};
+  sdohCbs.forEach(function(id){var el=document.getElementById(id);sdohMap[sdohDomKeyMap[id]]=el&&el.checked?1:0;});
+  var s2 = sli2ComputeScores(sliState, { sdoh: sdohMap });
   document.getElementById('sli_phq9').value = s2.phq9Raw;
   document.getElementById('sli_gad7').value = s2.gad7Raw;
   document.getElementById('sli_bam').value = s2.bamRaw;
   document.getElementById('sli_asam').value = s2.asamRaw;
   document.getElementById('sli_risk').value = s2.riskRaw;
   document.getElementById('riskOverride').checked = s2.escalation;
-  var phq9raw=getNum('sli_phq9'),gad7raw=getNum('sli_gad7'),bamraw=getNum('sli_bam'),asamraw=getNum('sli_asam'),riskraw=getNum('sli_risk');
-  // PHQ-9 bands per SLI 2.0 manual
-  var phq9pts=phq9raw<=9?1:phq9raw<=14?2:phq9raw<=19?3:4;
-  var phq9lbl=phq9raw<=9?'Minimal (1pt)':phq9raw<=14?'Mild-Moderate (2pts)':phq9raw<=19?'Moderate-Severe (3pts)':'Severe (4pts)';
-  // GAD-7 bands
-  var gad7pts=gad7raw<=9?1:gad7raw<=14?2:gad7raw<=19?3:4;
-  var gad7lbl=gad7raw<=9?'Minimal (1pt)':gad7raw<=14?'Mild-Moderate (2pts)':gad7raw<=19?'Moderate-Severe (3pts)':'Severe (4pts)';
-  // BAM bands
-  var bampts=bamraw<=20?1:bamraw<=35?2:bamraw<=45?3:4;
-  var bamlbl=bamraw<=20?'Low Risk (1pt)':bamraw<=35?'Moderate Risk (2pts)':bamraw<=45?'High Risk (3pts)':'Very High Risk (4pts)';
-  // ASAM bands (0 points / N/A when the individual is marked MH Only in the widget above)
-  var asamMhOnly=!!sliState.asam_mh_only;
-  var asampts=asamMhOnly?0:(asamraw<=6?1:asamraw<=12?2:asamraw<=17?3:4);
-  var osamlbl=asamMhOnly?'N/A (MH Only)':(asamraw<=6?'Early/Outpatient (1pt)':asamraw<=12?'IOP (2pts)':asamraw<=17?'Residential (3pts)':'Intensive (4pts)');
-  // Risk — with C-SSRS clinical gate override
-  var riskOv=document.getElementById('riskOverride')&&document.getElementById('riskOverride').checked;
-  var riskpts=riskOv?2:riskraw===0?0:riskraw<=3?1:2;
-  var risklbl=riskOv?'High \u2014 C-SSRS gate (2pts)':riskraw===0?'No Risk (0pts)':riskraw<=3?'Low-Moderate (1pt)':'High Risk (2pts)';
-  // Show band labels
+  // Band label text -- purely on-screen formatting, not persisted (the raw points come from s2).
+  var PTS_LABELS = {
+    phq9: {1:'Minimal (1pt)',2:'Mild-Moderate (2pts)',3:'Moderate-Severe (3pts)',4:'Severe (4pts)'},
+    gad7: {1:'Minimal (1pt)',2:'Mild-Moderate (2pts)',3:'Moderate-Severe (3pts)',4:'Severe (4pts)'},
+    bam: {1:'Low Risk (1pt)',2:'Moderate Risk (2pts)',3:'High Risk (3pts)',4:'Very High Risk (4pts)'},
+    asam: {0:'N/A (MH Only)',1:'Early/Outpatient (1pt)',2:'IOP (2pts)',3:'Residential (3pts)',4:'Intensive (4pts)'}
+  };
+  var risklbl=s2.escalation?'High — C-SSRS gate (2pts)':(s2.riskBand.points===0?'No Risk (0pts)':s2.riskBand.points===1?'Low-Moderate (1pt)':'High Risk (2pts)');
   var st=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
-  st('phq9band',phq9lbl);st('gad7band',gad7lbl);st('bamband',bamlbl);st('asamband',osamlbl);st('riskband',risklbl);
-  // SDOH barrier count (6 yes/no checkboxes)
-  var sdohCbs=['sdoh_housing','sdoh_food','sdoh_transport','sdoh_healthcare','sdoh_isolation','sdoh_legal'];
-  var sdoh=sdohCbs.filter(function(id){var el=document.getElementById(id);return el&&el.checked;}).length;
-  st('sdohCount',sdoh);
-  var clinical=phq9pts+gad7pts+bampts+asampts+riskpts;
-  var total=clinical+sdoh;
-  st('sliClinical',clinical);st('sliSdoh',sdoh);st('sliTotal',total);
-  // Cap rule: Low Clinical (<=4) AND High SDOH (>=3)
-  var lowClinical=clinical<=4,highSdoh=sdoh>=3,capApplied=lowClinical&&highSdoh;
-  if(document.getElementById('lowClinicalFlag')){st('lowClinicalFlag',lowClinical?'YES (Score \u22644)':'NO (Score \u22655)');document.getElementById('lowClinicalFlag').style.color=lowClinical?'#E8417A':'#1A7A3A';}
-  if(document.getElementById('highSdohFlag')){st('highSdohFlag',highSdoh?'YES (Barriers \u22653)':'NO (Barriers \u22642)');document.getElementById('highSdohFlag').style.color=highSdoh?'#E8417A':'#1A7A3A';}
+  st('phq9band',PTS_LABELS.phq9[s2.phq9Band.points]);
+  st('gad7band',PTS_LABELS.gad7[s2.gad7Band.points]);
+  st('bamband',PTS_LABELS.bam[s2.bamBand.points]);
+  st('asamband',PTS_LABELS.asam[s2.asamBand.points]);
+  st('riskband',risklbl);
+  st('sdohCount',s2.sdohScore);
+  st('sliClinical',s2.clinicalScore);st('sliSdoh',s2.sdohScore);st('sliTotal',s2.adjustedSli);
+  if(document.getElementById('lowClinicalFlag')){st('lowClinicalFlag',s2.lowClinicalFlag?'YES (Score ≤4)':'NO (Score ≥5)');document.getElementById('lowClinicalFlag').style.color=s2.lowClinicalFlag?'#E8417A':'#1A7A3A';}
+  if(document.getElementById('highSdohFlag')){st('highSdohFlag',s2.highSdohFlag?'YES (Barriers ≥3)':'NO (Barriers ≤2)');document.getElementById('highSdohFlag').style.color=s2.highSdohFlag?'#E8417A':'#1A7A3A';}
   var badge=document.getElementById('levelBadge');
+  var LEVEL_HOURS={1:'1–2 hrs/wk — Maintenance',2:'2–4 hrs/wk — Moderate',3:'4–6 hrs/wk — High',4:'6–8 hrs/wk — Intensive',5:'8+ hrs/wk — Critical'};
   var level,hours,cls;
-  if(capApplied){level='Level 1 \u2014 Cap Applied';hours='1\u20132 hrs/wk \u2014 Maintenance';cls='level-standard';}
-  else if(total<=5){level='Level 1';hours='1\u20132 hrs/wk \u2014 Maintenance';cls='level-standard';}
-  else if(total<=8){level='Level 2';hours='2\u20134 hrs/wk \u2014 Moderate';cls='level-standard';}
-  else if(total<=11){level='Level 3';hours='4\u20136 hrs/wk \u2014 High';cls='level-enhanced';}
-  else if(total<=14){level='Level 4';hours='6\u20138 hrs/wk \u2014 Intensive';cls='level-enhanced';}
-  else{level='Level 5';hours='8+ hrs/wk \u2014 Critical';cls='level-intensive';}
+  if(s2.cap){level='Level 1 — Cap Applied';hours=LEVEL_HOURS[1];cls='level-standard';}
+  else{
+    level='Level '+s2.calculatedLevel.level;
+    hours=LEVEL_HOURS[s2.calculatedLevel.level];
+    cls=s2.calculatedLevel.level<=2?'level-standard':s2.calculatedLevel.level<=4?'level-enhanced':'level-intensive';
+  }
   badge.textContent=level;badge.className='level-badge '+cls;
-  st('sliCapText','Adjusted SLI: '+total+' points');
+  st('sliCapText','Adjusted SLI: '+s2.adjustedSli+' points');
   st('sliHoursText',hours);
   var df=document.getElementById('directorFlag');if(df)df.style.display=(level==='Level 5')?'block':'none';
-  var cf=document.getElementById('capFlag');if(cf)cf.style.display=capApplied?'block':'none';
+  var cf=document.getElementById('capFlag');if(cf)cf.style.display=s2.cap?'block':'none';
   document.getElementById('sliResult').className='sli-result visible';
 }
 
@@ -2374,6 +2374,18 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
     results.push({label: label, passed: passed});
   }
 
+  // FIX (BUG-25, 9/4): this checklist's comment numbers had a gap (no "3") and an out-of-order
+  // item (old "16" ran after old "17"/"18" in the code instead of between old "15" and "17") —
+  // signs a check had been removed or reordered without renumbering, which the audit flagged
+  // since it left real doubt about whether something had silently dropped out. Confirmed: every
+  // check that actually EXECUTES here was already firing correctly before this fix — nothing was
+  // silently skipped — these are source-code comments only, never rendered to the clinician (the
+  // results list below shows label + pass/fail, no numbers). Renumbered 1-17 in true execution
+  // order below, and moved the Director-approval check (old "16") to sit between "not duplicated"
+  // and "ASAM Level of Care" to match its comment position. Brandon: if the original requirements
+  // list had a real 18th item that became old "3", I don't have that list to check against —
+  // worth a quick confirm that nothing beyond a numbering slip was ever actually lost.
+
   // 1. Program documented
   check('Program is documented', !!document.getElementById('program').value);
 
@@ -2382,25 +2394,25 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
   var hasEnd = !!document.getElementById('planEndDate').value;
   check('Plan period (start and end dates) is documented', hasStart && hasEnd);
 
-  // 4. Individual Goal Statement present in person\'s own voice (CARF person-centered planning)
+  // 3. Individual Goal Statement present in person\'s own voice (CARF person-centered planning)
   check('Individual Goal Statement reflects the person\'s own voice', !!clientGoal && clientGoal.trim().length > 15);
 
-  // 5. Strengths documented (CARF requires strengths-based assessment)
+  // 4. Strengths documented (CARF requires strengths-based assessment)
   check('Assessed strengths are documented', !!document.getElementById('strengths').value.trim());
 
-  // 6. Barriers/needs documented
+  // 5. Barriers/needs documented
   check('Presenting needs and barriers are documented', !!document.getElementById('barriers').value.trim());
 
-  // 7. Stage of Change documented
+  // 6. Stage of Change documented
   check('Stage of Change is documented', !!document.getElementById('stageOfChange').value);
 
-  // 8. At least one Need Area with Goal, Objectives, and Interventions (CARF/ODBH core requirement)
+  // 7. At least one Need Area with Goal, Objectives, and Interventions (CARF/ODBH core requirement)
   var allNeedsComplete = needCardsData.length > 0 && needCardsData.every(function(n){
     return n.goal && n.goal.trim().length > 10 && n.obj && n.obj.trim().length > 10 && n.intv && n.intv.trim().length > 10;
   });
   check('At least one Need Area has complete Goal, Objectives, and Interventions', allNeedsComplete);
 
-  // 9. SLI scores entered (medical necessity requires documented clinical justification) — skipped when SLI marked not applicable
+  // 8. SLI scores entered (medical necessity requires documented clinical justification) — skipped when SLI marked not applicable
   if(isSliApplicable()){
     var sliComplete = typeof sli2StateComplete==='function' ? sli2StateComplete(sliState) : ['sli_phq9','sli_gad7','sli_bam','sli_asam','sli_risk'].every(function(id){ return document.getElementById(id).value !== ''; });
     check('SLI 2.0 full assessment (PHQ-9, GAD-7, BAM, ASAM, C-SSRS) is complete', sliComplete);
@@ -2408,30 +2420,30 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
     check('SLI 2.0 clinical scores — N/A, marked not applicable to this plan', true);
   }
 
-  // 10. SLI Clinical Justification narrative documented (medical necessity)
+  // 9. SLI Clinical Justification narrative documented (medical necessity)
   check('Clinical justification for service level is documented', !!document.getElementById('clinicalJustification').value.trim());
 
-  // 11. SLI summary/justification generated and substantive — skipped when SLI marked not applicable
+  // 10. SLI summary/justification generated and substantive — skipped when SLI marked not applicable
   if(isSliApplicable()){
     check('SLI 2.0 scoring and clinical justification narrative is generated', !!sliJustification && sliJustification.trim().length > 60);
   } else {
     check('SLI 2.0 justification — N/A, marked not applicable to this plan', true);
   }
 
-  // 12. Service frequency documented (required for Ohio Medicaid billing)
+  // 11. Service frequency documented (required for Ohio Medicaid billing)
   check('Service frequency is documented', !!document.getElementById('frequency').value);
 
-  // 13. Plan is individualized, not generic/templated
+  // 12. Plan is individualized, not generic/templated
   var genericPhrases = ['services were rendered', 'support was provided', 'goals were addressed', 'progress was made', 'individual is doing well', 'no concerns noted'];
   var foundGeneric = genericPhrases.find(function(p){ return fullPlanText.indexOf(p) > -1; });
   check('Plan content is individualized, not generic or templated', !foundGeneric);
 
-  // 14. Plan avoids unauthenticated clinical overreach language for non-licensed staff context
+  // 13. Plan avoids unauthenticated clinical overreach language for non-licensed staff context
   var prohibitedTerms = ['this writer', 'the patient'];
   var foundProhibited = prohibitedTerms.find(function(t){ return fullPlanText.indexOf(t) > -1; });
   check('Plan avoids non-standard documentation language', !foundProhibited);
 
-  // 15. Not copy/pasted from a previous plan
+  // 14. Not copy/pasted from a previous plan
   var storageKey = 'thrive_tp_last_plan';
   var prevPlan = '';
   try { prevPlan = localStorage.getItem(storageKey) || ''; } catch(e) {}
@@ -2439,13 +2451,7 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
   check('Plan is not duplicated from a previous treatment plan', !isDuplicate);
   try { localStorage.setItem(storageKey, fullPlanText); } catch(e) {}
 
-  // 17. ASAM Level of Care documented — required by OAC 5122-27-03 for addiction services; advisory since not every plan involves SUD services
-  check('ASAM Level of Care is documented (required per OAC 5122-27-03 if this plan involves addiction services)', !!(document.getElementById('asamLevelOfCare') && document.getElementById('asamLevelOfCare').value));
-
-  // 18. Reason for non-participation/disagreement documented when applicable — required by OAC 5122-27-03, hard-gated at save/sign time (see planValidationError)
-  check('Reason for any "No" participation/consent answer is documented', !signOffNeedsReason() || !!(document.getElementById('signOffReason') && document.getElementById('signOffReason').value.trim()));
-
-  // 16. Director approval flag check — if Level 5, flag must be acknowledged (not blocking, informational)
+  // 15. Director approval flag check — if Level 5, flag must be acknowledged (not blocking, informational)
   var directorFlag = document.getElementById('directorFlag');
   var isLevel5 = directorFlag && directorFlag.style.display === 'block';
   check('Director approval requirement reviewed (if Level 5 applies)', true); // informational only, see note below
@@ -2453,6 +2459,12 @@ function runPlanQAChecks(planSummary, needCardsData, clientGoal, sliJustificatio
     results[results.length-1].label = 'Level 5 service intensity \u2014 Director approval required before initiating services';
     results[results.length-1].passed = false;
   }
+
+  // 16. ASAM Level of Care documented — required by OAC 5122-27-03 for addiction services; advisory since not every plan involves SUD services
+  check('ASAM Level of Care is documented (required per OAC 5122-27-03 if this plan involves addiction services)', !!(document.getElementById('asamLevelOfCare') && document.getElementById('asamLevelOfCare').value));
+
+  // 17. Reason for non-participation/disagreement documented when applicable — required by OAC 5122-27-03, hard-gated at save/sign time (see planValidationError)
+  check('Reason for any "No" participation/consent answer is documented', !signOffNeedsReason() || !!(document.getElementById('signOffReason') && document.getElementById('signOffReason').value.trim()));
 
   // Render results
   var resultsEl = document.getElementById('tpQaResults');
@@ -3058,52 +3070,55 @@ function renderReviewSliWidget(){
   calcReviewSLI();
 }
 
+// FIX (BUG-13/BUG-33, 9/4): this used to be an independent hand-rolled re-implementation of the
+// same banding/cap/level-table math as sli2ComputeScores() (driven off the DOM input values it
+// sets two lines below, rather than off reviewSliState directly) -- now it computes once, via
+// the shared sliComputeScores(), and only formats the existing on-screen text from that result.
+// See sli-scoring.js's header for the full rationale.
 function calcReviewSLI() {
   if(!isRevSliApplicable()){
     document.getElementById('revSliTotal').textContent='N/A';
     document.getElementById('revSliLevel').textContent='Not applicable';
-    document.getElementById('revSliCap').textContent='—';
+    document.getElementById('revSliCap').textContent='\u2014';
     document.getElementById('reviewSliResult').className='sli-result visible';
     return;
   }
-  var s2 = sli2ComputeScores(reviewSliState);
+  var revSdohCbs=['rev_sdoh_housing','rev_sdoh_food','rev_sdoh_transport','rev_sdoh_healthcare','rev_sdoh_isolation','rev_sdoh_legal'];
+  var revSdohDomKeyMap={rev_sdoh_housing:'housing',rev_sdoh_food:'food_utilities',rev_sdoh_transport:'transportation',rev_sdoh_healthcare:'healthcare_access',rev_sdoh_isolation:'isolation',rev_sdoh_legal:'legal_safety'};
+  var revSdohMap={};
+  revSdohCbs.forEach(function(id){var el=document.getElementById(id);revSdohMap[revSdohDomKeyMap[id]]=el&&el.checked?1:0;});
+  var s2 = sli2ComputeScores(reviewSliState, { sdoh: revSdohMap });
   document.getElementById('rev_sli_phq9').value = s2.phq9Raw;
   document.getElementById('rev_sli_gad7').value = s2.gad7Raw;
   document.getElementById('rev_sli_bam').value = s2.bamRaw;
   document.getElementById('rev_sli_asam').value = s2.asamRaw;
   document.getElementById('rev_sli_risk').value = s2.riskRaw;
   document.getElementById('rev_risk_override').checked = s2.escalation;
-  function rn(id){var el=document.getElementById(id);if(!el)return 0;var v=parseFloat(el.value);return isNaN(v)?0:v;}
-  // Apply same banding as main SLI
-  var p=rn('rev_sli_phq9'),g=rn('rev_sli_gad7'),b=rn('rev_sli_bam'),a=rn('rev_sli_asam'),ri=rn('rev_sli_risk');
-  var phq9pts=p<=9?1:p<=14?2:p<=19?3:4;
-  var phq9lbl=p<=9?'Minimal (1pt)':p<=14?'Mild-Moderate (2pts)':p<=19?'Moderate-Severe (3pts)':'Severe (4pts)';
-  var gad7pts=g<=9?1:g<=14?2:g<=19?3:4;
-  var gad7lbl=g<=9?'Minimal (1pt)':g<=14?'Mild-Moderate (2pts)':g<=19?'Moderate-Severe (3pts)':'Severe (4pts)';
-  var bampts=b<=20?1:b<=35?2:b<=45?3:4;
-  var bamlbl=b<=20?'Low Risk (1pt)':b<=35?'Moderate Risk (2pts)':b<=45?'High Risk (3pts)':'Very High Risk (4pts)';
-  var asamMhOnly=!!reviewSliState.asam_mh_only;
-  var asampts=asamMhOnly?0:(a<=6?1:a<=12?2:a<=17?3:4);
-  var asamlbl=asamMhOnly?'N/A (MH Only)':(a<=6?'Early/Outpatient (1pt)':a<=12?'IOP (2pts)':a<=17?'Residential (3pts)':'Intensive (4pts)');
-  var riskOv=document.getElementById('rev_risk_override')&&document.getElementById('rev_risk_override').checked;
-  var riskpts=riskOv?2:ri===0?0:ri<=3?1:2;
-  var risklbl=riskOv?'High \u2014 C-SSRS gate (2pts)':ri===0?'No Risk (0pts)':ri<=3?'Low-Moderate (1pt)':'High Risk (2pts)';
+  // Band label text -- purely on-screen formatting, not persisted (the raw points come from s2).
+  var PTS_LABELS = {
+    phq9: {1:'Minimal (1pt)',2:'Mild-Moderate (2pts)',3:'Moderate-Severe (3pts)',4:'Severe (4pts)'},
+    gad7: {1:'Minimal (1pt)',2:'Mild-Moderate (2pts)',3:'Moderate-Severe (3pts)',4:'Severe (4pts)'},
+    bam: {1:'Low Risk (1pt)',2:'Moderate Risk (2pts)',3:'High Risk (3pts)',4:'Very High Risk (4pts)'},
+    asam: {0:'N/A (MH Only)',1:'Early/Outpatient (1pt)',2:'IOP (2pts)',3:'Residential (3pts)',4:'Intensive (4pts)'}
+  };
+  var risklbl=s2.escalation?'High \u2014 C-SSRS gate (2pts)':(s2.riskBand.points===0?'No Risk (0pts)':s2.riskBand.points===1?'Low-Moderate (1pt)':'High Risk (2pts)');
   var st=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
-  st('rev_phq9band',phq9lbl);st('rev_gad7band',gad7lbl);st('rev_bamband',bamlbl);st('rev_asamband',asamlbl);st('rev_riskband',risklbl);
-  var revSdoh=['rev_sdoh_housing','rev_sdoh_food','rev_sdoh_transport','rev_sdoh_healthcare','rev_sdoh_isolation','rev_sdoh_legal'];
-  var sdoh=revSdoh.filter(function(id){var el=document.getElementById(id);return el&&el.checked;}).length;
-  var clinical=phq9pts+gad7pts+bampts+asampts+riskpts;
-  var total=clinical+sdoh;
-  var capApplied=(clinical<=4)&&(sdoh>=3);
-  var level,cap;
-  if(capApplied||total<=5){level='Level 1'+(capApplied?' (Cap Applied)':'');cap='1-2 hrs/wk';}
-  else if(total<=8){level='Level 2 \u2014 Moderate';cap='2-4 hrs/wk';}
-  else if(total<=11){level='Level 3 \u2014 High';cap='4-6 hrs/wk';}
-  else if(total<=14){level='Level 4 \u2014 Intensive';cap='6-8 hrs/wk';}
-  else{level='Level 5 \u2014 Critical (Director Approval Required)';cap='8+ hrs/wk';}
-  document.getElementById('revSliTotal').textContent=total;
+  st('rev_phq9band',PTS_LABELS.phq9[s2.phq9Band.points]);
+  st('rev_gad7band',PTS_LABELS.gad7[s2.gad7Band.points]);
+  st('rev_bamband',PTS_LABELS.bam[s2.bamBand.points]);
+  st('rev_asamband',PTS_LABELS.asam[s2.asamBand.points]);
+  st('rev_riskband',risklbl);
+  var LEVEL_HOURS={1:'1-2 hrs/wk',2:'2-4 hrs/wk',3:'4-6 hrs/wk',4:'6-8 hrs/wk',5:'8+ hrs/wk'};
+  var level,hoursTxt;
+  if(s2.cap){level='Level 1 (Cap Applied)';hoursTxt=LEVEL_HOURS[1];}
+  else{
+    var lvlLabel={2:'Level 2 \u2014 Moderate',3:'Level 3 \u2014 High',4:'Level 4 \u2014 Intensive',5:'Level 5 \u2014 Critical (Director Approval Required)'};
+    level = s2.calculatedLevel.level===1 ? 'Level 1' : lvlLabel[s2.calculatedLevel.level];
+    hoursTxt=LEVEL_HOURS[s2.calculatedLevel.level];
+  }
+  document.getElementById('revSliTotal').textContent=s2.adjustedSli;
   document.getElementById('revSliLevel').textContent=level;
-  document.getElementById('revSliCap').textContent=cap;
+  document.getElementById('revSliCap').textContent=hoursTxt;
   document.getElementById('reviewSliResult').className='sli-result visible';
 }
 
@@ -3116,19 +3131,22 @@ async function saveReviewSliToSharedRecord(){
   requireAuth(async function(){
     btn.disabled = true; btn.textContent = 'Saving…';
     statusEl.textContent = ''; statusEl.style.color = '#888';
-    var s = sli2ComputeScores(reviewSliState);
     var sdohKeyMap = { housing:'housing', food:'food_utilities', transport:'transportation', healthcare:'healthcare_access', isolation:'isolation', legal:'legal_safety' };
     var sdohMap = {};
     Object.keys(sdohKeyMap).forEach(function(shortKey){
       var el = document.getElementById('rev_sdoh_' + shortKey);
       sdohMap[sdohKeyMap[shortKey]] = el && el.checked ? 1 : 0;
     });
-    var sdohScore = Object.keys(sdohMap).filter(function(k){return sdohMap[k]===1;}).length;
-    var clinicalScore = s.phq9Band.points+s.gad7Band.points+s.bamBand.points+s.asamBand.points+s.riskBand.points;
-    var adjustedSli = clinicalScore + sdohScore;
-    var lowClinicalFlag = clinicalScore<=4, highSdohFlag = sdohScore>=3, cap = lowClinicalFlag && highSdohFlag;
-    var levelTable=[{min:0,max:5,level:1},{min:6,max:8,level:2},{min:9,max:11,level:3},{min:12,max:14,level:4},{min:15,max:9999,level:5}];
-    var calcLevel = cap ? 1 : (levelTable.filter(function(r){return adjustedSli>=r.min && adjustedSli<=r.max;})[0]||levelTable[4]).level;
+    // FIX (BUG-13/BUG-33, 9/4): clinicalScore/adjustedSli/cap/calcLevel now come straight from
+    // the shared sliComputeScores() result (s) instead of being re-derived here by hand -- this
+    // used to be another independent copy of the same math (also calcSLI()/calcReviewSLI() and
+    // saveSliToSharedRecord() above). See sli-scoring.js's header for the full rationale.
+    var s = sli2ComputeScores(reviewSliState, { sdoh: sdohMap });
+    var sdohScore = s.sdohScore;
+    var clinicalScore = s.clinicalScore;
+    var adjustedSli = s.adjustedSli;
+    var lowClinicalFlag = s.lowClinicalFlag, highSdohFlag = s.highSdohFlag, cap = s.cap;
+    var calcLevel = s.cap ? 1 : s.calculatedLevel.level;
     var payload = {
       client_number: caseNumber,
       assessed_by: currentSession.user.email,
