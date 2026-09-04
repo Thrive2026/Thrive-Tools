@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Individual Psychotherapy Note — Thrive Peer Recovery Services</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- FIX (BUG-13/BUG-33, 9/4): SLI 2.0 scoring math now lives in one shared, same-origin file
+     (sli-scoring.js) included by this tool, sliassessment.html, and treatmentplan.html -- see
+     that file's header comment for why. Must load before this page's own <script> block. -->
+<script src="sli-scoring.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a1a2e;min-height:100vh;}
@@ -705,6 +709,10 @@ select{cursor:pointer;}
 
   <div class="error-msg" id="errorMsg"></div>
 
+  <!-- FIX (BUG-32, 9/4): analytics-logging failures used to be silent (console.warn only) --
+       this surfaces them to the clinician instead, without blocking the note itself. -->
+  <div id="analyticsWarnMsg" style="display:none;margin-top:12px;padding:14px;background:#fffbea;border:1.5px solid #F5C518;border-radius:8px;color:#5a4200;font-size:13px;line-height:1.5;"></div>
+
   <div class="output-section" id="outputSection">
     <div style="margin-bottom:16px;padding:14px;background:#fffbea;border:1.5px solid #F5C518;border-radius:8px;">
       <p style="font-size:13px;color:#5a4200;line-height:1.5;"><strong>Review before copying.</strong> Read the note carefully. Make any edits needed to accurately reflect what occurred in session. Then check the box below to confirm your review before copying to Pimsy.</p>
@@ -823,10 +831,21 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // logged into the same table. IMPORTANT: dap_note_analytics needs the new columns this tool
 // adds (SLI 2.0 re-score, ASAM level, telehealth fields, QA results, etc.) added before this
 // goes live — see the ALTER TABLE SQL in the handoff notes.
+// FIX (BUG-32, 9/4): couldn't reach the live Supabase project from this pass (no network access
+// to fussjixekyhwuromauff.supabase.co from here) to confirm whether the ALTER TABLE above has
+// actually been run, or whether Data Explorer's separate documented psychotherapy_note_analytics
+// table is the real intended target instead — that verification still needs to happen directly
+// against the live schema (Table Editor, or `select column_name from information_schema.columns
+// where table_name='dap_note_analytics'`). What WAS fixable from here: this used to fail
+// completely silently (console.warn only, fire-and-forget, no await at the call site) — a
+// rejected insert meant the note simply never showed up on any leadership dashboard, with the
+// clinician never told. logNoteAnalytics() below now returns a boolean the caller awaits and
+// surfaces to the user on failure (see analyticsWarnMsg in the HTML and its use after this
+// function is called), so a schema mismatch is now visible instead of a silent, undetectable gap.
 const SUPABASE_TABLE = 'dap_note_analytics';
 
 async function logNoteAnalytics(payload) {
-  if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') return;
+  if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') return false;
   try {
     var response = await fetch(SUPABASE_URL + '/rest/v1/' + SUPABASE_TABLE, {
       method: 'POST',
@@ -840,13 +859,62 @@ async function logNoteAnalytics(payload) {
     });
     if (response.ok) {
       console.log('[Psychotherapy note analytics] logged successfully', payload);
+      return true;
     } else {
       var errText = await response.text().catch(function(){ return '(no response body)'; });
       console.warn('[Psychotherapy note analytics] insert failed - status ' + response.status + ': ' + errText, payload);
+      return false;
     }
   } catch (e) {
     console.warn('[Psychotherapy note analytics] request failed - ' + e.message, payload);
+    return false;
   }
+}
+
+// ── NOTE SECTION PARSING (BUG-35, 9/4) ──
+// Ported from DAP Note's already-hardened parseNoteSections() -- see its own in-code history for
+// the failure mode this fixes: a split/regex that required each header to be the only thing on
+// its own line missed a trailing colon ("Description:") or markdown bold ("**Description**"),
+// which saved a real row to Supabase with all three text fields blank (not a failed insert, so
+// there was no visible error anywhere). This version never returns three blank strings for
+// non-empty input -- if no headers are recognized, or every recognized segment is empty, the full
+// cleaned text goes into descText so a reviewer always sees *something*.
+function parseNoteSections(fullText) {
+  if (!fullText) return { descText: '', assessText: '', planText: '' };
+
+  var cleaned = fullText.replace(/\*\*/g, '').replace(/^#+\s*/gm, '');
+
+  var headerPattern = /^[ \t]*(DESCRIPTION|ASSESSMENT(?:\s*OF\s*PROGRESS)?|PLANS?(?:\s*TO\s*FOLLOW\s*UP)?)[ \t]*:?[ \t]*/gim;
+
+  var matches = [];
+  var m;
+  while ((m = headerPattern.exec(cleaned)) !== null) {
+    var raw = m[1].toUpperCase();
+    var type = /^DESCRIPTION/.test(raw) ? 'description' : (/^ASSESSMENT/.test(raw) ? 'assessment' : 'plan');
+    matches.push({ type: type, start: m.index, end: m.index + m[0].length });
+  }
+
+  var descText = '', assessText = '', planText = '';
+
+  if (matches.length === 0) {
+    descText = cleaned.trim();
+    return { descText: descText, assessText: assessText, planText: planText };
+  }
+
+  for (var i = 0; i < matches.length; i++) {
+    var segStart = matches[i].end;
+    var segEnd = (i + 1 < matches.length) ? matches[i + 1].start : cleaned.length;
+    var segment = cleaned.slice(segStart, segEnd).trim();
+    if (matches[i].type === 'description' && !descText) descText = segment;
+    else if (matches[i].type === 'assessment' && !assessText) assessText = segment;
+    else if (matches[i].type === 'plan' && !planText) planText = segment;
+  }
+
+  if (!descText && !assessText && !planText) {
+    descText = cleaned.trim();
+  }
+
+  return { descText: descText, assessText: assessText, planText: planText };
 }
 
 // ── SUPABASE AUTH (staff sign-in, required only to save an SLI 2.0 assessment
@@ -929,6 +997,24 @@ async function saveSliToSharedRecord(){
   var clientNumber = document.getElementById('clientNumber') ? document.getElementById('clientNumber').value.trim() : '';
   if (!clientNumber) { statusEl.textContent = 'Enter the Client Number above before saving.'; statusEl.style.color = '#8B1A1A'; return; }
   requireSliAuth(async function(){
+    // FIX (BUG-34, 9/4): the note's own provider_email is unauthenticated free text (drafting a
+    // note never requires login), but this SLI re-score is stamped with whoever is actually
+    // signed in via real Supabase Auth -- the two can silently name different people for the same
+    // session (same authorship-mismatch risk as BUG-04, via a different mechanism, since there's
+    // no single authoritative field to just switch to here). Reconciling instead of blocking:
+    // surface the mismatch and let the signed-in clinician confirm or fix the note's Provider
+    // Email field before the authenticated identity gets written as assessed_by.
+    var noteProviderEmailEl = document.getElementById('providerEmail');
+    var noteProviderEmail = noteProviderEmailEl ? noteProviderEmailEl.value.trim() : '';
+    var authedEmail = currentSession.user.email || '';
+    if (noteProviderEmail && authedEmail && noteProviderEmail.toLowerCase() !== authedEmail.toLowerCase()) {
+      var proceed = confirm(
+        'This note lists "' + noteProviderEmail + '" as the provider, but you\'re signed in as "' + authedEmail + '" to save this SLI 2.0 assessment.\n\n' +
+        'The saved assessment will be attributed to ' + authedEmail + ' (your signed-in identity), not the note\'s Provider Email field -- these should usually be the same person.\n\n' +
+        'Click OK to save anyway, or Cancel to go back and fix the Provider Email field first.'
+      );
+      if (!proceed) return;
+    }
     btn.disabled = true; btn.textContent = 'Saving…';
     statusEl.textContent = ''; statusEl.style.color = '#888';
     var s = sli2ComputeScores(sliState);
@@ -1313,27 +1399,14 @@ var SLI2_SDOH_ITEMS = [
   { key: 'isolation', label: 'Feel isolated or like they don\'t have people to turn to for help?' },
   { key: 'legal_safety', label: 'Dealing with any legal issues or feeling unsafe where they\'re living right now?' }
 ];
-// PLACEHOLDER -- per the SLI 2.0 manual, each ASAM dimension is a 10-option
-// picklist scored 0.5-4 by placement level, not by descriptor wording alone.
-// The real Thrive-specific option text wasn't present in the SLI_2_0.xlsx
-// export, so this 5-point severity key stands in. Swap this array for the
-// real picklist text (10 entries per dimension) once available -- nothing
-// else in the scoring logic needs to change.
-var SLI2_ASAM_DIMENSIONS_PLACEHOLDER = [
-  'Acute Intoxication and/or Withdrawal Potential',
-  'Biomedical Conditions and Complications',
-  'Emotional, Behavioral, or Cognitive Conditions and Complications',
-  'Readiness to Change',
-  'Relapse, Continued Use, or Continued Problem Potential',
-  'Recovery/Living Environment'
-];
-var SLI2_ASAM_PLACEHOLDER_OPTIONS = [
-  { label: '0 — No problem: fully stable', points: 0 },
-  { label: '1 — Mild: slight issue, manageable in current setting', points: 1 },
-  { label: '2 — Moderate: requires structured support or intervention', points: 2 },
-  { label: '3 — Serious: presents a clear risk, needs intensive services', points: 3 },
-  { label: '4 — Severe: imminent danger or inability to function without 24/7 care', points: 4 }
-];
+// FIX (BUG-13/BUG-33, 9/4): these two constants now come from the shared sli-scoring.js (loaded
+// in <head>) -- they used to be an independent copy kept in sync by hand with sliassessment.html
+// and treatmentplan_2.html. Aliased under their original local names so the rest of this file
+// didn't need to change. The real Thrive-specific ASAM picklist (BUG-07) now only needs to
+// replace SLI_ASAM_DIMENSIONS_PLACEHOLDER / SLI_ASAM_PLACEHOLDER_OPTIONS in sli-scoring.js, once,
+// for all three tools at once.
+var SLI2_ASAM_DIMENSIONS_PLACEHOLDER = SLI_ASAM_DIMENSIONS_PLACEHOLDER;
+var SLI2_ASAM_PLACEHOLDER_OPTIONS = SLI_ASAM_PLACEHOLDER_OPTIONS;
 
 function sli2NewState(){
   return {
@@ -1346,73 +1419,12 @@ function sli2NewState(){
   };
 }
 
-function sli2Sum(arr){ return arr.reduce(function(a,b){ return a + (b === null || b === undefined ? 0 : b); }, 0); }
-function sli2BandFromTable(raw, table){
-  for (var i = 0; i < table.length; i++){ if (raw >= table[i].min && raw <= table[i].max) return table[i]; }
-  return table[table.length - 1];
-}
-
-function sli2ComputeScores(state){
-  var phq9Raw = sli2Sum(state.phq9);
-  var phq9Band = sli2BandFromTable(phq9Raw, [
-    { min:0, max:9, label:'0-9 Minimal', points:1 },
-    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
-    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
-    { min:20, max:27, label:'20-27 Severe', points:4 }
-  ]);
-  var gad7Raw = sli2Sum(state.gad7);
-  var gad7Band = sli2BandFromTable(gad7Raw, [
-    { min:0, max:9, label:'0-9 Minimal', points:1 },
-    { min:10, max:14, label:'10-14 Mild-Moderate', points:2 },
-    { min:15, max:19, label:'15-19 Moderate-Severe', points:3 },
-    { min:20, max:21, label:'20-21 Severe', points:4 }
-  ]);
-  var bamRaw = sli2Sum(SLI2_BAM_SCORED_ITEMS.map(function(it){ return state.bam[it.key]; }));
-  var bamBand = sli2BandFromTable(bamRaw, [
-    { min:0, max:20, label:'0-20 Low Risk', points:1 },
-    { min:21, max:35, label:'21-35 Moderate Risk', points:2 },
-    { min:36, max:45, label:'36-45 High Risk', points:3 },
-    { min:46, max:9999, label:'46+ Very High Risk', points:4 }
-  ]);
-  var asamRaw = state.asam_mh_only ? 0 : sli2Sum(state.asam_dims);
-  var asamBand = state.asam_mh_only
-    ? { label: 'N/A (MH Only)', points: 0 }
-    : sli2BandFromTable(asamRaw, [
-        { min:0, max:6, label:'0-6 Early/Outpatient', points:1 },
-        { min:7, max:12, label:'7-12 IOP', points:2 },
-        { min:13, max:17, label:'13-17 Residential', points:3 },
-        { min:18, max:9999, label:'18-24 Intensive', points:4 }
-      ]);
-  var escalation = SLI2_CSSRS_ESCALATION_KEYS.some(function(k){ return state.cssrs[k] === 1; });
-  var riskExtraRaw = sli2Sum(SLI2_RISK_EXTRA_ITEMS.map(function(it){ return state.risk_extra[it.key]; }));
-  var riskRaw = sli2Sum(SLI2_CSSRS_ITEMS.map(function(it){ return state.cssrs[it.key]; })) + riskExtraRaw;
-  var riskBand;
-  if (escalation || riskRaw >= 4) riskBand = { label: 'High Risk', points: 2 };
-  else if (riskRaw >= 1) riskBand = { label: 'Low-Moderate Risk', points: 1 };
-  else riskBand = { label: 'No Risk', points: 0 };
-  var sdohScore = sli2Sum(SLI2_SDOH_ITEMS.map(function(it){ return state.sdoh[it.key]; }));
-  var clinicalScore = phq9Band.points + gad7Band.points + bamBand.points + asamBand.points + riskBand.points;
-  var adjustedSli = clinicalScore + sdohScore;
-  var lowClinicalFlag = clinicalScore <= 4;
-  var highSdohFlag = sdohScore >= 3;
-  var cap = lowClinicalFlag && highSdohFlag;
-  var levelTable = [
-    { min:0, max:5, level:1, label:'Level 1 — Maintenance', hours:'1-2 hrs/wk' },
-    { min:6, max:8, level:2, label:'Level 2 — Moderate', hours:'2-4 hrs/wk' },
-    { min:9, max:11, level:3, label:'Level 3 — High', hours:'4-6 hrs/wk' },
-    { min:12, max:14, level:4, label:'Level 4 — Intensive', hours:'6-8 hrs/wk' },
-    { min:15, max:9999, level:5, label:'Level 5 — Critical', hours:'8+ hrs/wk (Director approval required)' }
-  ];
-  var calculatedLevel = cap ? levelTable[0] : sli2BandFromTable(adjustedSli, levelTable);
-  var directorReviewRequired = calculatedLevel.level === 5 && !cap;
-  return {
-    phq9Raw: phq9Raw, phq9Band: phq9Band, gad7Raw: gad7Raw, gad7Band: gad7Band,
-    bamRaw: bamRaw, bamBand: bamBand, asamRaw: asamRaw, asamBand: asamBand,
-    escalation: escalation, riskRaw: riskRaw, riskBand: riskBand,
-    sdohScore: sdohScore, clinicalScore: clinicalScore, adjustedSli: adjustedSli,
-    lowClinicalFlag: lowClinicalFlag, highSdohFlag: highSdohFlag, cap: cap,
-    calculatedLevel: calculatedLevel, directorReviewRequired: directorReviewRequired
-  };
+// FIX (BUG-13/BUG-33, 9/4): sli2Sum/sli2BandFromTable and the whole scoring engine that used to
+// live in sli2ComputeScores() now come from the shared sli-scoring.js (loaded in <head>) -- this
+// was the closest of the 4 independent copies to what became the shared implementation, so it's
+// now a direct pass-through. See sli-scoring.js's header for the full rationale.
+function sli2ComputeScores(state, opts){
+  return sliComputeScores(state, opts);
 }
 
 function sli2StateComplete(state){
@@ -1907,6 +1919,7 @@ function resetForm() {
 async function generateNote() {
   var errorEl = document.getElementById('errorMsg');
   errorEl.className = 'error-msg';
+  document.getElementById('analyticsWarnMsg').style.display = 'none';
   var phiWarnings = scanForPHI();
   showPhiScreen(phiWarnings);
 }
@@ -2111,22 +2124,15 @@ async function runGenerateNote() {
     if (!response.ok) throw new Error(data.error || 'API error');
 
     var fullText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
-    var sections = fullText.split(/\n(?=\s*(DESCRIPTION|ASSESSMENT|PLAN)\s*\n)/i);
-    var descText = '', assessText = '', planText = '';
-    for (var i = 0; i < sections.length; i++) {
-      var s = sections[i].trim();
-      if (/^DESCRIPTION/i.test(s)) descText = s.replace(/^DESCRIPTION\s*/i, '').trim();
-      else if (/^ASSESSMENT/i.test(s)) assessText = s.replace(/^ASSESSMENT\s*/i, '').trim();
-      else if (/^PLAN/i.test(s)) planText = s.replace(/^PLAN\s*/i, '').trim();
-    }
-    if (!descText && !assessText && !planText) {
-      var dm = fullText.match(/(DESCRIPTION)([\s\S]*?)(?=\nASSESSMENT|\nPLAN|$)/i);
-      var am = fullText.match(/(ASSESSMENT)([\s\S]*?)(?=\nPLAN|$)/i);
-      var pm = fullText.match(/(PLAN)([\s\S]*?)$/i);
-      descText = dm ? dm[2].trim() : fullText;
-      assessText = am ? am[2].trim() : '';
-      planText = pm ? pm[2].trim() : '';
-    }
+    // FIX (BUG-35, 9/4): this used to be a split/regex that required each header to be the only
+    // thing on its own line -- a header with a trailing colon ("Description:") or markdown bold
+    // ("**Description**") wouldn't match, and a real row would still save to Supabase with
+    // descText/assessText/planText all blank (not a failed insert, so it wasn't visible as an
+    // error anywhere). That's exactly the bug DAP Note hit and already fixed once; ported its
+    // hardened parseNoteSections() here instead of leaving a second, more brittle copy of the
+    // same parsing logic to drift out of sync.
+    var parsed = parseNoteSections(fullText);
+    var descText = parsed.descText, assessText = parsed.assessText, planText = parsed.planText;
     document.getElementById('dataOutput').innerText = descText || fullText;
     document.getElementById('assessmentOutput').innerText = assessText;
     document.getElementById('planOutput').innerText = planText;
@@ -2155,7 +2161,7 @@ async function runGenerateNote() {
     var riskScanInput = [sessionNarrative, document.getElementById('concernDescription').value.trim(), document.getElementById('providerResponse').value.trim()].filter(Boolean).join('\n\n');
     var riskResult = await runRiskScan(riskScanInput);
 
-    logNoteAnalytics({
+    var analyticsOk = await logNoteAnalytics({
       client_number: clientNumber,
       note_type: 'psychotherapy',
       program: 'Individual Psychotherapy',
@@ -2213,6 +2219,17 @@ async function runGenerateNote() {
       qa_pass_count: standardQaResult ? standardQaResult.passCount : null,
       qa_fail_count: standardQaResult ? standardQaResult.failCount : null
     });
+
+    // FIX (BUG-32, 9/4): surface an analytics-logging failure instead of leaving it silent --
+    // the note itself still generated fine (that's a separate try/catch below), so this is a
+    // non-blocking warning, not the hard error banner.
+    var analyticsWarnEl = document.getElementById('analyticsWarnMsg');
+    if (analyticsOk) {
+      analyticsWarnEl.style.display = 'none';
+    } else {
+      analyticsWarnEl.textContent = 'Note generated below, but it could not be logged to the shared analytics table -- it will not show up on the Clinical Director Hub or Flagged Notes Tracker dashboards. Check the browser console for details, and let Brandon/IT know if this keeps happening.';
+      analyticsWarnEl.style.display = 'block';
+    }
 
     document.getElementById('loadingBlock').className = 'loading';
     document.getElementById('outputSection').className = 'output-section visible';
