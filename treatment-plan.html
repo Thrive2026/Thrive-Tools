@@ -128,10 +128,6 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .tp-sign-block input[type=text]{margin-bottom:10px;}
 .tp-sign-block select{margin-bottom:10px;}
 .tp-cred-label{display:block;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin:2px 0 4px;}
-.tp-phi-block{background:#FFF9F5;border:1.5px solid #E8B8A0;border-radius:10px;padding:2px 18px 16px;margin-top:14px;}
-.tp-phi-block summary{cursor:pointer;font-size:12.5px;font-weight:700;color:#A0522D;text-transform:uppercase;letter-spacing:.4px;padding:12px 0;}
-.tp-phi-body{padding-top:6px;}
-.tp-phi-note{font-size:12px;color:#7a4a30;line-height:1.6;margin-bottom:14px;background:#FCEEE6;border-radius:6px;padding:10px 12px;}
 .tp-sign-status{margin-top:16px;padding:12px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;}
 .tp-sign-status.tp-signed{display:block;background:#E8F5EC;color:#1A7A3A;}
 .tp-sign-status.tp-pending{display:block;background:#FFF8E6;color:#7A5200;}
@@ -234,36 +230,8 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
       <div class="field">
         <label class="field-label">Case / Reference Number <span class="required-star">*</span></label>
         <div class="field-hint">Your internal Pimsy case/chart number or another non-identifying reference code. This is how you&rsquo;ll look this plan up later for its 90-day review &mdash; do not use the Peer&rsquo;s name.</div>
-        <input type="text" id="caseNumber" placeholder="e.g. CPS-2026-0417" oninput="onCaseNumberChange()" onblur="loadPhiForCase()"/>
+        <input type="text" id="caseNumber" placeholder="e.g. CPS-2026-0417" oninput="onCaseNumberChange()"/>
         <div class="case-ref-hint" id="caseNumberStatus" style="display:none;"></div>
-      </div>
-
-      <div class="tp-phi-block" id="phiBlock">
-        <details>
-          <summary>Client Identifying Information — for compliant record export only</summary>
-          <div class="tp-phi-body">
-            <p class="tp-phi-note">Saved separately from the plan above, in a restricted Supabase table only signed-in staff can read or write — never mixed into the de-identified treatment plan record. Fill this in whenever it's convenient; it's what lets the Clinical Director generate a CARF/ODBH/Medicaid-compliant document to file in the Peer's chart after sign-off. Requires staff sign-in (use the bar at the top of the page) and a Case/Reference Number above.</p>
-            <div class="two-col">
-              <div class="field"><label class="field-label">Client Full Legal Name</label><input type="text" id="phiClientName"/></div>
-              <div class="field"><label class="field-label">Date of Birth</label><input type="date" id="phiDob"/></div>
-            </div>
-            <div class="two-col">
-              <div class="field"><label class="field-label">Medicaid / Insurance ID</label><input type="text" id="phiMedicaidId"/></div>
-              <div class="field"><label class="field-label">Insurance Provider</label><input type="text" id="phiInsuranceProvider"/></div>
-            </div>
-            <div class="two-col">
-              <div class="field"><label class="field-label">Funding Source</label><input type="text" id="phiFundingSource" placeholder="e.g. Medicaid, grant name, self-pay"/></div>
-              <div class="field"><label class="field-label">Authorization # / Units</label><input type="text" id="phiAuthNumber" placeholder="e.g. Auth #12345, 12 hrs/month"/></div>
-            </div>
-            <div class="field">
-              <label class="field-label">Diagnosis on File</label>
-              <div class="field-hint">As already documented in the client's record — this tool does not diagnose; enter what's already been established by the treatment team.</div>
-              <input type="text" id="phiDiagnosis"/>
-            </div>
-            <div class="tp-save-row"><button id="savePhiBtn" onclick="requireAuth(savePhiInfo)">Save Identifying Info</button></div>
-            <div class="tp-msg" id="phiSaveMsg"></div>
-          </div>
-        </details>
       </div>
 
       <div class="two-col">
@@ -1061,57 +1029,11 @@ function onCaseNumberChange(){
   }
 }
 
-// ── CLIENT IDENTIFYING INFO (PHI) — separate restricted table, never mixed into the
-// de-identified treatment_plans record. See treatment_plan_phi_migration.sql for the table/RLS.
-async function loadPhiForCase(){
-  var caseNumber = document.getElementById('caseNumber').value.trim();
-  if(!caseNumber || !currentSession || !tpConfigured()) return;
-  try {
-    var res = await sb.from('treatment_plan_phi').select('*').eq('case_number', caseNumber).maybeSingle();
-    if(res.error || !res.data) return; // no row yet, or not permitted — leave fields as typed
-    var row = res.data;
-    document.getElementById('phiClientName').value = row.client_legal_name || '';
-    document.getElementById('phiDob').value = row.date_of_birth || '';
-    document.getElementById('phiMedicaidId').value = row.medicaid_id || '';
-    document.getElementById('phiInsuranceProvider').value = row.insurance_provider || '';
-    document.getElementById('phiFundingSource').value = row.funding_source || '';
-    document.getElementById('phiAuthNumber').value = row.authorization_number || '';
-    document.getElementById('phiDiagnosis').value = row.diagnosis_on_file || '';
-  } catch(e){ /* silent — this is a convenience prefill, not required for plan drafting */ }
-}
-
-async function savePhiInfo(){
-  var msg = document.getElementById('phiSaveMsg');
-  var caseNumber = document.getElementById('caseNumber').value.trim();
-  if(!caseNumber){ msg.textContent = 'Enter the Case / Reference Number above first.'; msg.className='tp-msg tp-msg-err'; return; }
-  var btn = document.getElementById('savePhiBtn');
-  btn.disabled = true; btn.textContent = 'Saving...';
-  try {
-    var authParts = document.getElementById('phiAuthNumber').value.trim();
-    var record = {
-      case_number: caseNumber,
-      client_legal_name: document.getElementById('phiClientName').value.trim() || null,
-      date_of_birth: document.getElementById('phiDob').value || null,
-      medicaid_id: document.getElementById('phiMedicaidId').value.trim() || null,
-      insurance_provider: document.getElementById('phiInsuranceProvider').value.trim() || null,
-      funding_source: document.getElementById('phiFundingSource').value.trim() || null,
-      authorization_number: authParts || null,
-      diagnosis_on_file: document.getElementById('phiDiagnosis').value.trim() || null,
-      updated_by: currentSession.user.email,
-      updated_at: new Date().toISOString()
-    };
-    var res = await sb.from('treatment_plan_phi').upsert(record, { onConflict: 'case_number' }).select().single();
-    if(res.error) throw res.error;
-    msg.textContent = 'Saved. This identifying info will be pulled into the compliant export once the plan is signed.';
-    msg.className = 'tp-msg tp-msg-ok';
-  } catch(e){
-    msg.textContent = 'Save failed: ' + e.message + (e.message && e.message.indexOf('relation') > -1 ? ' — has treatment_plan_phi_migration.sql been run in Supabase yet?' : '');
-    msg.className = 'tp-msg tp-msg-err';
-  }
-  btn.disabled = false; btn.textContent = 'Save Identifying Info';
-}
-
 // ── PLAN: COLLECT / SAVE / SIGN ──
+// NOTE: this tool never captures client-identifying info (name, DOB, Medicaid ID, diagnosis).
+// Supabase only ever sees the Case/Reference Number here, by design. The Clinical Director Hub's
+// "Export for Chart" step is where identifying info gets typed in — fresh, each time, never
+// saved to the database — to build the printable record for the client's chart.
 function addDays(dateStr, n){
   if(!dateStr) return null;
   var d = new Date(dateStr + 'T00:00:00');
@@ -1460,25 +1382,93 @@ function formatPlanAsText(row){
   return lines.join('\n');
 }
 
+// ── CASE NUMBER SEARCH — tolerant of how staff actually type these ──
+// Some people write "C-B-1234", some "CB1234", some just "1234". Rather than requiring an exact
+// string match, this tries progressively looser matches and only asks the user to pick when a
+// looser match is genuinely ambiguous (so a digits-only search can never silently load the wrong
+// client's plan).
+function normalizeCaseNumberLoose(s){ return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
+function digitsOnlyStr(s){ return (s||'').replace(/\D/g,''); }
+
+// Collapses a list of treatment_plans rows down to the latest version per case_number — a case
+// can have many superseded rows, we only ever want the current signed one per client here.
+function latestPerCaseNumber(rows){
+  var byCase = {};
+  rows.forEach(function(r){
+    if(!byCase[r.case_number] || r.version > byCase[r.case_number].version) byCase[r.case_number] = r;
+  });
+  return Object.values(byCase);
+}
+
+async function findSignedPlansByCaseNumberFuzzy(rawInput){
+  // Tier 1: exact match — the common case, one round trip.
+  var exact = await sb.from('treatment_plans').select('*').eq('case_number', rawInput).eq('status','signed').order('version',{ascending:false}).limit(1);
+  if(exact.error) throw exact.error;
+  if(exact.data && exact.data.length) return { rows: exact.data, tier: 'exact' };
+
+  // Tiers 2/3 need to compare against every signed plan's case_number client-side (dashes/
+  // letters/case can't be normalized inside a simple Supabase filter) — fine at Thrive's current
+  // scale; worth revisiting with a server-side normalized column if the table gets very large.
+  var all = await sb.from('treatment_plans').select('*').eq('status','signed').order('version',{ascending:false});
+  if(all.error) throw all.error;
+  var allRows = all.data || [];
+
+  // Tier 2: letters + digits match once dashes/spaces/case are stripped — "CB-1234", "cb1234",
+  // "C B 1234" all normalize the same way.
+  var loose = normalizeCaseNumberLoose(rawInput);
+  if(loose){
+    var looseMatches = latestPerCaseNumber(allRows.filter(function(r){ return normalizeCaseNumberLoose(r.case_number) === loose; }));
+    if(looseMatches.length) return { rows: looseMatches, tier: 'loose' };
+  }
+
+  // Tier 3: last resort — match on the digits alone (someone typed "1234" and forgot the
+  // letters entirely). Can match more than one client if two case numbers share that digit
+  // sequence, so the caller must let the user pick rather than auto-loading one.
+  var digits = digitsOnlyStr(rawInput);
+  if(digits.length >= 2){
+    var digitMatches = latestPerCaseNumber(allRows.filter(function(r){ return digitsOnlyStr(r.case_number).indexOf(digits) > -1; }));
+    if(digitMatches.length) return { rows: digitMatches, tier: 'digits' };
+  }
+
+  return { rows: [], tier: 'none' };
+}
+
 async function loadPlanForReview(){
   var cn = document.getElementById('reviewCaseNumber').value.trim();
   var msg = document.getElementById('reviewLoadMsg');
   if(!cn){ msg.textContent = 'Enter a case/reference number.'; msg.className = 'tp-msg tp-msg-err'; return; }
-  msg.textContent = 'Looking up...'; msg.className = 'tp-msg';
+  msg.textContent = 'Looking up...'; msg.className = 'tp-msg'; msg.innerHTML = 'Looking up...';
   try {
-    var res = await sb.from('treatment_plans')
-      .select('*')
-      .eq('case_number', cn)
-      .eq('status', 'signed')
-      .order('version', {ascending:false})
-      .limit(1);
-    if(res.error) throw res.error;
-    if(!res.data || res.data.length === 0){
-      msg.textContent = 'No signed plan found for that case number.';
+    var found = await findSignedPlansByCaseNumberFuzzy(cn);
+    if(found.rows.length === 0){
+      msg.textContent = 'No signed plan found matching "' + cn + '" — try just the numbers if you\'re not sure how it was originally entered.';
       msg.className = 'tp-msg tp-msg-err';
       return;
     }
-    var row = res.data[0];
+    if(found.rows.length > 1){
+      msg.className = 'tp-msg';
+      msg.innerHTML = '<div style="margin-bottom:8px;">More than one case matches "' + cn + '" — pick the right one:</div>'
+        + found.rows.map(function(r, i){
+            return '<button type="button" class="tp-case-pick-btn" data-idx="' + i + '" style="display:block;width:100%;text-align:left;margin-bottom:6px;padding:8px 12px;border:1.5px solid #dde0f0;border-radius:8px;background:#fafbff;cursor:pointer;font-size:12.5px;">'
+              + '<strong>' + r.case_number.replace(/[&<>"]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}) + '</strong> — ' + (r.program || '—') + ' · plan dates ' + (r.plan_start_date||'—') + '–' + (r.plan_end_date||'—')
+              + '</button>';
+          }).join('');
+      found.rows.forEach(function(r, i){
+        var btn = msg.querySelector('.tp-case-pick-btn[data-idx="' + i + '"]');
+        if(btn) btn.onclick = function(){ applyLoadedPlanRow(r); };
+      });
+      return;
+    }
+    applyLoadedPlanRow(found.rows[0]);
+  } catch(e){
+    msg.textContent = 'Lookup failed: ' + e.message;
+    msg.className = 'tp-msg tp-msg-err';
+  }
+}
+
+function applyLoadedPlanRow(row){
+  var msg = document.getElementById('reviewLoadMsg');
+  try {
     activeReviewPlanId = row.id;
     activeReviewCaseNumber = row.case_number;
     document.getElementById('currentPlanText').value = formatPlanAsText(row);
