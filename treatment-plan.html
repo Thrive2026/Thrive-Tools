@@ -126,6 +126,12 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
 .tp-sign-block.tp-sign-disabled{opacity:0.55;pointer-events:none;}
 .tp-sign-block h4{font-size:12.5px;font-weight:700;color:#4B5EA6;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px;}
 .tp-sign-block input[type=text]{margin-bottom:10px;}
+.tp-sign-block select{margin-bottom:10px;}
+.tp-cred-label{display:block;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin:2px 0 4px;}
+.tp-phi-block{background:#FFF9F5;border:1.5px solid #E8B8A0;border-radius:10px;padding:2px 18px 16px;margin-top:14px;}
+.tp-phi-block summary{cursor:pointer;font-size:12.5px;font-weight:700;color:#A0522D;text-transform:uppercase;letter-spacing:.4px;padding:12px 0;}
+.tp-phi-body{padding-top:6px;}
+.tp-phi-note{font-size:12px;color:#7a4a30;line-height:1.6;margin-bottom:14px;background:#FCEEE6;border-radius:6px;padding:10px 12px;}
 .tp-sign-status{margin-top:16px;padding:12px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;}
 .tp-sign-status.tp-signed{display:block;background:#E8F5EC;color:#1A7A3A;}
 .tp-sign-status.tp-pending{display:block;background:#FFF8E6;color:#7A5200;}
@@ -228,9 +234,38 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
       <div class="field">
         <label class="field-label">Case / Reference Number <span class="required-star">*</span></label>
         <div class="field-hint">Your internal Pimsy case/chart number or another non-identifying reference code. This is how you&rsquo;ll look this plan up later for its 90-day review &mdash; do not use the Peer&rsquo;s name.</div>
-        <input type="text" id="caseNumber" placeholder="e.g. CPS-2026-0417" oninput="onCaseNumberChange()"/>
+        <input type="text" id="caseNumber" placeholder="e.g. CPS-2026-0417" oninput="onCaseNumberChange()" onblur="loadPhiForCase()"/>
         <div class="case-ref-hint" id="caseNumberStatus" style="display:none;"></div>
       </div>
+
+      <div class="tp-phi-block" id="phiBlock">
+        <details>
+          <summary>Client Identifying Information — for compliant record export only</summary>
+          <div class="tp-phi-body">
+            <p class="tp-phi-note">Saved separately from the plan above, in a restricted Supabase table only signed-in staff can read or write — never mixed into the de-identified treatment plan record. Fill this in whenever it's convenient; it's what lets the Clinical Director generate a CARF/ODBH/Medicaid-compliant document to file in the Peer's chart after sign-off. Requires staff sign-in (use the bar at the top of the page) and a Case/Reference Number above.</p>
+            <div class="two-col">
+              <div class="field"><label class="field-label">Client Full Legal Name</label><input type="text" id="phiClientName"/></div>
+              <div class="field"><label class="field-label">Date of Birth</label><input type="date" id="phiDob"/></div>
+            </div>
+            <div class="two-col">
+              <div class="field"><label class="field-label">Medicaid / Insurance ID</label><input type="text" id="phiMedicaidId"/></div>
+              <div class="field"><label class="field-label">Insurance Provider</label><input type="text" id="phiInsuranceProvider"/></div>
+            </div>
+            <div class="two-col">
+              <div class="field"><label class="field-label">Funding Source</label><input type="text" id="phiFundingSource" placeholder="e.g. Medicaid, grant name, self-pay"/></div>
+              <div class="field"><label class="field-label">Authorization # / Units</label><input type="text" id="phiAuthNumber" placeholder="e.g. Auth #12345, 12 hrs/month"/></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Diagnosis on File</label>
+              <div class="field-hint">As already documented in the client's record — this tool does not diagnose; enter what's already been established by the treatment team.</div>
+              <input type="text" id="phiDiagnosis"/>
+            </div>
+            <div class="tp-save-row"><button id="savePhiBtn" onclick="requireAuth(savePhiInfo)">Save Identifying Info</button></div>
+            <div class="tp-msg" id="phiSaveMsg"></div>
+          </div>
+        </details>
+      </div>
+
       <div class="two-col">
         <div class="field">
           <label class="field-label">Program <span class="required-star">*</span></label>
@@ -554,6 +589,9 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
           <div class="tp-sign-block" id="clinicianSignBlock" style="margin-top:14px;">
             <h4>Clinician / PRS Signature</h4>
             <input type="text" id="clinicianSigName" placeholder="Type your full legal name"/>
+            <label class="tp-cred-label" for="clinicianSigCred">Credentials</label>
+            <select id="clinicianSigCred" onchange="toggleCredOther('clinician')"><option value="">Select credential...</option><option value="LPCC-S">LPCC-S</option><option value="LPCC">LPCC</option><option value="LISW-S">LISW-S</option><option value="LISW">LISW</option><option value="LSW">LSW</option><option value="LPC">LPC</option><option value="QMHS">QMHS</option><option value="QBHS">QBHS</option><option value="CDCA">CDCA</option><option value="PRS">PRS</option><option value="Other">Other</option></select>
+            <input type="text" id="clinicianSigCredOther" placeholder="Enter credential" style="display:none;">
             <div style="display:flex;align-items:flex-start;gap:8px;">
               <input type="checkbox" id="clinicianSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
               <label for="clinicianSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this treatment plan as the clinician/care coordinator of record.</label>
@@ -563,6 +601,9 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
           <div class="tp-sign-block tp-sign-disabled" id="supervisorSignBlock" style="margin-top:14px;">
             <h4>Supervisor Signature</h4>
             <input type="text" id="supervisorSigName" placeholder="Type your full legal name"/>
+            <label class="tp-cred-label" for="supervisorSigCred">Credentials</label>
+            <select id="supervisorSigCred" onchange="toggleCredOther('supervisor')"><option value="">Select credential...</option><option value="LPCC-S">LPCC-S</option><option value="LPCC">LPCC</option><option value="LISW-S">LISW-S</option><option value="LISW">LISW</option><option value="LSW">LSW</option><option value="LPC">LPC</option><option value="QMHS">QMHS</option><option value="QBHS">QBHS</option><option value="CDCA">CDCA</option><option value="PRS">PRS</option><option value="Other">Other</option></select>
+            <input type="text" id="supervisorSigCredOther" placeholder="Enter credential" style="display:none;">
             <div style="display:flex;align-items:flex-start;gap:8px;">
               <input type="checkbox" id="supervisorSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
               <label for="supervisorSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this treatment plan as the co-signing supervisor, per CARF/ODBH dual sign-off requirements.</label>
@@ -772,6 +813,9 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         <div class="tp-sign-block" id="reviewClinicianSignBlock" style="margin-top:14px;">
           <h4>Clinician / PRS Signature</h4>
           <input type="text" id="reviewClinicianSigName" placeholder="Type your full legal name"/>
+          <label class="tp-cred-label" for="reviewClinicianSigCred">Credentials</label>
+          <select id="reviewClinicianSigCred" onchange="toggleCredOther('reviewClinician')"><option value="">Select credential...</option><option value="LPCC-S">LPCC-S</option><option value="LPCC">LPCC</option><option value="LISW-S">LISW-S</option><option value="LISW">LISW</option><option value="LSW">LSW</option><option value="LPC">LPC</option><option value="QMHS">QMHS</option><option value="QBHS">QBHS</option><option value="CDCA">CDCA</option><option value="PRS">PRS</option><option value="Other">Other</option></select>
+          <input type="text" id="reviewClinicianSigCredOther" placeholder="Enter credential" style="display:none;">
           <div style="display:flex;align-items:flex-start;gap:8px;">
             <input type="checkbox" id="reviewClinicianSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
             <label for="reviewClinicianSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this 90-day review as the clinician/care coordinator of record.</label>
@@ -781,6 +825,9 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         <div class="tp-sign-block tp-sign-disabled" id="reviewSupervisorSignBlock" style="margin-top:14px;">
           <h4>Supervisor Signature</h4>
           <input type="text" id="reviewSupervisorSigName" placeholder="Type your full legal name"/>
+          <label class="tp-cred-label" for="reviewSupervisorSigCred">Credentials</label>
+          <select id="reviewSupervisorSigCred" onchange="toggleCredOther('reviewSupervisor')"><option value="">Select credential...</option><option value="LPCC-S">LPCC-S</option><option value="LPCC">LPCC</option><option value="LISW-S">LISW-S</option><option value="LISW">LISW</option><option value="LSW">LSW</option><option value="LPC">LPC</option><option value="QMHS">QMHS</option><option value="QBHS">QBHS</option><option value="CDCA">CDCA</option><option value="PRS">PRS</option><option value="Other">Other</option></select>
+          <input type="text" id="reviewSupervisorSigCredOther" placeholder="Enter credential" style="display:none;">
           <div style="display:flex;align-items:flex-start;gap:8px;">
             <input type="checkbox" id="reviewSupervisorSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
             <label for="reviewSupervisorSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this 90-day review as the co-signing supervisor. This finalizes and saves the next version of the plan, due for review in 90 days.</label>
@@ -836,12 +883,12 @@ var loginSuccessCallback = null;
 var currentPlanRowId = null;
 var currentPlanVersion = 1;
 var currentPlanSupersedesId = null;
-var planSignState = { status: 'draft', clinicianName: '', clinicianSignedAt: null, supervisorName: '', supervisorSignedAt: null };
+var planSignState = { status: 'draft', clinicianName: '', clinicianCredentials: '', clinicianSignedAt: null, supervisorName: '', supervisorCredentials: '', supervisorSignedAt: null };
 
 var activeReviewPlanId = null;
 var activeReviewCaseNumber = '';
 var currentReviewRowId = null;
-var reviewSignState = { status: 'draft', clinicianName: '', clinicianSignedAt: null, supervisorName: '', supervisorSignedAt: null };
+var reviewSignState = { status: 'draft', clinicianName: '', clinicianCredentials: '', clinicianSignedAt: null, supervisorName: '', supervisorCredentials: '', supervisorSignedAt: null };
 
 function tpConfigured(){
   return typeof SUPABASE_URL === 'string' && SUPABASE_URL.indexOf('http') === 0 && !!SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.indexOf('YOUR_') !== 0;
@@ -1012,6 +1059,56 @@ function onCaseNumberChange(){
   } else {
     hint.style.display = 'none';
   }
+}
+
+// ── CLIENT IDENTIFYING INFO (PHI) — separate restricted table, never mixed into the
+// de-identified treatment_plans record. See treatment_plan_phi_migration.sql for the table/RLS.
+async function loadPhiForCase(){
+  var caseNumber = document.getElementById('caseNumber').value.trim();
+  if(!caseNumber || !currentSession || !tpConfigured()) return;
+  try {
+    var res = await sb.from('treatment_plan_phi').select('*').eq('case_number', caseNumber).maybeSingle();
+    if(res.error || !res.data) return; // no row yet, or not permitted — leave fields as typed
+    var row = res.data;
+    document.getElementById('phiClientName').value = row.client_legal_name || '';
+    document.getElementById('phiDob').value = row.date_of_birth || '';
+    document.getElementById('phiMedicaidId').value = row.medicaid_id || '';
+    document.getElementById('phiInsuranceProvider').value = row.insurance_provider || '';
+    document.getElementById('phiFundingSource').value = row.funding_source || '';
+    document.getElementById('phiAuthNumber').value = row.authorization_number || '';
+    document.getElementById('phiDiagnosis').value = row.diagnosis_on_file || '';
+  } catch(e){ /* silent — this is a convenience prefill, not required for plan drafting */ }
+}
+
+async function savePhiInfo(){
+  var msg = document.getElementById('phiSaveMsg');
+  var caseNumber = document.getElementById('caseNumber').value.trim();
+  if(!caseNumber){ msg.textContent = 'Enter the Case / Reference Number above first.'; msg.className='tp-msg tp-msg-err'; return; }
+  var btn = document.getElementById('savePhiBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    var authParts = document.getElementById('phiAuthNumber').value.trim();
+    var record = {
+      case_number: caseNumber,
+      client_legal_name: document.getElementById('phiClientName').value.trim() || null,
+      date_of_birth: document.getElementById('phiDob').value || null,
+      medicaid_id: document.getElementById('phiMedicaidId').value.trim() || null,
+      insurance_provider: document.getElementById('phiInsuranceProvider').value.trim() || null,
+      funding_source: document.getElementById('phiFundingSource').value.trim() || null,
+      authorization_number: authParts || null,
+      diagnosis_on_file: document.getElementById('phiDiagnosis').value.trim() || null,
+      updated_by: currentSession.user.email,
+      updated_at: new Date().toISOString()
+    };
+    var res = await sb.from('treatment_plan_phi').upsert(record, { onConflict: 'case_number' }).select().single();
+    if(res.error) throw res.error;
+    msg.textContent = 'Saved. This identifying info will be pulled into the compliant export once the plan is signed.';
+    msg.className = 'tp-msg tp-msg-ok';
+  } catch(e){
+    msg.textContent = 'Save failed: ' + e.message + (e.message && e.message.indexOf('relation') > -1 ? ' — has treatment_plan_phi_migration.sql been run in Supabase yet?' : '');
+    msg.className = 'tp-msg tp-msg-err';
+  }
+  btn.disabled = false; btn.textContent = 'Save Identifying Info';
 }
 
 // ── PLAN: COLLECT / SAVE / SIGN ──
@@ -1189,7 +1286,7 @@ async function saveDraftPlan(){
       if(currentPlanSupersedesId){
         await sb.from('treatment_plans').update({status:'superseded'}).eq('id', currentPlanSupersedesId);
       }
-      planSignState = { status:'draft', clinicianName:'', clinicianSignedAt:null, supervisorName:'', supervisorSignedAt:null };
+      planSignState = { status:'draft', clinicianName:'', clinicianCredentials:'', clinicianSignedAt:null, supervisorName:'', supervisorCredentials:'', supervisorSignedAt:null };
     }
     msg.textContent = 'Draft saved.';
     msg.className = 'tp-msg tp-msg-ok';
@@ -1201,13 +1298,34 @@ async function saveDraftPlan(){
   btn.disabled = false; btn.textContent = 'Save Draft';
 }
 
+// ── CREDENTIALS — captured alongside every signature name (clinician + supervisor, both the
+// initial plan sign and the 90-day review sign), per Brandon's request that signed records show
+// who signed AND their credential. Dropdown of Thrive's common credentials + free-text "Other"
+// so the exported/filed record stays standardized without blocking someone with an uncommon one.
+function toggleCredOther(prefix){
+  var sel = document.getElementById(prefix+'SigCred');
+  var other = document.getElementById(prefix+'SigCredOther');
+  if(!sel || !other) return;
+  other.style.display = sel.value === 'Other' ? 'block' : 'none';
+}
+function getCredentialValue(prefix){
+  var sel = document.getElementById(prefix+'SigCred');
+  if(!sel) return '';
+  if(sel.value === 'Other'){
+    var other = document.getElementById(prefix+'SigCredOther');
+    return other ? other.value.trim() : '';
+  }
+  return sel.value;
+}
+
 async function signClinician(){
   var msg = document.getElementById('planSaveMsg');
   var name = document.getElementById('clinicianSigName').value.trim();
+  var credentials = getCredentialValue('clinician');
   var attested = document.getElementById('clinicianSigAttest').checked;
   var qaAttested = document.getElementById('clinicianAttestation').checked;
   if(!qaAttested){ msg.textContent = 'Complete the Clinician / Care Coordinator Attestation above first.'; msg.className='tp-msg tp-msg-err'; return; }
-  if(!name || !attested){ msg.textContent = 'Type your full legal name and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!name || !credentials || !attested){ msg.textContent = 'Type your full legal name, select your credentials, and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
   var errText = planValidationError();
   if(errText){ msg.textContent = errText; msg.className = 'tp-msg tp-msg-err'; return; }
 
@@ -1216,6 +1334,7 @@ async function signClinician(){
   try {
     var record = collectPlanRecord();
     record.clinician_name = name;
+    record.clinician_credentials = credentials;
     record.clinician_signed_at = new Date().toISOString();
     record.status = 'pending_supervisor';
 
@@ -1234,6 +1353,7 @@ async function signClinician(){
     }
     planSignState.status = 'pending_supervisor';
     planSignState.clinicianName = name;
+    planSignState.clinicianCredentials = credentials;
     planSignState.clinicianSignedAt = record.clinician_signed_at;
     msg.textContent = 'Signed as clinician. Awaiting supervisor signature.';
     msg.className = 'tp-msg tp-msg-ok';
@@ -1248,9 +1368,10 @@ async function signClinician(){
 async function signSupervisor(){
   var msg = document.getElementById('planSaveMsg');
   var name = document.getElementById('supervisorSigName').value.trim();
+  var credentials = getCredentialValue('supervisor');
   var attested = document.getElementById('supervisorSigAttest').checked;
   if(planSignState.status !== 'pending_supervisor'){ msg.textContent = 'The clinician must sign first.'; msg.className='tp-msg tp-msg-err'; return; }
-  if(!name || !attested){ msg.textContent = 'Type your full legal name and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!name || !credentials || !attested){ msg.textContent = 'Type your full legal name, select your credentials, and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
 
   var btn = document.getElementById('signSupervisorBtn');
   btn.disabled = true; btn.textContent = 'Signing...';
@@ -1259,6 +1380,7 @@ async function signSupervisor(){
     var signedAt = new Date().toISOString();
     var record = {
       supervisor_name: name,
+      supervisor_credentials: credentials,
       supervisor_signed_at: signedAt,
       status: 'signed',
       next_review_due: addDays(startDate, 90) || addDays(signedAt.slice(0,10), 90),
@@ -1268,6 +1390,7 @@ async function signSupervisor(){
     if(upd.error) throw upd.error;
     planSignState.status = 'signed';
     planSignState.supervisorName = name;
+    planSignState.supervisorCredentials = credentials;
     planSignState.supervisorSignedAt = signedAt;
     msg.textContent = 'Fully signed and saved. Next review due ' + record.next_review_due + '.';
     msg.className = 'tp-msg tp-msg-ok';
@@ -1282,7 +1405,7 @@ async function signSupervisor(){
 
 function resetClinicianSignature(reason){
   if(!planSignState.clinicianSignedAt) return;
-  planSignState = { status:'draft', clinicianName:'', clinicianSignedAt:null, supervisorName:'', supervisorSignedAt:null };
+  planSignState = { status:'draft', clinicianName:'', clinicianCredentials:'', clinicianSignedAt:null, supervisorName:'', supervisorCredentials:'', supervisorSignedAt:null };
   var msg = document.getElementById('planSaveMsg');
   msg.textContent = reason;
   msg.className = 'tp-msg tp-msg-err';
@@ -1295,7 +1418,7 @@ function onPlanContentRegenerated(){
     msg.textContent = 'This plan was previously signed. Saving now will create a new version.';
     msg.className = 'tp-msg tp-msg-ok';
   }
-  planSignState = { status:'draft', clinicianName:'', clinicianSignedAt:null, supervisorName:'', supervisorSignedAt:null };
+  planSignState = { status:'draft', clinicianName:'', clinicianCredentials:'', clinicianSignedAt:null, supervisorName:'', supervisorCredentials:'', supervisorSignedAt:null };
   refreshPlanSignUI();
 }
 
@@ -1306,11 +1429,11 @@ function refreshPlanSignUI(){
   if(planSignState.status === 'signed'){
     supBlock.classList.remove('tp-sign-disabled');
     statusEl.className = 'tp-sign-status tp-signed';
-    statusEl.textContent = '✓ Signed & saved — Clinician: ' + planSignState.clinicianName + ' · Supervisor: ' + planSignState.supervisorName;
+    statusEl.textContent = '✓ Signed & saved — Clinician: ' + planSignState.clinicianName + (planSignState.clinicianCredentials ? ', ' + planSignState.clinicianCredentials : '') + ' · Supervisor: ' + planSignState.supervisorName + (planSignState.supervisorCredentials ? ', ' + planSignState.supervisorCredentials : '');
   } else if(planSignState.status === 'pending_supervisor'){
     supBlock.classList.remove('tp-sign-disabled');
     statusEl.className = 'tp-sign-status tp-pending';
-    statusEl.textContent = 'Signed by clinician (' + planSignState.clinicianName + ') — awaiting supervisor signature.';
+    statusEl.textContent = 'Signed by clinician (' + planSignState.clinicianName + (planSignState.clinicianCredentials ? ', ' + planSignState.clinicianCredentials : '') + ') — awaiting supervisor signature.';
   } else {
     supBlock.classList.add('tp-sign-disabled');
     statusEl.className = 'tp-sign-status';
@@ -1397,7 +1520,7 @@ async function loadPlanForReview(){
     renderReviewProgressBlocks();
 
     currentReviewRowId = null;
-    reviewSignState = { status:'draft', clinicianName:'', clinicianSignedAt:null, supervisorName:'', supervisorSignedAt:null };
+    reviewSignState = { status:'draft', clinicianName:'', clinicianCredentials:'', clinicianSignedAt:null, supervisorName:'', supervisorCredentials:'', supervisorSignedAt:null };
     refreshReviewSignUI();
 
     msg.textContent = 'Loaded plan v' + row.version + ' (case ' + row.case_number + ', next review was ' + (row.next_review_due||'—') + ').';
@@ -1473,10 +1596,11 @@ async function saveDraftReview(){
 async function signReviewClinician(){
   var msg = document.getElementById('reviewSaveMsg');
   var name = document.getElementById('reviewClinicianSigName').value.trim();
+  var credentials = getCredentialValue('reviewClinician');
   var attested = document.getElementById('reviewClinicianSigAttest').checked;
   var qaAttested = document.getElementById('reviewConfirmAttestation').checked;
   if(!qaAttested){ msg.textContent = 'Complete the review confirmation attestation above first.'; msg.className='tp-msg tp-msg-err'; return; }
-  if(!name || !attested){ msg.textContent = 'Type your full legal name and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!name || !credentials || !attested){ msg.textContent = 'Type your full legal name, select your credentials, and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
   var errText = reviewValidationError();
   if(errText){ msg.textContent = errText; msg.className = 'tp-msg tp-msg-err'; return; }
 
@@ -1485,6 +1609,7 @@ async function signReviewClinician(){
   try {
     var record = collectReviewRecord();
     record.clinician_name = name;
+    record.clinician_credentials = credentials;
     record.clinician_signed_at = new Date().toISOString();
     record.status = 'pending_supervisor';
     if(currentReviewRowId){
@@ -1498,6 +1623,7 @@ async function signReviewClinician(){
     }
     reviewSignState.status = 'pending_supervisor';
     reviewSignState.clinicianName = name;
+    reviewSignState.clinicianCredentials = credentials;
     reviewSignState.clinicianSignedAt = record.clinician_signed_at;
     msg.textContent = 'Signed as clinician. Awaiting supervisor signature.';
     msg.className = 'tp-msg tp-msg-ok';
@@ -1536,9 +1662,10 @@ function parseNeedAreasFromUpdatedPlanText(fullText, needsList){
 async function signReviewSupervisor(){
   var msg = document.getElementById('reviewSaveMsg');
   var name = document.getElementById('reviewSupervisorSigName').value.trim();
+  var credentials = getCredentialValue('reviewSupervisor');
   var attested = document.getElementById('reviewSupervisorSigAttest').checked;
   if(reviewSignState.status !== 'pending_supervisor'){ msg.textContent = 'The clinician must sign first.'; msg.className='tp-msg tp-msg-err'; return; }
-  if(!name || !attested){ msg.textContent = 'Type your full legal name and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
+  if(!name || !credentials || !attested){ msg.textContent = 'Type your full legal name, select your credentials, and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
 
   var btn = document.getElementById('signReviewSupervisorBtn');
   btn.disabled = true; btn.textContent = 'Signing...';
@@ -1548,7 +1675,7 @@ async function signReviewSupervisor(){
     var nextDue = addDays(reviewDate, 90) || addDays(signedAt.slice(0,10), 90);
 
     var revUpd = await sb.from('treatment_plan_reviews').update({
-      supervisor_name: name, supervisor_signed_at: signedAt, status: 'signed', updated_at: signedAt
+      supervisor_name: name, supervisor_credentials: credentials, supervisor_signed_at: signedAt, status: 'signed', updated_at: signedAt
     }).eq('id', currentReviewRowId).select().single();
     if(revUpd.error) throw revUpd.error;
 
@@ -1592,8 +1719,10 @@ async function signReviewSupervisor(){
       // set at the clinician-signs step above) — use that instead of re-reading `name`, which by
       // this point in the function is the supervisor's signature.
       clinician_name: reviewSignState.clinicianName,
+      clinician_credentials: reviewSignState.clinicianCredentials,
       clinician_signed_at: reviewSignState.clinicianSignedAt,
       supervisor_name: name,
+      supervisor_credentials: credentials,
       supervisor_signed_at: signedAt,
       next_review_due: nextDue,
       created_by: currentSession.user.email
@@ -1606,6 +1735,7 @@ async function signReviewSupervisor(){
 
     reviewSignState.status = 'signed';
     reviewSignState.supervisorName = name;
+    reviewSignState.supervisorCredentials = credentials;
     reviewSignState.supervisorSignedAt = signedAt;
     msg.textContent = 'Review finalized. New plan version v' + newPlanRecord.version + ' signed and saved — next review due ' + nextDue + '.';
     msg.className = 'tp-msg tp-msg-ok';
@@ -1620,7 +1750,7 @@ async function signReviewSupervisor(){
 
 function resetReviewClinicianSignature(reason){
   if(!reviewSignState.clinicianSignedAt) return;
-  reviewSignState = { status:'draft', clinicianName:'', clinicianSignedAt:null, supervisorName:'', supervisorSignedAt:null };
+  reviewSignState = { status:'draft', clinicianName:'', clinicianCredentials:'', clinicianSignedAt:null, supervisorName:'', supervisorCredentials:'', supervisorSignedAt:null };
   var msg = document.getElementById('reviewSaveMsg');
   msg.textContent = reason;
   msg.className = 'tp-msg tp-msg-err';
@@ -1634,11 +1764,11 @@ function refreshReviewSignUI(){
   if(reviewSignState.status === 'signed'){
     supBlock.classList.remove('tp-sign-disabled');
     statusEl.className = 'tp-sign-status tp-signed';
-    statusEl.textContent = '✓ Review signed & new plan version saved — Clinician: ' + reviewSignState.clinicianName + ' · Supervisor: ' + reviewSignState.supervisorName;
+    statusEl.textContent = '✓ Review signed & new plan version saved — Clinician: ' + reviewSignState.clinicianName + (reviewSignState.clinicianCredentials ? ', ' + reviewSignState.clinicianCredentials : '') + ' · Supervisor: ' + reviewSignState.supervisorName + (reviewSignState.supervisorCredentials ? ', ' + reviewSignState.supervisorCredentials : '');
   } else if(reviewSignState.status === 'pending_supervisor'){
     supBlock.classList.remove('tp-sign-disabled');
     statusEl.className = 'tp-sign-status tp-pending';
-    statusEl.textContent = 'Signed by clinician (' + reviewSignState.clinicianName + ') — awaiting supervisor signature.';
+    statusEl.textContent = 'Signed by clinician (' + reviewSignState.clinicianName + (reviewSignState.clinicianCredentials ? ', ' + reviewSignState.clinicianCredentials : '') + ') — awaiting supervisor signature.';
   } else {
     supBlock.classList.add('tp-sign-disabled');
     statusEl.className = 'tp-sign-status';
@@ -2753,10 +2883,12 @@ function resetForm(){
   if(document.getElementById('tpQaSummary')){ document.getElementById('tpQaSummary').textContent=''; document.getElementById('tpQaSummary').style.background='transparent'; }
   if(document.getElementById('tpQaGateMessage')) document.getElementById('tpQaGateMessage').textContent='';
   currentPlanRowId=null; currentPlanVersion=1; currentPlanSupersedesId=null;
-  planSignState={ status:'draft', clinicianName:'', clinicianSignedAt:null, supervisorName:'', supervisorSignedAt:null };
+  planSignState={ status:'draft', clinicianName:'', clinicianCredentials:'', clinicianSignedAt:null, supervisorName:'', supervisorCredentials:'', supervisorSignedAt:null };
   if(document.getElementById('caseNumberStatus')) document.getElementById('caseNumberStatus').style.display='none';
   if(document.getElementById('planSaveMsg')){ document.getElementById('planSaveMsg').textContent=''; document.getElementById('planSaveMsg').className='tp-msg'; }
   ['clinicianSigName','supervisorSigName'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['clinicianSigCred','supervisorSigCred'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['clinicianSigCredOther','supervisorSigCredOther'].forEach(function(id){ var el=document.getElementById(id); if(el){ el.value=''; el.style.display='none'; } });
   ['clinicianSigAttest','supervisorSigAttest'].forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=false; });
   refreshPlanSignUI();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -3334,7 +3466,7 @@ async function generateReview() {
     document.getElementById('reviewOutputSection').style.display = 'block';
     document.getElementById('reviewOutputSection').scrollIntoView({behavior:'smooth', block:'start'});
     currentReviewRowId = null;
-    reviewSignState = { status:'draft', clinicianName:'', clinicianSignedAt:null, supervisorName:'', supervisorSignedAt:null };
+    reviewSignState = { status:'draft', clinicianName:'', clinicianCredentials:'', clinicianSignedAt:null, supervisorName:'', supervisorCredentials:'', supervisorSignedAt:null };
     if(typeof refreshReviewSignUI==='function') refreshReviewSignUI();
   } catch(err) {
     alert('Error generating review: ' + err.message + '. Please check your connection and try again.');
