@@ -568,15 +568,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
           </div>
           <div class="tp-sign-block tp-sign-disabled" id="supervisorSignBlock" style="margin-top:14px;">
             <h4>Supervisor Signature</h4>
-            <input type="text" id="supervisorSigName" placeholder="Type your full legal name"/>
-            <label class="tp-cred-label" for="supervisorSigCred">Credentials</label>
-            <select id="supervisorSigCred" onchange="toggleCredOther('supervisor')"><option value="">Select credential...</option><option value="LPCC-S">LPCC-S</option><option value="LPCC">LPCC</option><option value="LISW-S">LISW-S</option><option value="LISW">LISW</option><option value="LSW">LSW</option><option value="LPC">LPC</option><option value="QMHS">QMHS</option><option value="QBHS">QBHS</option><option value="CDCA">CDCA</option><option value="PRS">PRS</option><option value="Other">Other</option></select>
-            <input type="text" id="supervisorSigCredOther" placeholder="Enter credential" style="display:none;">
-            <div style="display:flex;align-items:flex-start;gap:8px;">
-              <input type="checkbox" id="supervisorSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
-              <label for="supervisorSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this treatment plan as the co-signing supervisor, per CARF/ODBH dual sign-off requirements.</label>
-            </div>
-            <div class="tp-save-row"><button id="signSupervisorBtn" onclick="requireAuth(signSupervisor)">Sign as Supervisor</button></div>
+            <p style="font-size:12px;color:#666;margin:0;">The supervisor signature (the Clinical Director, per CARF/ODBH dual sign-off requirements) is completed in Clinical Director Hub, not here — this plan will appear in that hub's Treatment Plan Sign-Off queue as soon as the clinician signs above.</p>
           </div>
           <div class="tp-sign-status" id="planSignStatus"></div>
           <div class="tp-msg" id="planSaveMsg"></div>
@@ -792,15 +784,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.5;}
         </div>
         <div class="tp-sign-block tp-sign-disabled" id="reviewSupervisorSignBlock" style="margin-top:14px;">
           <h4>Supervisor Signature</h4>
-          <input type="text" id="reviewSupervisorSigName" placeholder="Type your full legal name"/>
-          <label class="tp-cred-label" for="reviewSupervisorSigCred">Credentials</label>
-          <select id="reviewSupervisorSigCred" onchange="toggleCredOther('reviewSupervisor')"><option value="">Select credential...</option><option value="LPCC-S">LPCC-S</option><option value="LPCC">LPCC</option><option value="LISW-S">LISW-S</option><option value="LISW">LISW</option><option value="LSW">LSW</option><option value="LPC">LPC</option><option value="QMHS">QMHS</option><option value="QBHS">QBHS</option><option value="CDCA">CDCA</option><option value="PRS">PRS</option><option value="Other">Other</option></select>
-          <input type="text" id="reviewSupervisorSigCredOther" placeholder="Enter credential" style="display:none;">
-          <div style="display:flex;align-items:flex-start;gap:8px;">
-            <input type="checkbox" id="reviewSupervisorSigAttest" style="width:16px;height:16px;margin-top:2px;accent-color:#4B5EA6;flex-shrink:0;"/>
-            <label for="reviewSupervisorSigAttest" style="font-size:12px;color:#2d2d4e;line-height:1.5;cursor:pointer;">By checking this box and typing my name above, I am electronically signing this 90-day review as the co-signing supervisor. This finalizes and saves the next version of the plan, due for review in 90 days.</label>
-          </div>
-          <div class="tp-save-row"><button id="signReviewSupervisorBtn" onclick="requireAuth(signReviewSupervisor)">Sign as Supervisor &amp; Finalize</button></div>
+          <p style="font-size:12px;color:#666;margin:0;">The supervisor signature (the Clinical Director) is completed in Clinical Director Hub, not here — this review will appear in that hub's Review Sign-Off queue as soon as the clinician signs above. Signing there finalizes this review and creates the next signed plan version automatically.</p>
         </div>
         <div class="tp-sign-status" id="reviewSignStatus"></div>
         <div class="tp-msg" id="reviewSaveMsg"></div>
@@ -1287,43 +1271,12 @@ async function signClinician(){
   btn.disabled = false; btn.textContent = 'Sign as Clinician / PRS';
 }
 
-async function signSupervisor(){
-  var msg = document.getElementById('planSaveMsg');
-  var name = document.getElementById('supervisorSigName').value.trim();
-  var credentials = getCredentialValue('supervisor');
-  var attested = document.getElementById('supervisorSigAttest').checked;
-  if(planSignState.status !== 'pending_supervisor'){ msg.textContent = 'The clinician must sign first.'; msg.className='tp-msg tp-msg-err'; return; }
-  if(!name || !credentials || !attested){ msg.textContent = 'Type your full legal name, select your credentials, and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
-
-  var btn = document.getElementById('signSupervisorBtn');
-  btn.disabled = true; btn.textContent = 'Signing...';
-  try {
-    var startDate = document.getElementById('planStartDate').value;
-    var signedAt = new Date().toISOString();
-    var record = {
-      supervisor_name: name,
-      supervisor_credentials: credentials,
-      supervisor_signed_at: signedAt,
-      status: 'signed',
-      next_review_due: addDays(startDate, 90) || addDays(signedAt.slice(0,10), 90),
-      updated_at: signedAt
-    };
-    var upd = await sb.from('treatment_plans').update(record).eq('id', currentPlanRowId).select().single();
-    if(upd.error) throw upd.error;
-    planSignState.status = 'signed';
-    planSignState.supervisorName = name;
-    planSignState.supervisorCredentials = credentials;
-    planSignState.supervisorSignedAt = signedAt;
-    msg.textContent = 'Fully signed and saved. Next review due ' + record.next_review_due + '.';
-    msg.className = 'tp-msg tp-msg-ok';
-    refreshPlanSignUI();
-    loadDashboard();
-  } catch(e){
-    msg.textContent = 'Signing failed: ' + e.message;
-    msg.className = 'tp-msg tp-msg-err';
-  }
-  btn.disabled = false; btn.textContent = 'Sign as Supervisor';
-}
+// NOTE (9/9): the "Sign as Supervisor" step used to live here, letting anyone signed into
+// Treatment Plan Builder finalize a plan straight to 'signed' without Clinical Director Hub ever
+// seeing it. Removed per Brandon: supervisor = the Clinical Director, and that signature should
+// only ever be applied from Clinical Director Hub's Treatment Plan Sign-Off queue (signAsDirector
+// there mirrors exactly what this function used to do). This file only ever takes the plan to
+// 'pending_supervisor'; the Hub takes it the rest of the way to 'signed'.
 
 function resetClinicianSignature(reason){
   if(!planSignState.clinicianSignedAt) return;
@@ -1625,118 +1578,14 @@ async function signReviewClinician(){
   btn.disabled = false; btn.textContent = 'Sign as Clinician / PRS';
 }
 
-function parseNeedAreasFromUpdatedPlanText(fullText, needsList){
-  var result = [];
-  var needParts = fullText.split(/\n(?=NEED:)/i);
-  var needSections = needParts.length > 1 ? needParts.slice(1) : (fullText.match(/NEED:[\s\S]*?(?=(?:\nNEED:)|$)/gi) || []);
-  needsList.forEach(function(need){
-    var blockText = '';
-    for(var i=0;i<needSections.length;i++){
-      if(needSections[i].toLowerCase().indexOf(need.toLowerCase()) > -1){ blockText = needSections[i]; break; }
-    }
-    var focusMatch = blockText.match(/FOCUS:\s*([^\n]*)/i);
-    var goalMatch = blockText.match(/GOAL:\s*([\s\S]*?)(?=\nOBJECTIVES:|$)/i);
-    var objMatch = blockText.match(/OBJECTIVES:\s*([\s\S]*?)(?=\nINTERVENTIONS:|$)/i);
-    var intMatch = blockText.match(/INTERVENTIONS:\s*([\s\S]*?)(?=\nNEED:|$)/i);
-    result.push({
-      need: need,
-      focus: focusMatch ? focusMatch[1].trim() : '',
-      goal: goalMatch ? goalMatch[1].trim() : '',
-      obj: objMatch ? objMatch[1].trim() : '',
-      intv: intMatch ? intMatch[1].trim() : ''
-    });
-  });
-  return result;
-}
-
-async function signReviewSupervisor(){
-  var msg = document.getElementById('reviewSaveMsg');
-  var name = document.getElementById('reviewSupervisorSigName').value.trim();
-  var credentials = getCredentialValue('reviewSupervisor');
-  var attested = document.getElementById('reviewSupervisorSigAttest').checked;
-  if(reviewSignState.status !== 'pending_supervisor'){ msg.textContent = 'The clinician must sign first.'; msg.className='tp-msg tp-msg-err'; return; }
-  if(!name || !credentials || !attested){ msg.textContent = 'Type your full legal name, select your credentials, and check the signature box.'; msg.className='tp-msg tp-msg-err'; return; }
-
-  var btn = document.getElementById('signReviewSupervisorBtn');
-  btn.disabled = true; btn.textContent = 'Signing...';
-  try {
-    var signedAt = new Date().toISOString();
-    var reviewDate = document.getElementById('reviewDate').value;
-    var nextDue = addDays(reviewDate, 90) || addDays(signedAt.slice(0,10), 90);
-
-    var revUpd = await sb.from('treatment_plan_reviews').update({
-      supervisor_name: name, supervisor_credentials: credentials, supervisor_signed_at: signedAt, status: 'signed', updated_at: signedAt
-    }).eq('id', currentReviewRowId).select().single();
-    if(revUpd.error) throw revUpd.error;
-
-    var oldPlanRes = await sb.from('treatment_plans').select('*').eq('id', activeReviewPlanId).single();
-    if(oldPlanRes.error) throw oldPlanRes.error;
-    var oldPlan = oldPlanRes.data;
-
-    var updatedText = document.getElementById('updatedPlanOutput').innerText;
-    var summaryMatch = updatedText.match(/PLAN SUMMARY[\s\S]*?(?=NEED:|UPDATED INDIVIDUAL GOAL|INDIVIDUAL GOAL STATEMENT|SLI 2)/i);
-    var goalMatch = updatedText.match(/(?:UPDATED )?INDIVIDUAL GOAL STATEMENT[\s\S]*?(?=SLI 2|$)/i);
-    var justMatch = updatedText.match(/SLI 2\.0[\s\S]*/i);
-    var newNeedAreas = parseNeedAreasFromUpdatedPlanText(updatedText, reviewNeeds);
-
-    var newPlanRecord = {
-      case_number: oldPlan.case_number,
-      version: oldPlan.version + 1,
-      supersedes_id: oldPlan.id,
-      status: 'signed',
-      program: oldPlan.program,
-      plan_start_date: oldPlan.plan_start_date,
-      plan_end_date: oldPlan.plan_end_date,
-      frequency: document.getElementById('reviewFrequency').value,
-      stage_of_change: oldPlan.stage_of_change,
-      strengths: oldPlan.strengths,
-      barriers: oldPlan.barriers,
-      clinical_justification: oldPlan.clinical_justification,
-      client_goal_statement: goalMatch ? goalMatch[0].replace(/^(?:UPDATED )?INDIVIDUAL GOAL STATEMENT\s*/i,'').trim() : oldPlan.client_goal_statement,
-      sli: isRevSliApplicable() ? {
-        applicable: true,
-        phq9:getNum('rev_sli_phq9'), gad7:getNum('rev_sli_gad7'), bam:getNum('rev_sli_bam'), asam:getNum('rev_sli_asam'), risk:getNum('rev_sli_risk'),
-        total: document.getElementById('revSliTotal').textContent, level: document.getElementById('revSliLevel').textContent, cap: document.getElementById('revSliCap').textContent
-      } : { applicable: false },
-      need_areas: newNeedAreas,
-      plan_summary: summaryMatch ? summaryMatch[0].replace(/^PLAN SUMMARY\s*/i,'').trim() : oldPlan.plan_summary,
-      sli_justification: justMatch ? justMatch[0].replace(/^SLI 2\.0[^\n]*/i,'').trim() : oldPlan.sli_justification,
-      sign_off: oldPlan.sign_off,
-      // FIX (BUG-04, 9/4): this was reading the supervisor's just-typed signature field (`name`)
-      // for clinician_name too, so every plan version created via a signed 90-day review showed
-      // the supervisor as the clinician of record. The real clinician's name was already captured
-      // when they signed earlier in this same review flow (see reviewSignState.clinicianName,
-      // set at the clinician-signs step above) — use that instead of re-reading `name`, which by
-      // this point in the function is the supervisor's signature.
-      clinician_name: reviewSignState.clinicianName,
-      clinician_credentials: reviewSignState.clinicianCredentials,
-      clinician_signed_at: reviewSignState.clinicianSignedAt,
-      supervisor_name: name,
-      supervisor_credentials: credentials,
-      supervisor_signed_at: signedAt,
-      next_review_due: nextDue,
-      created_by: currentSession.user.email
-    };
-    var newPlanIns = await sb.from('treatment_plans').insert(newPlanRecord).select().single();
-    if(newPlanIns.error) throw newPlanIns.error;
-
-    await sb.from('treatment_plans').update({status:'superseded'}).eq('id', oldPlan.id);
-    await sb.from('treatment_plan_reviews').update({new_plan_id: newPlanIns.data.id}).eq('id', currentReviewRowId);
-
-    reviewSignState.status = 'signed';
-    reviewSignState.supervisorName = name;
-    reviewSignState.supervisorCredentials = credentials;
-    reviewSignState.supervisorSignedAt = signedAt;
-    msg.textContent = 'Review finalized. New plan version v' + newPlanRecord.version + ' signed and saved — next review due ' + nextDue + '.';
-    msg.className = 'tp-msg tp-msg-ok';
-    refreshReviewSignUI();
-    loadDashboard();
-  } catch(e){
-    msg.textContent = 'Signing failed: ' + e.message;
-    msg.className = 'tp-msg tp-msg-err';
-  }
-  btn.disabled = false; btn.textContent = 'Sign as Supervisor & Finalize';
-}
+// NOTE (9/9): "Sign as Supervisor & Finalize" (and the parseNeedAreasFromUpdatedPlanText helper
+// it used) used to live here, letting anyone signed into Treatment Plan Builder finalize a 90-day
+// review — and silently create the next plan version — without Clinical Director Hub ever seeing
+// it. Removed for the same reason as the initial plan's supervisor sign: supervisor = the Clinical
+// Director, and that signature (plus the resulting new plan version) is now only ever created from
+// Clinical Director Hub's Review Sign-Off queue, using this review's already-saved
+// updated_plan_text and need_progress — nothing here needs to change for that to work, since this
+// file already persists everything the Hub needs the moment the clinician signs below.
 
 function resetReviewClinicianSignature(reason){
   if(!reviewSignState.clinicianSignedAt) return;
@@ -2876,10 +2725,10 @@ function resetForm(){
   planSignState={ status:'draft', clinicianName:'', clinicianCredentials:'', clinicianSignedAt:null, supervisorName:'', supervisorCredentials:'', supervisorSignedAt:null };
   if(document.getElementById('caseNumberStatus')) document.getElementById('caseNumberStatus').style.display='none';
   if(document.getElementById('planSaveMsg')){ document.getElementById('planSaveMsg').textContent=''; document.getElementById('planSaveMsg').className='tp-msg'; }
-  ['clinicianSigName','supervisorSigName'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-  ['clinicianSigCred','supervisorSigCred'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-  ['clinicianSigCredOther','supervisorSigCredOther'].forEach(function(id){ var el=document.getElementById(id); if(el){ el.value=''; el.style.display='none'; } });
-  ['clinicianSigAttest','supervisorSigAttest'].forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=false; });
+  ['clinicianSigName'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['clinicianSigCred'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['clinicianSigCredOther'].forEach(function(id){ var el=document.getElementById(id); if(el){ el.value=''; el.style.display='none'; } });
+  ['clinicianSigAttest'].forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=false; });
   refreshPlanSignUI();
   window.scrollTo({top:0,behavior:'smooth'});
 }
