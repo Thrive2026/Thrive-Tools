@@ -187,7 +187,7 @@ select{cursor:pointer;}
           </div>
           <div class="field" id="locationField" style="display:none;">
             <label class="field-label" id="locationLabel">Meeting Location <span class="required-star">*</span></label>
-            <select id="location">
+            <select id="location" onchange="handleLocationChange()">
               <option value="">Select location...</option>
               <option value="Peer's home">Peer's Home</option>
               <option value="Thrive office">Thrive Office</option>
@@ -202,6 +202,11 @@ select{cursor:pointer;}
               <option value="other community setting">Other Community Setting</option>
             </select>
           </div>
+        </div>
+        <div class="field" id="locationDetailField" style="display:none;">
+          <label class="field-label">Specify Where <span class="required-star">*</span></label>
+          <div class="field-hint">"Community Location" and "Other Community Setting" are too generic for the note on their own &mdash; name the actual place (e.g. "the downtown branch library," "a coffee shop on Lorain Ave," "the corner store near Peer's building"). No client-identifying information.</div>
+          <input type="text" id="locationDetail" placeholder="e.g. the downtown branch library"/>
         </div>
         <div class="field" id="otherContactField" style="display:none;">
           <label class="field-label">Describe Contact Method <span class="required-star">*</span></label>
@@ -235,7 +240,7 @@ select{cursor:pointer;}
             <div class="field">
               <label class="field-label">Client Location During Session <span class="required-star">*</span></label>
               <div class="field-hint">Where the Peer actually was during the call \u2014 don't default to "Peer's Home" unless you've confirmed that's accurate.</div>
-              <select id="clientLocation">
+              <select id="clientLocation" onchange="handleClientLocationChange()">
                 <option value="">Select client location...</option>
                 <option value="Peer's home">Peer's Home</option>
                 <option value="Peer's place of employment">Peer's Place of Employment</option>
@@ -246,6 +251,11 @@ select{cursor:pointer;}
                 <option value="other location">Other Location</option>
               </select>
             </div>
+          </div>
+          <div class="field" id="clientLocationDetailField" style="display:none;">
+            <label class="field-label">Specify Where <span class="required-star">*</span></label>
+            <div class="field-hint">"Community Location" and "Other Location" are too generic for the note on their own &mdash; name the actual place (e.g. "the downtown branch library," "a coffee shop on Lorain Ave"). No client-identifying information.</div>
+            <input type="text" id="clientLocationDetail" placeholder="e.g. the downtown branch library"/>
           </div>
         </div>
       </div>
@@ -1088,6 +1098,8 @@ function scanForPHI() {
     {id: 'linkageEngagement', label: 'Member Response / Engagement This Contact'},
     {id: 'linkagePlanNext', label: 'Next Step / Case Status'},
     {id: 'otherContactDetail', label: 'Describe Contact Method'},
+    {id: 'locationDetail', label: 'Specify Where (Meeting Location)'},
+    {id: 'clientLocationDetail', label: 'Specify Where (Client Location)'},
     {id: 'u1Details', label: 'Brief Description of Initial Connection'},
     {id: 'u2Details', label: 'Brief Description of Initial Engagement'},
     {id: 'u3ReferralDetails', label: 'U3 Referral Details'},
@@ -1167,6 +1179,8 @@ function showPhiScreen(warnings) {
     {id: 'linkageEngagement',  label: 'Member Response / Engagement This Contact'},
     {id: 'linkagePlanNext',    label: 'Next Step / Case Status'},
     {id: 'otherContactDetail', label: 'Describe Contact Method'},
+    {id: 'locationDetail',     label: 'Specify Where (Meeting Location)'},
+    {id: 'clientLocationDetail', label: 'Specify Where (Client Location)'},
     {id: 'u1Details',          label: 'Brief Description of Initial Connection'},
     {id: 'u2Details',          label: 'Brief Description of Initial Engagement'},
     {id: 'u3ReferralDetails',  label: 'U3 Referral Details'},
@@ -1347,14 +1361,52 @@ function handleSessionType() {
   document.getElementById('modalityPhoneLabel').style.background = '#fafbff';
   document.getElementById('modalityVideoLabel').style.borderColor = '#dde0f0';
   document.getElementById('modalityVideoLabel').style.background = '#fafbff';
+  document.getElementById('locationDetailField').style.display = 'none';
+  document.getElementById('clientLocationDetailField').style.display = 'none';
   if (type === 'In-Person') {
     locField.style.display = 'block';
     document.getElementById('locationLabel').textContent = 'Meeting Location';
+    handleLocationChange();
   } else if (type === 'Telehealth') {
     telehealthFields.style.display = 'block';
+    handleClientLocationChange();
   } else if (type === 'Other') {
     otherContactField.style.display = 'block';
   }
+}
+
+// Options that are too generic on their own to describe where a contact
+// happened -- selecting one of these should prompt the PRS to name the
+// actual place, or the AI has nothing to go on but the bucket label itself
+// (this is the root cause behind notes that all read "took place at a
+// community setting" regardless of where the contact actually was).
+var GENERIC_LOCATION_VALUES = ['community location (coffee shop, library, etc.)', 'other community setting'];
+var GENERIC_CLIENT_LOCATION_VALUES = ['community location', 'other location'];
+
+function handleLocationChange() {
+  var loc = document.getElementById('location').value;
+  var detailField = document.getElementById('locationDetailField');
+  var isGeneric = GENERIC_LOCATION_VALUES.indexOf(loc) > -1;
+  detailField.style.display = isGeneric ? 'block' : 'none';
+  if (!isGeneric) document.getElementById('locationDetail').value = '';
+}
+
+function handleClientLocationChange() {
+  var loc = document.getElementById('clientLocation').value;
+  var detailField = document.getElementById('clientLocationDetailField');
+  var isGeneric = GENERIC_CLIENT_LOCATION_VALUES.indexOf(loc) > -1;
+  detailField.style.display = isGeneric ? 'block' : 'none';
+  if (!isGeneric) document.getElementById('clientLocationDetail').value = '';
+}
+
+// Returns the text that should actually represent this location in the note
+// prompt: the specific place the PRS typed in, when the dropdown selection is
+// one of the generic catch-all buckets and a detail was provided; otherwise
+// the dropdown value itself (e.g. "Peer's home", "hospital").
+function getEffectiveLocationText(rawValue, detailValue, genericValues) {
+  if (!rawValue) return '';
+  if (genericValues.indexOf(rawValue) > -1 && detailValue) return detailValue.trim();
+  return rawValue;
 }
 
 // ── LINKAGE NOTE (U-CODE / G-CODE) LOGIC ──
@@ -1641,12 +1693,16 @@ function buildLinkageNarrative(code) {
     if (!sessionLength) missing.push('Session Length');
     if (!u3SessionType) missing.push('Session Type');
     else if (u3SessionType === 'In-Person') {
-      if (!document.getElementById('location').value) missing.push('Meeting Location');
+      var u3LocVal = document.getElementById('location').value;
+      if (!u3LocVal) missing.push('Meeting Location');
+      else if (GENERIC_LOCATION_VALUES.indexOf(u3LocVal) > -1 && !document.getElementById('locationDetail').value.trim()) missing.push('Specify Where (Meeting Location)');
     } else if (u3SessionType === 'Telehealth') {
       var u3ModalityCheck = document.querySelector('input[name="telehealthModality"]:checked');
       if (!u3ModalityCheck) missing.push('Telehealth Modality (Phone or Video)');
       if (!document.getElementById('providerLocation').value) missing.push('Provider Location During Session');
-      if (!document.getElementById('clientLocation').value) missing.push('Client Location During Session');
+      var u3CliLocVal = document.getElementById('clientLocation').value;
+      if (!u3CliLocVal) missing.push('Client Location During Session');
+      else if (GENERIC_CLIENT_LOCATION_VALUES.indexOf(u3CliLocVal) > -1 && !document.getElementById('clientLocationDetail').value.trim()) missing.push('Specify Where (Client Location)');
     } else if (u3SessionType === 'Other') {
       if (!document.getElementById('otherContactDetail').value.trim()) missing.push('Describe Contact Method');
     }
@@ -1660,12 +1716,12 @@ function buildLinkageNarrative(code) {
     var u3ContactPhrase = 'in person';
     var u3OtherNote = '';
     if (u3SessionType === 'In-Person') {
-      var u3Loc = document.getElementById('location').value;
+      var u3Loc = getEffectiveLocationText(document.getElementById('location').value, document.getElementById('locationDetail').value, GENERIC_LOCATION_VALUES);
       u3ContactPhrase = u3Loc ? ('in person at ' + u3Loc) : 'in person';
     } else if (u3SessionType === 'Telehealth') {
       var u3Modality = document.querySelector('input[name="telehealthModality"]:checked');
       var u3ProviderLoc = document.getElementById('providerLocation').value;
-      var u3ClientLoc = document.getElementById('clientLocation').value;
+      var u3ClientLoc = getEffectiveLocationText(document.getElementById('clientLocation').value, document.getElementById('clientLocationDetail').value, GENERIC_CLIENT_LOCATION_VALUES);
       // Provider/client location are required fields for telehealth (see validation
       // above) and are needed to substantiate the telehealth billing code/modifier on
       // audit — but they must actually reach the AI as contact facts, not just live in
@@ -2383,6 +2439,8 @@ function resetForm() {
   document.getElementById('locationField').style.display = 'none';
   document.getElementById('telehealthFields').style.display = 'none';
   document.getElementById('otherContactField').style.display = 'none';
+  document.getElementById('locationDetailField').style.display = 'none';
+  document.getElementById('clientLocationDetailField').style.display = 'none';
   concernActive = null;
   document.getElementById('toggleYes').className = 'toggle-btn';
   document.getElementById('toggleNo').className = 'toggle-btn';
@@ -2532,11 +2590,14 @@ async function runGenerateNote() {
   if (!sessionType) missing.push('Session Type');
   if (sessionType === 'In-Person') {
     if (!location) missing.push('Meeting Location');
+    else if (GENERIC_LOCATION_VALUES.indexOf(location) > -1 && !document.getElementById('locationDetail').value.trim()) missing.push('Specify Where (Meeting Location)');
   } else if (sessionType === 'Telehealth') {
     var modality = document.querySelector('input[name="telehealthModality"]:checked');
     if (!modality) missing.push('Telehealth Modality (Phone or Video)');
     if (!document.getElementById('providerLocation').value) missing.push('Provider Location During Session');
-    if (!document.getElementById('clientLocation').value) missing.push('Client Location During Session');
+    var clientLocationVal = document.getElementById('clientLocation').value;
+    if (!clientLocationVal) missing.push('Client Location During Session');
+    else if (GENERIC_CLIENT_LOCATION_VALUES.indexOf(clientLocationVal) > -1 && !document.getElementById('clientLocationDetail').value.trim()) missing.push('Specify Where (Client Location)');
   } else if (sessionType === 'Other') {
     var otherContactDetailVal = document.getElementById('otherContactDetail').value.trim();
     if (!otherContactDetailVal) missing.push('Describe Contact Method');
@@ -2598,12 +2659,12 @@ async function runGenerateNote() {
 
   var locationLine = '';
   if (sessionType === 'In-Person') {
-    var loc = document.getElementById('location').value;
+    var loc = getEffectiveLocationText(document.getElementById('location').value, document.getElementById('locationDetail').value, GENERIC_LOCATION_VALUES);
     if (loc) locationLine = '\nLocation: ' + loc;
   } else if (sessionType === 'Telehealth') {
     var modality = document.querySelector('input[name="telehealthModality"]:checked');
     var provLoc = document.getElementById('providerLocation').value;
-    var cliLoc = document.getElementById('clientLocation').value;
+    var cliLoc = getEffectiveLocationText(document.getElementById('clientLocation').value, document.getElementById('clientLocationDetail').value, GENERIC_CLIENT_LOCATION_VALUES);
     if (modality) locationLine += '\nTelehealth modality: ' + modality.value;
     if (provLoc) locationLine += '\nProvider location: ' + provLoc;
     if (cliLoc) locationLine += '\nClient location: ' + cliLoc;
