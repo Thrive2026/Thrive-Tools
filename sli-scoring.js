@@ -9,11 +9,27 @@
 // times across these files (confirmed numerically identical on 9/4/26, with one
 // already-fixed drift -- a variable-name typo, not a logic difference). Rather than
 // keep re-verifying N copies stay in sync by hand, this is now the ONE place the
-// math lives; each tool's own file wires its DOM/UI to this. A future scoring-rule
-// change -- most importantly the real Thrive ASAM picklist tracked as BUG-07, which
-// only needs to replace SLI_ASAM_DIMENSIONS_PLACEHOLDER / SLI_ASAM_PLACEHOLDER_OPTIONS
-// below -- now takes effect in every tool at once instead of needing the same edit
-// made correctly in 4+ places.
+// math lives; each tool's own file wires its DOM/UI to this.
+//
+// FIX (BUG-07, 9/15/26): the real Thrive ASAM picklist replaces the 5-point
+// placeholder. It was recovered from Audits_all_time.xlsx (the historical export of
+// every completed Thrive Screener/Thrive Screener 2.0 audit) rather than written
+// fresh -- clinicians had already been recording placements against a real 9-option,
+// 0.5-4-point-per-dimension picklist that lines up with the standard ASAM Levels of
+// Care (0.5 Early Intervention, 1 / OTP-1 Outpatient, 2.1 IOP, 2.5 Partial
+// Hospitalization/High-Intensity Outpatient, 3.1/3.3/3.5/3.7 Residential tiers, 4
+// Medically Managed Intensive Inpatient) -- it just wasn't wired into any of the
+// digital tools yet. See SLI_ASAM_DIMENSION_OPTIONS below. Two things still open:
+// (1) five of the six dimensions have no real-world example of a "Level 4" answer in
+// the historical data, so no Level-4 label could be recovered for them (left out
+// rather than invented -- add it once clinical leadership can supply the wording);
+// (2) this file's own math didn't need to change (asam_dims already held whatever
+// point value the UI recorded), but every consuming tool's ASAM render/option-wiring
+// code does, since dimensions no longer share one flat option list -- see the
+// dimension-specific SLI_ASAM_DIMENSION_OPTIONS shape below. sliassessment.html in
+// this delivery has been updated to match; treatmentplan.html (all 4 internal
+// copies) and psychotherapynote.html still need the equivalent render-side update
+// wherever they build their own ASAM option rows.
 //
 // Include this file with a same-origin relative path (not an external host) BEFORE
 // each tool's own <script> block:
@@ -28,13 +44,13 @@
 // otherwise-unrelated single-file tools with no build step.
 // ══════════════════════════════════════════════════════════════════════════
 
-// PLACEHOLDER -- per the SLI 2.0 manual, each ASAM dimension is a 10-option picklist
-// scored 0.5-4 by placement level, not by descriptor wording alone. The real
-// Thrive-specific option text wasn't present in the SLI_2_0.xlsx export, so this
-// 5-point severity key stands in. Swap this array for the real picklist text (10
-// entries per dimension) once available -- nothing else in the scoring logic needs
-// to change, and the swap takes effect in every tool that includes this file.
-var SLI_ASAM_DIMENSIONS_PLACEHOLDER = [
+// Real Thrive ASAM dimension names (unchanged from the placeholder -- these were
+// already correct) and, for each dimension, its real picklist: label + the actual
+// ASAM Level of Care number that answer corresponds to (0.5-4, matching how the raw
+// per-dimension score is summed below). `otp` flags the Opioid Treatment Program
+// variant of a rung, which some dimensions and clients need to track distinctly from
+// the standard version at the same numeric level.
+var SLI_ASAM_DIMENSIONS = [
   'Acute Intoxication and/or Withdrawal Potential',
   'Biomedical Conditions and Complications',
   'Emotional, Behavioral, or Cognitive Conditions and Complications',
@@ -42,6 +58,87 @@ var SLI_ASAM_DIMENSIONS_PLACEHOLDER = [
   'Relapse, Continued Use, or Continued Problem Potential',
   'Recovery/Living Environment'
 ];
+
+var SLI_ASAM_DIMENSION_OPTIONS = [
+  [ // Acute Intoxication and/or Withdrawal Potential
+    { label: 'No withdrawal risk', level: 0.5, otp: false },
+    { label: 'Not experiencing significant withdrawal or at minimal risk of severe withdrawal, manageable at Level 1-WM', level: 1.0, otp: false },
+    { label: 'Physiologically dependent on opioids and requires OTP to prevent withdrawal', level: 1.0, otp: true },
+    { label: 'Minimal risk of severe withdrawal', level: 2.1, otp: false },
+    { label: 'Moderate risk of severe withdrawal', level: 2.5, otp: false },
+    { label: 'No withdrawal risk, or minimal or stable withdrawal', level: 3.1, otp: false },
+    { label: 'Minimal risk of severe withdrawal, manageable withdrawal', level: 3.3, otp: false },
+    { label: 'Minimal severe withdrawal risk, manageable withdrawal', level: 3.5, otp: false },
+    { label: 'High withdrawal risk, manageable withdrawal risk', level: 3.7, otp: false },
+    { label: 'High withdrawal risk requiring full hospital resources', level: 4.0, otp: false }
+  ],
+  [ // Biomedical Conditions and Complications
+    { label: 'None, or stable', level: 0.5, otp: false },
+    { label: 'None, or stable', level: 1.0, otp: false },
+    { label: 'None, or manageable', level: 1.0, otp: true },
+    { label: 'None, or not distracting', level: 2.1, otp: false },
+    { label: 'None, or not distracting', level: 2.5, otp: false },
+    { label: 'None, or stable', level: 3.1, otp: false },
+    { label: 'None, or stable', level: 3.3, otp: false },
+    { label: 'None, or stable', level: 3.5, otp: false },
+    { label: 'Requires 24-hour medical monitoring', level: 3.7, otp: false }
+    // No Level-4 example found in the historical data for this dimension.
+  ],
+  [ // Emotional, Behavioral, or Cognitive Conditions and Complications
+    { label: 'None, or stable', level: 0.5, otp: false },
+    { label: 'None, or stable', level: 1.0, otp: false },
+    { label: 'None, or manageable', level: 1.0, otp: true },
+    { label: 'Mild severity', level: 2.1, otp: false },
+    { label: 'Mild to moderate severity', level: 2.5, otp: false },
+    { label: 'None or minimal', level: 3.1, otp: false },
+    { label: 'Mild to moderate', level: 3.3, otp: false },
+    { label: '24-hour setting for stabilization', level: 3.5, otp: false },
+    { label: 'Moderate severity, requires 24-hour structured setting', level: 3.7, otp: false }
+    // No Level-4 example found in the historical data for this dimension.
+  ],
+  [ // Readiness to Change
+    { label: 'Willing to explore how use affects personal goals', level: 0.5, otp: false },
+    { label: 'Ready for recovery, needs strategies to strengthen readiness', level: 1.0, otp: false },
+    { label: 'Ready to change, but not ready for total abstinence', level: 1.0, otp: true },
+    { label: 'Variable treatment engagement, requires structured program', level: 2.1, otp: false },
+    { label: 'Poor treatment engagement, needs near-daily structured program', level: 2.5, otp: false },
+    { label: 'Open to recovery, needs structured environment', level: 3.1, otp: false },
+    { label: 'Needs interventions to engage and stay in treatment', level: 3.3, otp: false },
+    { label: 'Has significant difficulty with treatment, with negative consequences', level: 3.5, otp: false },
+    { label: 'Low interest in treatment, needs motivational strategies in 24-hour structured setting', level: 3.7, otp: false }
+    // No Level-4 example found in the historical data for this dimension.
+  ],
+  [ // Relapse, Continued Use, or Continued Problem Potential
+    { label: 'Needs understanding or skills to change current use or high-risk behavior', level: 0.5, otp: false },
+    { label: 'Able to maintain abstinence or control use with minimal support', level: 1.0, otp: false },
+    { label: 'At risk of continued use without OTP', level: 1.0, otp: true },
+    { label: 'High likelihood of relapse without close monitoring and support', level: 2.1, otp: false },
+    { label: 'High likelihood of relapse without near-daily monitoring and support', level: 2.5, otp: false },
+    { label: 'Understands relapse, needs structure', level: 3.1, otp: false },
+    { label: 'Needs intervention to prevent relapse', level: 3.3, otp: false },
+    { label: 'Needs intervention to prevent relapse', level: 3.5, otp: false },
+    { label: 'Challenges controlling use at less intensive care levels', level: 3.7, otp: false }
+    // No Level-4 example found in the historical data for this dimension.
+  ],
+  [ // Recovery/Living Environment
+    { label: 'Environment increases risk of use', level: 0.5, otp: false },
+    { label: 'Supportive environment, patient has coping skills', level: 1.0, otp: false },
+    { label: 'Supportive environment, patient has coping skills', level: 1.0, otp: true },
+    { label: 'Unsupportive environment, patient has coping skills', level: 2.1, otp: false },
+    { label: 'Unsupportive environment, cope with structure and support', level: 2.5, otp: false },
+    { label: 'Unsupportive environment, cope with structure and support', level: 3.1, otp: false },
+    { label: 'Dangerous environment, 24-hour structure needed', level: 3.3, otp: false },
+    { label: 'Dangerous environment, highly structured 24-hour setting needed', level: 3.5, otp: false },
+    { label: 'Dangerous environment', level: 3.7, otp: false }
+    // No Level-4 example found in the historical data for this dimension.
+  ]
+];
+
+// Deprecated aliases -- kept only so any code that still references the old
+// placeholder names doesn't fail outright while the three consuming tools are
+// updated one at a time. Do not add new references to these; use
+// SLI_ASAM_DIMENSIONS / SLI_ASAM_DIMENSION_OPTIONS above instead.
+var SLI_ASAM_DIMENSIONS_PLACEHOLDER = SLI_ASAM_DIMENSIONS;
 var SLI_ASAM_PLACEHOLDER_OPTIONS = [
   { label: '0 — No problem: fully stable', points: 0 },
   { label: '1 — Mild: slight issue, manageable in current setting', points: 1 },
@@ -85,8 +182,10 @@ function sliBandFromTable(raw, table) {
 }
 
 // state shape (matches what all three tools already keep in memory):
-//   { phq9:[9 nums], gad7:[7 nums], bam:{key:num}, asam_mh_only:bool, asam_dims:[6 nums],
-//     cssrs:{key:0|1}, risk_extra:{key:0|1}, sdoh:{key:0|1} (optional -- see opts.sdoh) }
+//   { phq9:[9 nums], gad7:[7 nums], bam:{key:num}, asam_mh_only:bool,
+//     asam_dims:[6 nums -- each the real 0.5-4 ASAM level picked for that dimension,
+//     not an index], cssrs:{key:0|1}, risk_extra:{key:0|1}, sdoh:{key:0|1} (optional
+//     -- see opts.sdoh) }
 // opts (all optional):
 //   sdoh -- an SDOH map to use INSTEAD of state.sdoh. Treatment Plan Builder doesn't keep
 //     SDOH on its sliState/reviewSliState objects (it reads 6 checkboxes straight from the
@@ -120,6 +219,10 @@ function sliComputeScores(state, opts) {
     { min: 46, max: 9999, label: '46+ Very High Risk', points: 4 }
   ]);
 
+  // FIX (BUG-07, 9/15/26): asam_dims now holds each dimension's real 0.5-4 ASAM
+  // level (from SLI_ASAM_DIMENSION_OPTIONS), not a 0-4 placeholder index -- the sum
+  // and banding below are unchanged, since the band table was already written
+  // against the real 0.5-4-per-dimension scale the placeholder was standing in for.
   var asamRaw = state.asam_mh_only ? 0 : sliSum(state.asam_dims);
   var asamBand = state.asam_mh_only
     ? { label: 'N/A (MH Only)', points: 0 }
@@ -172,6 +275,8 @@ function sliComputeScores(state, opts) {
 // Node -- this makes both work from one file without a build step either way.
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    SLI_ASAM_DIMENSIONS: SLI_ASAM_DIMENSIONS,
+    SLI_ASAM_DIMENSION_OPTIONS: SLI_ASAM_DIMENSION_OPTIONS,
     SLI_ASAM_DIMENSIONS_PLACEHOLDER: SLI_ASAM_DIMENSIONS_PLACEHOLDER,
     SLI_ASAM_PLACEHOLDER_OPTIONS: SLI_ASAM_PLACEHOLDER_OPTIONS,
     SLI_BAM_SCORED_KEYS: SLI_BAM_SCORED_KEYS,
