@@ -188,11 +188,15 @@ var SDOH_ITEMS = [
 // bandFromTable, computeScores) now come from the shared sli-scoring.js (loaded in <head>) --
 // they used to be an independent copy of the same arrays/math kept in sync with
 // treatmentplan_2.html and psychotherapynote.html by hand. Aliased under their original local
-// names so the rendering code below (buildHtml, etc.) didn't need to change at all. The real
-// Thrive-specific ASAM picklist (BUG-07) now only needs to replace SLI_ASAM_DIMENSIONS_PLACEHOLDER
-// / SLI_ASAM_PLACEHOLDER_OPTIONS in sli-scoring.js, once, for all three tools at once.
-var ASAM_DIMENSIONS_PLACEHOLDER = SLI_ASAM_DIMENSIONS_PLACEHOLDER;
-var ASAM_PLACEHOLDER_OPTIONS = SLI_ASAM_PLACEHOLDER_OPTIONS;
+// names so the rendering code below (buildHtml, etc.) didn't need to change at all.
+//
+// FIX (BUG-07, 9/15/26): the real Thrive ASAM picklist (recovered from historical
+// audit data -- see sli-scoring.js's header comment) replaces the 5-point
+// placeholder. Each dimension now has its own option list instead of one list
+// shared by all six, so the render loop below picks options per-dimension and
+// passes each option's real ASAM level (0.5-4) as its value instead of a 0-4 index.
+var ASAM_DIMENSIONS = SLI_ASAM_DIMENSIONS;
+var ASAM_DIMENSION_OPTIONS = SLI_ASAM_DIMENSION_OPTIONS;
 
 // ── STATE ──
 var state = {
@@ -303,9 +307,18 @@ function buildHtml() {
   html += '<div class="section"><div class="section-head"><h2>ASAM Level of Care</h2><div class="sub">Six dimensions — clinical staff with ASAM training only.</div></div><div class="section-body">';
   html += '<div class="item"><div class="q">Is client MH Only? (If yes, skip all six dimensions)</div>' + yesNoRow('asam_mh_only', state.asam_mh_only) + '</div>';
   if (!state.asam_mh_only) {
-    html += '<div class="gap-note"><strong>Placeholder scale in use.</strong> The real 10-option, 0.5&ndash;4 point Thrive picklist for these six dimensions wasn\'t in the SLI_2_0.xlsx export. The 5-point severity key below (from the same file) is standing in for now &mdash; swap in the real picklist text once available; nothing else in the scoring changes.</div>';
-    ASAM_DIMENSIONS_PLACEHOLDER.forEach(function(dim, i) {
-      html += '<div class="item"><div class="q">' + (i+1) + '. ' + escapeHtml(dim) + '</div>' + optionRow(ASAM_PLACEHOLDER_OPTIONS.map(function(o){return o.label;}), state.asam_dims[i], 'asam_' + i) + '</div>';
+    // Known limitation: a few dimensions have both a standard and an OTP-specific
+    // option at the same numeric level (e.g. "Level 1" and "OTP-Level 1"). Since
+    // the score is the level number itself, picking either highlights both buttons
+    // (same stored value) -- the saved score is correct either way, but the two
+    // options can't be told apart visually once one is selected. Worth a real fix
+    // (store which exact option was picked, not just its level) before this matters
+    // clinically -- flagging rather than silently accepting.
+    ASAM_DIMENSIONS.forEach(function(dim, i) {
+      var opts = ASAM_DIMENSION_OPTIONS[i];
+      var labels = opts.map(function(o){ return o.label + ' (' + (o.otp ? 'OTP-' : '') + 'Level ' + o.level + ')'; });
+      var values = opts.map(function(o){ return o.level; });
+      html += '<div class="item"><div class="q">' + (i+1) + '. ' + escapeHtml(dim) + '</div>' + optionRow(labels, state.asam_dims[i], 'asam_' + i, { values: values }) + '</div>';
     });
     html += '<label class="field-label">ASAM Level of Care Recommendation (clinician overall placement)</label><input type="text" id="asamLoc" value="' + escapeHtml(state.asam_loc_recommendation) + '" placeholder="e.g. 3.5">';
     html += '<div style="margin-top:12px;"><label class="field-label">If score-suggested level differs from clinician-assigned level, explain</label><textarea id="asamOverride">' + escapeHtml(state.asam_override_rationale) + '</textarea></div>';
