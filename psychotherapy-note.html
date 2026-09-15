@@ -1402,11 +1402,14 @@ var SLI2_SDOH_ITEMS = [
 // FIX (BUG-13/BUG-33, 9/4): these two constants now come from the shared sli-scoring.js (loaded
 // in <head>) -- they used to be an independent copy kept in sync by hand with sliassessment.html
 // and treatmentplan_2.html. Aliased under their original local names so the rest of this file
-// didn't need to change. The real Thrive-specific ASAM picklist (BUG-07) now only needs to
-// replace SLI_ASAM_DIMENSIONS_PLACEHOLDER / SLI_ASAM_PLACEHOLDER_OPTIONS in sli-scoring.js, once,
-// for all three tools at once.
-var SLI2_ASAM_DIMENSIONS_PLACEHOLDER = SLI_ASAM_DIMENSIONS_PLACEHOLDER;
-var SLI2_ASAM_PLACEHOLDER_OPTIONS = SLI_ASAM_PLACEHOLDER_OPTIONS;
+// didn't need to change.
+//
+// FIX (BUG-07, 9/15/26): the real Thrive ASAM picklist (see sli-scoring.js's header
+// comment) replaces the 5-point placeholder -- each dimension now has its own
+// option list instead of one shared list, so the render loop below picks options
+// per-dimension and uses each option's real ASAM level (0.5-4) as its value.
+var SLI2_ASAM_DIMENSIONS = SLI_ASAM_DIMENSIONS;
+var SLI2_ASAM_DIMENSION_OPTIONS = SLI_ASAM_DIMENSION_OPTIONS;
 
 function sli2NewState(){
   return {
@@ -1488,9 +1491,16 @@ function sli2BuildItemsHtml(state){
   html += '<div class="sli-card"><h3>ASAM Level of Care Dimensions</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Six dimensions — clinical staff with ASAM training only.</div>';
   html += '<div class="sli-item"><div class="q">Is the client MH Only? (If yes, skip all six dimensions)</div>' + sli2YesNoRow('asam_mh_only', state.asam_mh_only === null ? null : (state.asam_mh_only ? 1 : 0)) + '</div>';
   if (!state.asam_mh_only){
-    html += '<div class="sli-gap-note"><strong>Placeholder scale in use.</strong> The real 10-option, 0.5&ndash;4 point Thrive picklist for these six dimensions wasn\'t in the SLI_2_0.xlsx export. The 5-point severity key below is standing in for now &mdash; swap in the real picklist text once available; nothing else in the scoring changes.</div>';
-    SLI2_ASAM_DIMENSIONS_PLACEHOLDER.forEach(function(dim, i){
-      html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(dim) + '</div>' + sli2OptionRow('asam_' + i, SLI2_ASAM_PLACEHOLDER_OPTIONS.map(function(o){ return o.label; }), state.asam_dims[i]) + '</div>';
+    // Known limitation: a few dimensions have both a standard and an OTP-specific
+    // option at the same numeric level (e.g. "Level 1" and "OTP-Level 1") -- since
+    // the score is the level number itself, picking either highlights both (same
+    // stored value). Saved score is correct either way; only the visual selection
+    // can't distinguish them. Flagging rather than silently accepting.
+    SLI2_ASAM_DIMENSIONS.forEach(function(dim, i){
+      var opts = SLI2_ASAM_DIMENSION_OPTIONS[i];
+      var labels = opts.map(function(o){ return o.label + ' (' + (o.otp ? 'OTP-' : '') + 'Level ' + o.level + ')'; });
+      var values = opts.map(function(o){ return o.level; });
+      html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(dim) + '</div>' + sli2OptionRow('asam_' + i, labels, state.asam_dims[i], { values: values }) + '</div>';
     });
   }
   html += '</div>';
@@ -1542,7 +1552,13 @@ function sli2WireEvents(containerEl, state, onChange){
   containerEl.querySelectorAll('.chip[data-sli-val]').forEach(function(el){
     el.onclick = function(){
       var group = el.getAttribute('data-sli-group');
-      var val = parseInt(el.getAttribute('data-sli-val'), 10);
+      // FIX (BUG-07, 9/15/26): was parseInt, which silently truncates the real ASAM
+      // level values (2.1, 2.5, 3.7, etc.) down to their integer floor -- every
+      // other group here uses whole-number values (0-3 frequency scales, 0/1
+      // yes-no) so this never showed up before the real ASAM picklist introduced
+      // decimals. Caught here before deploying, matching the same fix already
+      // applied to sliassessment.html after it shipped with this bug live.
+      var val = parseFloat(el.getAttribute('data-sli-val'));
       sli2SetGroupValue(state, group, val);
       onChange();
     };
