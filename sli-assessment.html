@@ -420,7 +420,11 @@ function wireEvents() {
   document.querySelectorAll('.opt-btn').forEach(function(btn) {
     btn.onclick = function() {
       var group = btn.getAttribute('data-group');
-      var val = parseInt(btn.getAttribute('data-val'), 10);
+      // FIX (9/15/26): was parseInt, which silently truncates the real ASAM level
+      // values (2.1, 2.5, 3.7, etc.) down to their integer floor -- every other
+      // group here uses whole-number values (0-3 frequency scales, 0/1 yes-no) so
+      // this never showed up before the real ASAM picklist introduced decimals.
+      var val = parseFloat(btn.getAttribute('data-val'));
       setGroupValue(group, val);
       render();
     };
