@@ -1029,7 +1029,7 @@ async function saveSliToSharedRecord(){
       bam_items: sliState.bam, bam_raw: s.bamRaw, bam_band: s.bamBand.label, bam_points: s.bamBand.points,
       bam_substance_use_30d: sliState.bam_substance_use_30d === 1, bam_overdoses_90d: sliState.bam_overdoses, bam_arrests_90d: sliState.bam_arrests,
       bam_seen_dentist_12mo: sliState.bam_dentist === 1, bam_seen_doctor_12mo: sliState.bam_doctor === 1,
-      asam_mh_only: !!sliState.asam_mh_only, asam_dimensions: sliState.asam_dims, asam_raw: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points,
+      asam_mh_only: !!sliState.asam_mh_only, asam_dimensions: sliState.asam_dims, asam_dimension_points: sliState.asam_dimension_points, asam_raw: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points,
       asam_loc_recommendation: document.getElementById('asamLevel') ? (document.getElementById('asamLevel').value || null) : null,
       risk_cssrs: sliState.cssrs, risk_harm_others: sliState.risk_extra.harm_others, risk_abuse: sliState.risk_extra.abuse, risk_psychosis: sliState.risk_extra.psychosis,
       risk_raw: s.riskRaw, risk_band: s.riskBand.label, risk_points: s.riskBand.points,
@@ -1373,6 +1373,10 @@ var SLI2_BAM_SCORED_ITEMS = [
   { key: 'risky_situations_days', label: 'In the past 30 days, how many days was the client in situations or with people that put them at increased risk for using?', options: SLI2_BAM_SCALE_030 },
   { key: 'spirituality', label: 'Does religion or spirituality help support the client\'s recovery?', options: SLI2_BAM_SCALE_EXTREME },
   { key: 'work_school_days', label: 'In the past 30 days, how many days did the client spend much of the time at work, school, or volunteering?', options: SLI2_BAM_SCALE_030 },
+  // FIX (SCORING-REVIEW, 9/17/26): official BAM item 14 ("Protective Factors" income question) was
+  // missing from all three digital SLI 2.0 tools despite full coverage in Thrive's own paper/Pimsy
+  // audit form. Added here in its official position; scored via sli-scoring.js's income handling.
+  { key: 'income_sufficient', label: 'Does the client have enough income (from legal sources) to pay for necessities such as housing, transportation, food and clothing for themselves and their dependents?', options: ['No', 'Yes'] },
   { key: 'relationship_problems', label: 'In the past 30 days, how much has the client been bothered by arguments or problems with family or friends?', options: SLI2_BAM_SCALE_EXTREME },
   { key: 'supportive_contact_days', label: 'In the past 30 days, how many days was the client in contact with family or friends supportive of their recovery?', options: SLI2_BAM_SCALE_030 },
   { key: 'recovery_satisfaction', label: 'How satisfied is the client with their progress toward achieving their recovery goals?', options: SLI2_BAM_SCALE_EXTREME }
@@ -1416,7 +1420,7 @@ function sli2NewState(){
     phq9: new Array(9).fill(null), phq9_hosp: null,
     gad7: new Array(7).fill(null), gad7_impact: null,
     bam: {}, bam_substance_use_30d: null, bam_overdoses: null, bam_arrests: null, bam_dentist: null, bam_doctor: null,
-    asam_mh_only: null, asam_dims: new Array(6).fill(null),
+    asam_mh_only: null, asam_dims: new Array(6).fill(null), asam_option_idx: new Array(6).fill(null), asam_dimension_points: new Array(6).fill(null),
     cssrs: {}, risk_extra: {}, risk_notified_by: '', risk_full_columbia_needed: null,
     sdoh: {}
   };
@@ -1491,16 +1495,21 @@ function sli2BuildItemsHtml(state){
   html += '<div class="sli-card"><h3>ASAM Level of Care Dimensions</h3><div style="font-size:11px;color:#888;margin-bottom:12px;">Six dimensions — clinical staff with ASAM training only.</div>';
   html += '<div class="sli-item"><div class="q">Is the client MH Only? (If yes, skip all six dimensions)</div>' + sli2YesNoRow('asam_mh_only', state.asam_mh_only === null ? null : (state.asam_mh_only ? 1 : 0)) + '</div>';
   if (!state.asam_mh_only){
-    // Known limitation: a few dimensions have both a standard and an OTP-specific
-    // option at the same numeric level (e.g. "Level 1" and "OTP-Level 1") -- since
-    // the score is the level number itself, picking either highlights both (same
-    // stored value). Saved score is correct either way; only the visual selection
-    // can't distinguish them. Flagging rather than silently accepting.
+    // FIX (SCORING-REVIEW-3, 9/18/26): previously stored each dimension's bare
+    // level as the selected value, so two options sharing a level (e.g. the
+    // "Level 1-WM" and OTP-Level 1 choices in dimension 1) highlighted
+    // identically and couldn't be told apart -- and Pimsy's real ASAM Score
+    // scores those two differently (see sli-scoring.js). Now stores the
+    // OPTION INDEX as the selected/compared value, so each option is tracked
+    // individually regardless of shared level; state.asam_dims[i] (the bare
+    // level, used for display and for the asam_dimensions field every
+    // existing consumer expects) is still set from the chosen option, in
+    // sli2SetGroupValue below.
     SLI2_ASAM_DIMENSIONS.forEach(function(dim, i){
       var opts = SLI2_ASAM_DIMENSION_OPTIONS[i];
       var labels = opts.map(function(o){ return o.label + ' (' + (o.otp ? 'OTP-' : '') + 'Level ' + o.level + ')'; });
-      var values = opts.map(function(o){ return o.level; });
-      html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(dim) + '</div>' + sli2OptionRow('asam_' + i, labels, state.asam_dims[i], { values: values }) + '</div>';
+      var idxValues = opts.map(function(o, idx){ return idx; });
+      html += '<div class="sli-item"><div class="q">' + (i+1) + '. ' + sli2EscapeHtml(dim) + '</div>' + sli2OptionRow('asam_' + i, labels, state.asam_option_idx[i], { values: idxValues }) + '</div>';
     });
   }
   html += '</div>';
@@ -1540,8 +1549,15 @@ function sli2SetGroupValue(state, group, val){
   if (group === 'bam_dentist'){ state.bam_dentist = val; return; }
   if (group === 'bam_doctor'){ state.bam_doctor = val; return; }
   if (group.indexOf('bam_') === 0){ state.bam[group.slice(4)] = val; return; }
-  if (group === 'asam_mh_only'){ state.asam_mh_only = val === 1; if (state.asam_mh_only) state.asam_dims = new Array(6).fill(null); return; }
-  if (group.indexOf('asam_') === 0){ state.asam_dims[parseInt(group.slice(5), 10)] = val; return; }
+  if (group === 'asam_mh_only'){ state.asam_mh_only = val === 1; if (state.asam_mh_only) { state.asam_dims = new Array(6).fill(null); state.asam_option_idx = new Array(6).fill(null); state.asam_dimension_points = new Array(6).fill(null); } return; }
+  if (group.indexOf('asam_') === 0){
+    var asamDim = parseInt(group.slice(5), 10);
+    var asamOpt = SLI2_ASAM_DIMENSION_OPTIONS[asamDim][val];
+    state.asam_option_idx[asamDim] = val;
+    state.asam_dims[asamDim] = asamOpt ? asamOpt.level : null;
+    state.asam_dimension_points[asamDim] = asamOpt ? asamOpt.points : null;
+    return;
+  }
   if (group.indexOf('cssrs_') === 0){ state.cssrs[group.slice(6)] = val; return; }
   if (group === 'risk_full_columbia'){ state.risk_full_columbia_needed = val === 1; return; }
   if (group.indexOf('risk_extra_') === 0){ state.risk_extra[group.slice(11)] = val; return; }
