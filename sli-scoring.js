@@ -115,6 +115,21 @@ var SLI_ASAM_DIMENSIONS = [
 // any dimension's "Level 3.7" option scores 4, not 3. Both exceptions are
 // marked inline below. OTP options were checked too and do NOT need an
 // exception -- they score floor(level) like any other option at that level.
+//
+// FIX (ASAM-L4, 9/23/26): a Level-4 (level: 4.0, points: 4) option added to
+// the 5 dimensions that were missing one (everything but dimension 1, which
+// already had a real historical example -- see the "No Level-4 example
+// found" comments this replaces). Unlike every other option in this file,
+// these 5 labels were NOT recovered from a real historical answer in
+// Audits_all_time.xlsx -- none existed to recover. Brandon asked (9/23/26)
+// for researched candidate wording rather than leaving the gap open;
+// wording below is adapted from public ASAM Criteria training/reference
+// material (state Medicaid ASAM crosswalks, NAADAC training handouts -- see
+// ecosystem-next-steps-tracker.md's Tier 1 ASAM item for sources), matched
+// to this file's existing per-dimension label style. This is the one part
+// of SLI_ASAM_DIMENSION_OPTIONS that is a sourced approximation rather than
+// a verified Thrive historical value -- flag for clinical-leadership review
+// if it's ever revisited, same as any other clinical-content change.
 var SLI_ASAM_DIMENSION_OPTIONS = [
   [ // Acute Intoxication and/or Withdrawal Potential
     { label: 'No withdrawal risk', level: 0.5, otp: false, points: 0 },
@@ -137,8 +152,8 @@ var SLI_ASAM_DIMENSION_OPTIONS = [
     { label: 'None, or stable', level: 3.1, otp: false, points: 3 },
     { label: 'None, or stable', level: 3.3, otp: false, points: 3 },
     { label: 'None, or stable', level: 3.5, otp: false, points: 3 },
-    { label: 'Requires 24-hour medical monitoring', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
+    { label: 'Requires 24-hour medical monitoring', level: 3.7, otp: false, points: 4 }, // 3.7 exception
+    { label: 'Incapacitated by medical illness, requires hospital-level stabilization', level: 4.0, otp: false, points: 4 } // ASAM-L4 addition, 9/23/26 -- see file header
   ],
   [ // Emotional, Behavioral, or Cognitive Conditions and Complications
     { label: 'None, or stable', level: 0.5, otp: false, points: 0 },
@@ -149,8 +164,8 @@ var SLI_ASAM_DIMENSION_OPTIONS = [
     { label: 'None or minimal', level: 3.1, otp: false, points: 3 },
     { label: 'Mild to moderate', level: 3.3, otp: false, points: 3 },
     { label: '24-hour setting for stabilization', level: 3.5, otp: false, points: 3 },
-    { label: 'Moderate severity, requires 24-hour structured setting', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
+    { label: 'Moderate severity, requires 24-hour structured setting', level: 3.7, otp: false, points: 4 }, // 3.7 exception
+    { label: 'Severe symptoms posing danger to self or others, requires inpatient psychiatric care', level: 4.0, otp: false, points: 4 } // ASAM-L4 addition, 9/23/26 -- see file header
   ],
   [ // Readiness to Change
     { label: 'Willing to explore how use affects personal goals', level: 0.5, otp: false, points: 0 },
@@ -161,8 +176,8 @@ var SLI_ASAM_DIMENSION_OPTIONS = [
     { label: 'Open to recovery, needs structured environment', level: 3.1, otp: false, points: 3 },
     { label: 'Needs interventions to engage and stay in treatment', level: 3.3, otp: false, points: 3 },
     { label: 'Has significant difficulty with treatment, with negative consequences', level: 3.5, otp: false, points: 3 },
-    { label: 'Low interest in treatment, needs motivational strategies in 24-hour structured setting', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
+    { label: 'Low interest in treatment, needs motivational strategies in 24-hour structured setting', level: 3.7, otp: false, points: 4 }, // 3.7 exception
+    { label: 'Unable to see connection between use and negative consequences, cannot engage in treatment', level: 4.0, otp: false, points: 4 } // ASAM-L4 addition, 9/23/26 -- see file header
   ],
   [ // Relapse, Continued Use, or Continued Problem Potential
     { label: 'Needs understanding or skills to change current use or high-risk behavior', level: 0.5, otp: false, points: 0 },
@@ -173,8 +188,8 @@ var SLI_ASAM_DIMENSION_OPTIONS = [
     { label: 'Understands relapse, needs structure', level: 3.1, otp: false, points: 3 },
     { label: 'Needs intervention to prevent relapse', level: 3.3, otp: false, points: 3 },
     { label: 'Needs intervention to prevent relapse', level: 3.5, otp: false, points: 3 },
-    { label: 'Challenges controlling use at less intensive care levels', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
+    { label: 'Challenges controlling use at less intensive care levels', level: 3.7, otp: false, points: 4 }, // 3.7 exception
+    { label: 'No relapse-prevention skills, repeated treatment has not improved functioning', level: 4.0, otp: false, points: 4 } // ASAM-L4 addition, 9/23/26 -- see file header
   ],
   [ // Recovery/Living Environment
     { label: 'Environment increases risk of use', level: 0.5, otp: false, points: 0 },
@@ -185,8 +200,8 @@ var SLI_ASAM_DIMENSION_OPTIONS = [
     { label: 'Unsupportive environment, cope with structure and support', level: 3.1, otp: false, points: 3 },
     { label: 'Dangerous environment, 24-hour structure needed', level: 3.3, otp: false, points: 3 },
     { label: 'Dangerous environment, highly structured 24-hour setting needed', level: 3.5, otp: false, points: 3 },
-    { label: 'Dangerous environment', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
+    { label: 'Dangerous environment', level: 3.7, otp: false, points: 4 }, // 3.7 exception
+    { label: 'Environment is hostile and actively unsafe, patient cannot cope without removal', level: 4.0, otp: false, points: 4 } // ASAM-L4 addition, 9/23/26 -- see file header
   ]
 ];
 
