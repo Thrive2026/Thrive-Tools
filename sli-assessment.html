@@ -1,420 +1,603 @@
-// ══════════════════════════════════════════════════════════════════════════
-// SLI 2.0 SCORING ENGINE — single shared source of truth for Support-Level math.
-//
-// Used by: sliassessment_1.html (standalone Initial/30-day/90-day/Ad-hoc assessment),
-// treatmentplan_2.html (Treatment Plan Builder's inline SLI widget + 90-day review
-// re-score), psychotherapynote.html (Psychotherapy Note's inline SLI re-score).
-//
-// FIX (BUG-13/BUG-33, 9/4/26): this exact math was independently re-implemented 4+
-// times across these files (confirmed numerically identical on 9/4/26, with one
-// already-fixed drift -- a variable-name typo, not a logic difference). Rather than
-// keep re-verifying N copies stay in sync by hand, this is now the ONE place the
-// math lives; each tool's own file wires its DOM/UI to this.
-//
-// FIX (BUG-07, 9/15/26): the real Thrive ASAM picklist replaces the 5-point
-// placeholder. It was recovered from Audits_all_time.xlsx (the historical export of
-// every completed Thrive Screener/Thrive Screener 2.0 audit) rather than written
-// fresh -- clinicians had already been recording placements against a real 9-option,
-// 0.5-4-point-per-dimension picklist that lines up with the standard ASAM Levels of
-// Care (0.5 Early Intervention, 1 / OTP-1 Outpatient, 2.1 IOP, 2.5 Partial
-// Hospitalization/High-Intensity Outpatient, 3.1/3.3/3.5/3.7 Residential tiers, 4
-// Medically Managed Intensive Inpatient) -- it just wasn't wired into any of the
-// digital tools yet. See SLI_ASAM_DIMENSION_OPTIONS below. Two things still open:
-// (1) five of the six dimensions have no real-world example of a "Level 4" answer in
-// the historical data, so no Level-4 label could be recovered for them (left out
-// rather than invented -- add it once clinical leadership can supply the wording);
-// (2) this file's own math didn't need to change (asam_dims already held whatever
-// point value the UI recorded), but every consuming tool's ASAM render/option-wiring
-// code does, since dimensions no longer share one flat option list -- see the
-// dimension-specific SLI_ASAM_DIMENSION_OPTIONS shape below. sliassessment.html in
-// this delivery has been updated to match; treatmentplan.html (all 4 internal
-// copies) and psychotherapynote.html still need the equivalent render-side update
-// wherever they build their own ASAM option rows.
-//
-// FIX (SCORING-REVIEW-2, 9/18/26) -- BAM item 14 added; the 9/17/26 item-17
-// reversal RETRACTED. Two independent, good-faith attempts (this file's own
-// 9/17/26 revision, and a parallel one made in a different session the same
-// day -- see bam_historical_recompute_1.sql) both "corrected" BAM's flat sum by
-// reversing some of its protective-direction items, reasoning from the
-// official Brief Addiction Monitor guidelines PDF. Both turned out wrong,
-// caught by finally checking the one source that actually matters: Thrive's
-// own LIVE Pimsy system. Pimsy's real "BAM Score" field (Order 495 -- what
-// staff already look at today to pick the BAM Normalized band that drives real
-// Support Level assignments) was pulled for 30 real, fully-answered sessions
-// alongside their raw item answers, and tested against every candidate
-// formula. A flat, fully UNREVERSED sum of all 16 items (item 17 counted
-// forward like every other extreme-scale item; the newly-added
-// income_sufficient counted as a raw 0/1, not scaled to 0-4) matched Pimsy's
-// real score on 30/30 sessions, using the ORIGINAL band table (0-20/21-35/
-// 36-45/46+) with no rescaling. The item-17-reversed version matched 6/30; the
-// six-item-reversed version matched 3/30. See the inline comment at bamRaw
-// below for the full account. income_sufficient (BAM item 14, the official
-// Protective Factors income question) really was missing from every digital
-// SLI 2.0 tool despite full coverage in Pimsy's own audit trail (Thrive's own
-// Training Manual describes it as item 14 too) -- that part of both prior
-// fixes was correct and is kept, just scored the way Pimsy actually scores it:
-// added in unchanged, no reversal, no rescaling.
-//
-// FIX (SCORING-REVIEW-3, 9/18/26) -- GAD-7 and ASAM checked the same way BAM
-// just was (Pimsy's own live score on real sessions, not guideline-reasoning
-// alone). GAD-7: no change. The existing 7-item sum already matches Pimsy's
-// current form ("Thrive Screener 2.0") 97.8% of the time; it only diverges
-// from Pimsy's real score on the legacy "Thrive Screener" form, which turns
-// out to compute a non-standard 6-item sum (silently drops item 7). That's a
-// quirk of the retired Pimsy form, not a bug here. ASAM: real bug, fixed.
-// asamRaw was summing each dimension's literal ASAM Level of Care number
-// (0.5, 2.1, 2.5, 3.1, 3.3, 3.5, 3.7...) including the fractional
-// sub-designation; Pimsy's real score floors each dimension to its whole
-// Level first. Flooring raised the match on 1,954 real sessions from 54% to
-// 93.7% (verified through this file's own sliComputeScores()). Two rarer
-// option-specific exceptions (dimension 1's "Level 1-WM" pick scores 2, not
-// 1; any "Level 3.7" pick scores 4, not 3) explain nearly all of the rest and
-// took the match to 99.6% -- applied the same day once the three consuming
-// tools were updated to save which picklist OPTION was chosen, not just its
-// bare level number, which used to be identical for the WM/OTP/plain choices
-// at the same level (each option now carries its own `points` value in
-// SLI_ASAM_DIMENSION_OPTIONS below). See the inline comment at asamRaw below, and
-// outcomes-dashboard-live-metrics-migration-plan.md's "GAD-7 and ASAM checked
-// against Pimsy's live score" section, for the full account.
-//
-// Include this file with a same-origin relative path (not an external host) BEFORE
-// each tool's own <script> block:
-//   <script src="sli-scoring.js"></script>
-// Same-origin on purpose -- see BUG-22 (Provider Match widget) for what an
-// externally-hosted single point of failure costs when it's down; this file
-// ships in the same repo/deploy as the tools that need it.
-//
-// Every function here is a pure function of its arguments -- no DOM access, no
-// Supabase calls, nothing global except the constants below. That's deliberate:
-// it's what makes it safe to unit-test in isolation and safe to share across three
-// otherwise-unrelated single-file tools with no build step.
-// ══════════════════════════════════════════════════════════════════════════
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SLI 2.0 Assessment — Thrive Peer Recovery Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- FIX (BUG-13/BUG-33, 9/4): SLI 2.0 scoring math now lives in one shared, same-origin file
+     (sli-scoring.js) included by this tool, treatmentplan.html, and psychotherapynote.html --
+     see that file's header comment for why. Must load before this page's own <script> block. -->
+<script src="sli-scoring.js"></script>
+<style>
+:root{
+  --thrive-blue:#3c50a0; --thrive-blue-deep:#283c8c; --thrive-blue-dark:#1a2861;
+  --thrive-yellow:#f0c814; --thrive-pink:#c83c8c; --thrive-green:#3cb43c;
+  --bg:#f7f3ec; --paper:#ffffff; --ink:#1a2861; --ink-soft:#3e4a78;
+  --muted:#8089a8; --rule:#e6dfd2; --rule-strong:#cdc4b2;
+  --good:#2d8c30; --good-bg:#dcf0dc;
+  --warn:#a07e0a; --warn-bg:#fbf0c4;
+  --bad:#a52d6d; --bad-bg:#f7dde6;
+  --esc:#5B3A8C; --esc-bg:#EFE7F7;
+  --shadow:0 1px 0 rgba(40,60,140,.04), 0 8px 28px -12px rgba(40,60,140,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased;}
+.topbar{background:linear-gradient(95deg, var(--thrive-blue-deep) 0%, var(--thrive-blue) 100%);color:#f5f1e8;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:3px solid var(--thrive-yellow);position:sticky;top:0;z-index:100;}
+.topbar .badge{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:#fff;font-weight:400;}
+.topbar .badge .sub{font-family:'IBM Plex Mono',monospace;font-style:normal;font-size:11px;letter-spacing:.08em;color:#cdd4f0;text-transform:uppercase;margin-left:8px;}
+.content{max-width:760px;margin:0 auto;padding:24px 24px 80px;}
 
-// Real Thrive ASAM dimension names (unchanged from the placeholder -- these were
-// already correct) and, for each dimension, its real picklist: label + the actual
-// ASAM Level of Care number that answer corresponds to (0.5-4, matching how the raw
-// per-dimension score is summed below). `otp` flags the Opioid Treatment Program
-// variant of a rung, which some dimensions and clients need to track distinctly from
-// the standard version at the same numeric level.
-var SLI_ASAM_DIMENSIONS = [
-  'Acute Intoxication and/or Withdrawal Potential',
-  'Biomedical Conditions and Complications',
-  'Emotional, Behavioral, or Cognitive Conditions and Complications',
-  'Readiness to Change',
-  'Relapse, Continued Use, or Continued Problem Potential',
-  'Recovery/Living Environment'
+.section{background:var(--paper);border:1px solid var(--rule);border-radius:4px;margin-bottom:20px;box-shadow:var(--shadow);overflow:hidden;}
+.section-head{padding:16px 20px;border-bottom:1px solid var(--rule);background:var(--bg);}
+.section-head h2{font-family:'Fraunces',serif;font-size:18px;font-weight:400;color:var(--ink);letter-spacing:-0.01em;}
+.section-head .sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.section-body{padding:18px 20px;}
+
+.item{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--rule);}
+.item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.item .q{font-size:13.5px;color:var(--ink);margin-bottom:9px;line-height:1.5;}
+.opt-row{display:flex;gap:6px;flex-wrap:wrap;}
+.opt-btn{padding:7px 12px;border:1px solid var(--rule-strong);background:var(--paper);color:var(--ink-soft);border-radius:14px;font-size:12px;cursor:pointer;font-family:inherit;}
+.opt-btn:hover{border-color:var(--thrive-blue);}
+.opt-btn.selected{background:var(--thrive-blue);color:#fff;border-color:var(--thrive-blue);}
+.opt-btn.selected.risk{background:var(--bad);border-color:var(--bad);}
+
+.field-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
+input[type=text], input[type=date], select, textarea{width:100%;border:1px solid var(--rule-strong);border-radius:2px;padding:9px 12px;font-size:13.5px;color:var(--ink);font-family:inherit;background:#fdfbf6;}
+textarea{resize:vertical;min-height:60px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+.banner{padding:14px 16px;border-radius:3px;margin-bottom:16px;font-size:13px;line-height:1.6;}
+.banner.crisis{background:var(--bad-bg);border:1.5px solid var(--bad);color:var(--bad);font-weight:600;}
+.banner.warn{background:var(--warn-bg);border:1px solid var(--warn);color:var(--warn);}
+.banner.note{background:var(--esc-bg);border:1px solid var(--esc);color:var(--esc);}
+.banner strong{display:block;margin-bottom:4px;font-size:13.5px;}
+
+.results{background:var(--paper);border:2px solid var(--thrive-blue);border-radius:4px;padding:22px;margin-top:24px;box-shadow:var(--shadow);}
+.results h2{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);margin-bottom:14px;}
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+.score-tile{background:var(--bg);border:1px solid var(--rule);border-radius:3px;padding:12px 14px;}
+.score-tile .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:600;margin-bottom:4px;}
+.score-tile .val{font-family:'Fraunces',serif;font-size:22px;color:var(--ink);}
+.level-banner{padding:18px;border-radius:3px;background:var(--thrive-blue);color:#fff;margin-bottom:16px;}
+.level-banner .level-title{font-family:'Fraunces',serif;font-size:24px;margin-bottom:4px;}
+.level-banner .level-desc{font-size:12.5px;color:#dde3f7;line-height:1.6;}
+.level-banner.capped{background:var(--warn);}
+.level-banner.level5{background:var(--bad);}
+
+.save-btn{width:100%;padding:13px;background:var(--thrive-blue);color:#fff;border:none;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;margin-top:10px;}
+.save-btn:hover{background:var(--thrive-blue-deep);}
+.save-btn:disabled{background:#AEB6BE;cursor:not-allowed;}
+.save-status{margin-top:10px;font-size:12.5px;color:var(--muted);text-align:center;}
+
+.override-box{margin-top:14px;padding:14px;background:var(--bg);border:1px solid var(--rule);border-radius:3px;}
+.gap-note{font-size:11.5px;color:var(--muted);background:#fff9e8;border:1px solid var(--thrive-yellow);border-radius:2px;padding:10px 12px;margin-top:10px;line-height:1.55;}
+.login-wrap{max-width:400px;margin:100px auto;background:var(--paper);border:1px solid var(--rule);border-radius:3px;box-shadow:var(--shadow);padding:34px;}
+.login-wrap h2{font-family:'Fraunces',serif;font-weight:400;font-size:22px;color:var(--ink);margin-bottom:16px;}
+.login-btn{width:100%;margin-top:16px;padding:11px;background:var(--thrive-blue);color:#fff;border:none;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
+.login-error{margin-top:12px;font-size:12.5px;color:var(--bad);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// SLI 2.0 DIGITAL ASSESSMENT TOOL
+// Digitizes the six-instrument Service Level Indicator screener
+// (PHQ-9, GAD-7, BAM, ASAM LOC, Brief Risk/C-SSRS, SDOH) so it becomes
+// the authoritative, queryable record of a client's support level --
+// instead of living only inside Pimsy, where it can't be joined
+// against session/utilization data.
+//
+// Scoring logic is transcribed directly from "SLI 2.0 Staff Training
+// Manual" (May 2026) and the SLI_2_0.xlsx Pimsy form export. See the
+// gap-note in the ASAM section for the one piece that could NOT be
+// verified against source material -- the six ASAM dimension
+// descriptor picklists were not present in the xlsx export.
+//
+// FIX (SCORING-REVIEW, 9/17/26): BAM item 14 (the official Protective
+// Factors income question) added back below -- it was missing from
+// this tool entirely even though Thrive's own Pimsy-side "Thrive
+// Screener" audit trail asks it at the same coverage as every other
+// BAM item (5,075/5,428 sessions). Asked Yes/No, same pattern as the
+// SDOH/C-SSRS yes-no items. The scoring-side fix (reversing this item
+// and six others so every BAM item points the same "more = more risk"
+// direction) lives in sli-scoring.js -- see that file's header for the
+// full rationale and the real-data validation behind it. Nothing else
+// in this file's rendering needed to change: BAM_SCORED_ITEMS just
+// gained one entry, and the existing generic option-row/event-wiring
+// code below already handles any 'bam_<key>' item without modification.
+// ══════════════════════════════════════════════════════════════════
+
+const SUPABASE_URL = 'https://fussjixekyhwuromauff.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1c3NqaXhla3lod3Vyb21hdWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjMzNzYsImV4cCI6MjA5ODI5OTM3Nn0.3yfRu5LMDlIasvc0cu_GOcXAquji6ZYUkp3dgxk1j2M';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const TABLE = 'sli_assessments';
+
+var app = document.getElementById('app');
+var currentReviewer = null;
+
+// ── DATA MODEL ──
+
+var PHQ9_ITEMS = [
+  'Little interest or pleasure in doing things',
+  'Feeling down, depressed, or hopeless',
+  'Trouble falling or staying asleep, or sleeping too much',
+  'Feeling tired or having little energy',
+  'Poor appetite or overeating',
+  "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+  'Trouble concentrating on things, such as reading or watching television',
+  'Moving or speaking so slowly that other people could have noticed, or the opposite — being fidgety or restless',
+  'Thoughts that you would be better off dead, or of hurting yourself in some way'
+];
+var FREQ_OPTIONS = ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'];
+
+var GAD7_ITEMS = [
+  'Feeling nervous, anxious, or on edge',
+  'Not being able to stop or control worrying',
+  'Worrying too much about different things',
+  'Trouble relaxing',
+  'Being so restless that it is hard to sit still',
+  'Becoming easily annoyed or irritable',
+  'Feeling afraid, as if something awful might happen'
 ];
 
-// FIX (SCORING-REVIEW-3, 9/18/26): `points` added to every option -- the exact
-// whole-number contribution Pimsy's real ASAM Score gives that specific pick,
-// confirmed against 1,954 real sessions (see the file header and asamRaw
-// below). It's floor(level) for the overwhelming majority of options, with
-// two confirmed exceptions: dimension 1's "Level 1-WM" (ambulatory withdrawal
-// management) option scores 2, not 1 -- it's genuinely a step up in care even
-// though it shares the same displayed level number as plain "Level 1"; and
-// any dimension's "Level 3.7" option scores 4, not 3. Both exceptions are
-// marked inline below. OTP options were checked too and do NOT need an
-// exception -- they score floor(level) like any other option at that level.
-var SLI_ASAM_DIMENSION_OPTIONS = [
-  [ // Acute Intoxication and/or Withdrawal Potential
-    { label: 'No withdrawal risk', level: 0.5, otp: false, points: 0 },
-    { label: 'Not experiencing significant withdrawal or at minimal risk of severe withdrawal, manageable at Level 1-WM', level: 1.0, otp: false, points: 2 }, // WM exception
-    { label: 'Physiologically dependent on opioids and requires OTP to prevent withdrawal', level: 1.0, otp: true, points: 1 },
-    { label: 'Minimal risk of severe withdrawal', level: 2.1, otp: false, points: 2 },
-    { label: 'Moderate risk of severe withdrawal', level: 2.5, otp: false, points: 2 },
-    { label: 'No withdrawal risk, or minimal or stable withdrawal', level: 3.1, otp: false, points: 3 },
-    { label: 'Minimal risk of severe withdrawal, manageable withdrawal', level: 3.3, otp: false, points: 3 },
-    { label: 'Minimal severe withdrawal risk, manageable withdrawal', level: 3.5, otp: false, points: 3 },
-    { label: 'High withdrawal risk, manageable withdrawal risk', level: 3.7, otp: false, points: 4 }, // 3.7 exception
-    { label: 'High withdrawal risk requiring full hospital resources', level: 4.0, otp: false, points: 4 }
-  ],
-  [ // Biomedical Conditions and Complications
-    { label: 'None, or stable', level: 0.5, otp: false, points: 0 },
-    { label: 'None, or stable', level: 1.0, otp: false, points: 1 },
-    { label: 'None, or manageable', level: 1.0, otp: true, points: 1 },
-    { label: 'None, or not distracting', level: 2.1, otp: false, points: 2 },
-    { label: 'None, or not distracting', level: 2.5, otp: false, points: 2 },
-    { label: 'None, or stable', level: 3.1, otp: false, points: 3 },
-    { label: 'None, or stable', level: 3.3, otp: false, points: 3 },
-    { label: 'None, or stable', level: 3.5, otp: false, points: 3 },
-    { label: 'Requires 24-hour medical monitoring', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
-  ],
-  [ // Emotional, Behavioral, or Cognitive Conditions and Complications
-    { label: 'None, or stable', level: 0.5, otp: false, points: 0 },
-    { label: 'None, or stable', level: 1.0, otp: false, points: 1 },
-    { label: 'None, or manageable', level: 1.0, otp: true, points: 1 },
-    { label: 'Mild severity', level: 2.1, otp: false, points: 2 },
-    { label: 'Mild to moderate severity', level: 2.5, otp: false, points: 2 },
-    { label: 'None or minimal', level: 3.1, otp: false, points: 3 },
-    { label: 'Mild to moderate', level: 3.3, otp: false, points: 3 },
-    { label: '24-hour setting for stabilization', level: 3.5, otp: false, points: 3 },
-    { label: 'Moderate severity, requires 24-hour structured setting', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
-  ],
-  [ // Readiness to Change
-    { label: 'Willing to explore how use affects personal goals', level: 0.5, otp: false, points: 0 },
-    { label: 'Ready for recovery, needs strategies to strengthen readiness', level: 1.0, otp: false, points: 1 },
-    { label: 'Ready to change, but not ready for total abstinence', level: 1.0, otp: true, points: 1 },
-    { label: 'Variable treatment engagement, requires structured program', level: 2.1, otp: false, points: 2 },
-    { label: 'Poor treatment engagement, needs near-daily structured program', level: 2.5, otp: false, points: 2 },
-    { label: 'Open to recovery, needs structured environment', level: 3.1, otp: false, points: 3 },
-    { label: 'Needs interventions to engage and stay in treatment', level: 3.3, otp: false, points: 3 },
-    { label: 'Has significant difficulty with treatment, with negative consequences', level: 3.5, otp: false, points: 3 },
-    { label: 'Low interest in treatment, needs motivational strategies in 24-hour structured setting', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
-  ],
-  [ // Relapse, Continued Use, or Continued Problem Potential
-    { label: 'Needs understanding or skills to change current use or high-risk behavior', level: 0.5, otp: false, points: 0 },
-    { label: 'Able to maintain abstinence or control use with minimal support', level: 1.0, otp: false, points: 1 },
-    { label: 'At risk of continued use without OTP', level: 1.0, otp: true, points: 1 },
-    { label: 'High likelihood of relapse without close monitoring and support', level: 2.1, otp: false, points: 2 },
-    { label: 'High likelihood of relapse without near-daily monitoring and support', level: 2.5, otp: false, points: 2 },
-    { label: 'Understands relapse, needs structure', level: 3.1, otp: false, points: 3 },
-    { label: 'Needs intervention to prevent relapse', level: 3.3, otp: false, points: 3 },
-    { label: 'Needs intervention to prevent relapse', level: 3.5, otp: false, points: 3 },
-    { label: 'Challenges controlling use at less intensive care levels', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
-  ],
-  [ // Recovery/Living Environment
-    { label: 'Environment increases risk of use', level: 0.5, otp: false, points: 0 },
-    { label: 'Supportive environment, patient has coping skills', level: 1.0, otp: false, points: 1 },
-    { label: 'Supportive environment, patient has coping skills', level: 1.0, otp: true, points: 1 },
-    { label: 'Unsupportive environment, patient has coping skills', level: 2.1, otp: false, points: 2 },
-    { label: 'Unsupportive environment, cope with structure and support', level: 2.5, otp: false, points: 2 },
-    { label: 'Unsupportive environment, cope with structure and support', level: 3.1, otp: false, points: 3 },
-    { label: 'Dangerous environment, 24-hour structure needed', level: 3.3, otp: false, points: 3 },
-    { label: 'Dangerous environment, highly structured 24-hour setting needed', level: 3.5, otp: false, points: 3 },
-    { label: 'Dangerous environment', level: 3.7, otp: false, points: 4 } // 3.7 exception
-    // No Level-4 example found in the historical data for this dimension.
-  ]
+var BAM_SCALE_030 = ['0', '1-3', '4-8', '9-15', '16-30'];
+var BAM_SCALE_EXTREME = ['Not at all', 'Slightly', 'Moderately', 'Considerably', 'Extremely'];
+var BAM_SCALE_HEALTH = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'];
+
+// Each scored BAM item: label, response option set, and whether it counts
+// toward the BAM raw score (per "Include In Score 3" flags in the Pimsy
+// export). Point value = index of the selected option (0-4) -- how that
+// index is added into bamRaw (as-is, or reversed) is decided in
+// sli-scoring.js, not here; this array only drives what's rendered and what
+// gets stored in state.bam[key].
+//
+// FIX (SCORING-REVIEW, 9/17/26): added 'income_sufficient' (item 14) between
+// work_school_days (13) and relationship_problems (15), matching the
+// instrument's real 1-17 order. See file header comment.
+var BAM_SCORED_ITEMS = [
+  { key: 'physical_health', label: 'In the past 30 days, would you say your physical health has been?', options: BAM_SCALE_HEALTH },
+  { key: 'sleep_trouble', label: 'In the past 30 days, how many nights did you have trouble falling or staying asleep?', options: BAM_SCALE_030 },
+  { key: 'mood_distress', label: 'In the past 30 days, how many days have you felt depressed, anxious, angry or very upset throughout most of the day?', options: BAM_SCALE_030 },
+  { key: 'alcohol_days', label: 'In the past 30 days, how many days did you drink ANY alcohol?', options: BAM_SCALE_030 },
+  { key: 'heavy_drinking_days', label: 'In the past 30 days, how many days did you have at least 5 drinks (4 if female or over 65)?', options: BAM_SCALE_030 },
+  { key: 'drug_days', label: 'In the past 30 days, how many days did you use any illegal/street drugs or abuse any prescription medications?', options: BAM_SCALE_030 },
+  { key: 'cravings', label: 'In the past 30 days, how much were you bothered by cravings or urges to drink alcohol or use drugs?', options: BAM_SCALE_EXTREME },
+  { key: 'abstinence_confidence', label: 'How confident are you in your ability to be completely abstinent (clean) from alcohol and drugs in the next 30 days?', options: BAM_SCALE_EXTREME },
+  { key: 'self_help_days', label: 'In the past 30 days, how many days did you attend self-help meetings like AA or NA?', options: BAM_SCALE_030 },
+  { key: 'risky_situations_days', label: 'In the past 30 days, how many days were you in situations or with people that put you at increased risk for using?', options: BAM_SCALE_030 },
+  { key: 'spirituality', label: 'Does your religion or spirituality help support your recovery?', options: BAM_SCALE_EXTREME },
+  { key: 'work_school_days', label: 'In the past 30 days, how many days did you spend much of the time at work, school, or volunteering?', options: BAM_SCALE_030 },
+  { key: 'income_sufficient', label: 'Do you have enough income (from legal sources) to pay for necessities such as housing, transportation, food and clothing for yourself and your dependents?', options: ['No', 'Yes'] },
+  { key: 'relationship_problems', label: 'In the past 30 days, how much have you been bothered by arguments or problems with family or friends?', options: BAM_SCALE_EXTREME },
+  { key: 'supportive_contact_days', label: 'In the past 30 days, how many days were you in contact with family or friends supportive of your recovery?', options: BAM_SCALE_030 },
+  { key: 'recovery_satisfaction', label: 'How satisfied are you with your progress toward achieving your recovery goals?', options: BAM_SCALE_EXTREME }
 ];
 
-// Deprecated aliases -- kept only so any code that still references the old
-// placeholder names doesn't fail outright while the three consuming tools are
-// updated one at a time. Do not add new references to these; use
-// SLI_ASAM_DIMENSIONS / SLI_ASAM_DIMENSION_OPTIONS above instead.
-var SLI_ASAM_DIMENSIONS_PLACEHOLDER = SLI_ASAM_DIMENSIONS;
-var SLI_ASAM_PLACEHOLDER_OPTIONS = [
-  { label: '0 — No problem: fully stable', points: 0 },
-  { label: '1 — Mild: slight issue, manageable in current setting', points: 1 },
-  { label: '2 — Moderate: requires structured support or intervention', points: 2 },
-  { label: '3 — Serious: presents a clear risk, needs intensive services', points: 3 },
-  { label: '4 — Severe: imminent danger or inability to function without 24/7 care', points: 4 }
+var CSSRS_ITEMS = [
+  { key: '1a', label: '1a. In the past month, have you wished you were dead or wished you could go to sleep and not wake up?' },
+  { key: '1b', label: '1b. In the past month, have you actually had any thoughts of killing yourself?' },
+  { key: '1c', label: '1c. Have you been thinking about how you might kill yourself (specific method)?' },
+  { key: '1d', label: '1d. Have you had these thoughts and had some intention of acting on them?' },
+  { key: '1e', label: '1e. Have you started to work out or worked out the details of how to kill yourself? Do you intend to carry out this plan?' },
+  { key: '1f', label: '1f. In the past 3 months, have you done anything, started to do anything, or prepared to do anything to end your life?' }
+];
+var CSSRS_ESCALATION_KEYS = ['1c', '1d', '1e', '1f'];
+
+var RISK_EXTRA_ITEMS = [
+  { key: 'harm_others', label: 'Have you had any thoughts of harming someone else?' },
+  { key: 'abuse', label: 'Are you currently experiencing any form of abuse or violence (physical, emotional, sexual)?' },
+  { key: 'psychosis', label: 'In the past 30 days, have you experienced hallucinations, paranoia, or symptoms of psychosis?' }
 ];
 
-// Canonical item KEYS only (not labels -- each tool phrases questions for its own
-// audience: "you" in the self-report SLI Assessment, "the individual" in Treatment
-// Plan Builder, "the client" in Psychotherapy Note). Confirmed identical key sets
-// across all three files' own item-definition arrays before extracting this.
-// FIX (SCORING-REVIEW-2, 9/18/26): item 14 (income_sufficient, the official BAM
-// Protective Factors income question) added -- see this file's header for why.
-// Inserted in the instrument's real 1-17 order (between work_school_days/13 and
-// relationship_problems/15), matching sliassessment.html/treatmentplan.html/
-// psychotherapynote.html's own BAM_SCORED_ITEMS arrays, which already carry this
-// item as of 9/17/26. No reversal applied -- see header comment for why not.
-var SLI_BAM_SCORED_KEYS = [
-  'physical_health', 'sleep_trouble', 'mood_distress', 'alcohol_days', 'heavy_drinking_days',
-  'drug_days', 'cravings', 'abstinence_confidence', 'self_help_days', 'risky_situations_days',
-  'spirituality', 'work_school_days', 'income_sufficient', 'relationship_problems',
-  'supportive_contact_days', 'recovery_satisfaction'
-];
-var SLI_CSSRS_KEYS = ['1a', '1b', '1c', '1d', '1e', '1f'];
-var SLI_CSSRS_ESCALATION_KEYS = ['1c', '1d', '1e', '1f'];
-var SLI_RISK_EXTRA_KEYS = ['harm_others', 'abuse', 'psychosis'];
-var SLI_SDOH_KEYS = ['housing', 'food_utilities', 'transportation', 'healthcare_access', 'isolation', 'legal_safety'];
-
-var SLI_LEVEL_TABLE = [
-  { min: 0, max: 5, level: 1, label: 'Level 1 — Maintenance', hours: '1-2 hrs/wk' },
-  { min: 6, max: 8, level: 2, label: 'Level 2 — Moderate', hours: '2-4 hrs/wk' },
-  { min: 9, max: 11, level: 3, label: 'Level 3 — High', hours: '4-6 hrs/wk' },
-  { min: 12, max: 14, level: 4, label: 'Level 4 — Intensive', hours: '6-8 hrs/wk' },
-  { min: 15, max: 9999, level: 5, label: 'Level 5 — Critical', hours: '8+ hrs/wk (Director approval required)' }
+var SDOH_ITEMS = [
+  { key: 'housing', label: 'Are you currently experiencing housing instability or worried about losing your housing?' },
+  { key: 'food_utilities', label: 'Are you having difficulty affording basic needs like food, utilities, or rent?' },
+  { key: 'transportation', label: 'Do you have challenges getting to appointments or places you need to go?' },
+  { key: 'healthcare_access', label: 'Is it difficult for you to see a doctor or get healthcare when you need it?' },
+  { key: 'isolation', label: "Do you feel isolated or like you don't have people to turn to for help?" },
+  { key: 'legal_safety', label: "Are you dealing with any legal issues or feeling unsafe where you're living right now?" }
 ];
 
-function sliSum(arr) {
-  return arr.reduce(function(a, b) { return a + (b === null || b === undefined ? 0 : b); }, 0);
+// FIX (BUG-13/BUG-33, 9/4): these two constants and the whole scoring engine below (sum,
+// bandFromTable, computeScores) now come from the shared sli-scoring.js (loaded in <head>) --
+// they used to be an independent copy of the same arrays/math kept in sync with
+// treatmentplan_2.html and psychotherapynote.html by hand. Aliased under their original local
+// names so the rendering code below (buildHtml, etc.) didn't need to change at all.
+//
+// FIX (BUG-07, 9/15/26): the real Thrive ASAM picklist (recovered from historical
+// audit data -- see sli-scoring.js's header comment) replaces the 5-point
+// placeholder. Each dimension now has its own option list instead of one list
+// shared by all six, so the render loop below picks options per-dimension and
+// passes each option's real ASAM level (0.5-4) as its value instead of a 0-4 index.
+var ASAM_DIMENSIONS = SLI_ASAM_DIMENSIONS;
+var ASAM_DIMENSION_OPTIONS = SLI_ASAM_DIMENSION_OPTIONS;
+
+// ── STATE ──
+var state = {
+  client_number: '', assessment_type: 'Initial', assessment_date: new Date().toISOString().slice(0,10),
+  phq9: new Array(9).fill(null), phq9_hosp: null,
+  gad7: new Array(7).fill(null), gad7_impact: null,
+  bam: {}, bam_substance_use_30d: null, bam_overdoses: null, bam_arrests: null, bam_dentist: null, bam_doctor: null,
+  asam_mh_only: null, asam_dims: new Array(6).fill(null), asam_option_idx: new Array(6).fill(null), asam_dimension_points: new Array(6).fill(null), asam_loc_recommendation: '', asam_override_rationale: '',
+  cssrs: {}, risk_extra: {}, risk_notified_by: '', risk_full_columbia_needed: null,
+  sdoh: {},
+  level_override: null, level_override_rationale: ''
+};
+
+function render() { app.innerHTML = buildHtml(); wireEvents(); }
+
+// ── SCORING ──
+// FIX (BUG-13/BUG-33, 9/4): sum/bandFromTable and the whole per-instrument/level-table scoring
+// engine that used to live here now come from the shared sli-scoring.js (loaded in <head>) --
+// see that file's header for why. This is a thin wrapper so the rest of this file (buildHtml,
+// saveAssessment, etc.) keeps working against the exact same return shape it always has.
+// The one thing re-attached locally is calculatedLevel.hours' wording ("1-2 hours/week") --
+// purely on-screen text, never persisted (only calculated_support_level's plain number is saved),
+// so this tool keeps its own existing wording rather than silently reformatting to the shared
+// library's shorter "hrs/wk" form used by the other two tools.
+var SLI_LEVEL_HOURS_TEXT = {
+  1: '1-2 hours/week', 2: '2-4 hours/week', 3: '4-6 hours/week', 4: '6-8 hours/week',
+  5: '8+ hours/week (Director approval required)'
+};
+function computeScores() {
+  var s = sliComputeScores(state);
+  s.calculatedLevel = { level: s.calculatedLevel.level, label: s.calculatedLevel.label, hours: SLI_LEVEL_HOURS_TEXT[s.calculatedLevel.level] };
+  return s;
 }
 
-function sliBandFromTable(raw, table) {
-  for (var i = 0; i < table.length; i++) {
-    if (raw >= table[i].min && raw <= table[i].max) return table[i];
-  }
-  return table[table.length - 1];
+// ── RENDER HELPERS ──
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, function(c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
 }
 
-// state shape (matches what all three tools already keep in memory):
-//   { phq9:[9 nums], gad7:[7 nums], bam:{key:num}, asam_mh_only:bool,
-//     asam_dims:[6 nums -- each the real 0.5-4 ASAM level picked for that dimension,
-//     not an index], cssrs:{key:0|1}, risk_extra:{key:0|1}, sdoh:{key:0|1} (optional
-//     -- see opts.sdoh) }
-// opts (all optional):
-//   sdoh -- an SDOH map to use INSTEAD of state.sdoh. Treatment Plan Builder doesn't keep
-//     SDOH on its sliState/reviewSliState objects (it reads 6 checkboxes straight from the
-//     DOM) -- its wrapper builds this map from those checkboxes and passes it here rather
-//     than restructuring its state object. Every other caller can just rely on state.sdoh.
-function sliComputeScores(state, opts) {
+function optionRow(items, selectedVal, groupKey, opts) {
   opts = opts || {};
-  var sdoh = opts.sdoh || state.sdoh;
-
-  var phq9Raw = sliSum(state.phq9);
-  var phq9Band = sliBandFromTable(phq9Raw, [
-    { min: 0, max: 9, label: '0-9 Minimal', points: 1 },
-    { min: 10, max: 14, label: '10-14 Mild-Moderate', points: 2 },
-    { min: 15, max: 19, label: '15-19 Moderate-Severe', points: 3 },
-    { min: 20, max: 27, label: '20-27 Severe', points: 4 }
-  ]);
-
-  var gad7Raw = sliSum(state.gad7);
-  var gad7Band = sliBandFromTable(gad7Raw, [
-    { min: 0, max: 9, label: '0-9 Minimal', points: 1 },
-    { min: 10, max: 14, label: '10-14 Mild-Moderate', points: 2 },
-    { min: 15, max: 19, label: '15-19 Moderate-Severe', points: 3 },
-    { min: 20, max: 21, label: '20-21 Severe', points: 4 }
-  ]);
-
-  // FIX (SCORING-REVIEW-2, 9/18/26) -- REVERTS the 9/17/26 item-17 reversal fix
-  // below (kept visible, struck through in spirit, so the history is legible
-  // rather than silently erased -- see this file's header for the full story).
-  // That fix reasoned from the *official* Brief Addiction Monitor guidelines
-  // PDF alone -- which does reverse item 17's own point values -- and concluded
-  // Thrive's tools should match the guidelines. That reasoning skipped a check
-  // this correction did not: what does Thrive's own LIVE system (Pimsy's actual
-  // "BAM Score" field, Order 495 -- the number staff already look at today to
-  // pick the BAM Normalized band that feeds real Support Level decisions)
-  // actually compute? Pulled 30 real, fully-answered sessions from
-  // Audits_all_time.xlsx with both the raw item answers AND Pimsy's own
-  // precomputed BAM Score/Level fields, and tested every candidate formula
-  // against it directly. Result, unambiguous: a flat, UNREVERSED sum of all 16
-  // items (item 17 counted forward, same as every other extreme-scale item;
-  // income_sufficient added as a raw 0/1, not scaled to 0-4) reproduces Pimsy's
-  // real BAM Score exactly on 30/30 sessions -- and the same real data confirms
-  // Pimsy is still using the ORIGINAL band cutoffs below (0-20/21-35/36-45/46+),
-  // not a rescaled table. Reversing item 17 (last fix) matched only 6/30;
-  // reversing six items plus a reversed+rescaled income term (a second,
-  // independent attempt at this same fix, from a parallel session -- see
-  // bam_historical_recompute_1.sql/the pasted engine it produced) matched only
-  // 3/30. Both were good-faith, sourced attempts at a real problem, and both
-  // turned out to diverge from what Thrive's own operational system already
-  // does today -- which is the one thing that actually determines real Support
-  // Level assignments and billing right now, guideline PDF notwithstanding.
-  // The one earlier finding that DOES hold up under this same real-data check:
-  // income_sufficient (item 14) really was missing from every digital tool
-  // despite being asked at full coverage in Pimsy's own audit trail -- that
-  // addition stands, just scored the way Pimsy actually scores it (below).
-  var bamRaw = sliSum(SLI_BAM_SCORED_KEYS.map(function(k) { return state.bam[k]; }));
-  var bamBand = sliBandFromTable(bamRaw, [
-    { min: 0, max: 20, label: '0-20 Low Risk', points: 1 },
-    { min: 21, max: 35, label: '21-35 Moderate Risk', points: 2 },
-    { min: 36, max: 45, label: '36-45 High Risk', points: 3 },
-    { min: 46, max: 9999, label: '46+ Very High Risk', points: 4 }
-  ]);
-
-  // FIX (SCORING-REVIEW-3, 9/18/26): BUG-07 (9/15/26) switched asam_dims from a
-  // 0-4 placeholder index to the real 0.5-4 ASAM Level of Care number per
-  // dimension, but left the sum itself as a literal add of those fractional
-  // numbers (0.5, 2.1, 2.5, 3.1, 3.3, 3.5, 3.7 and so on). Checked against
-  // Pimsy's own real "ASAM Score" field on 1,954 real, fully-answered sessions
-  // (Audits_all_time.xlsx) the same way BAM was checked: the literal fractional
-  // sum matched only 1,058/1,954 (54%) -- and matched far less often than that
-  // on sessions where any dimension sits on a real sub-level (2.1/2.5/3.1/3.3/
-  // 3.5/3.7), which is most of them. The band table below (0-6 / 7-12 / 13-17 /
-  // 18-24) only makes sense for a whole-number 0-24 total in the first place --
-  // it was already written assuming each dimension contributes a whole point
-  // (0/1/2/3/4), i.e. the ASAM Level of Care number with its .1/.3/.5/.7
-  // sub-designation dropped, not carried into the sum as a fraction.
-  //
-  // Flooring each dimension's level before summing (0.5->0, 2.1/2.5->2,
-  // 3.1/3.3/3.5/3.7->3, 4.0->4) raised the match to 1,831/1,954 (93.7%), and
-  // fully explains the outcome for every session that doesn't hit one of two
-  // rare option-specific exceptions Pimsy's own scoring makes (dimension 1's
-  // "Level 1-WM" ambulatory withdrawal management option scores 2, not 1; a
-  // rare "Level 3.7" pick on any dimension scores 4, not 3) -- together these
-  // took the match to 1,947/1,954 (99.6%), with the last 7 sessions being
-  // pre-picklist free-text entries or otherwise-inconsistent legacy rows, not
-  // a formula gap.
-  //
-  // UPDATE (9/18/26, same day): both exceptions are now applied. The three
-  // consuming tools save which picklist OPTION was picked, not just its bare
-  // level number (which used to be identical for the WM and non-WM choice at
-  // dimension 1's "Level 1", and for OTP vs non-OTP choices at the same
-  // level) -- each option in SLI_ASAM_DIMENSION_OPTIONS now carries its own
-  // exact `points` value (see above), and the tools send that as
-  // `state.asam_dimension_points`, a parallel array to `state.asam_dims`
-  // (which still holds the bare level, unchanged, for display and for the
-  // `asam_dimensions` field every existing consumer -- SQL, trend charts --
-  // already expects). When a dimension's points value is present, it's used
-  // as-is; when it's missing (an older saved draft, or any future caller that
-  // hasn't been updated to send it), this falls back to floor(level) exactly
-  // as before -- a safe default, never a regression.
-  var asamRaw = state.asam_mh_only ? 0 : sliSum(state.asam_dims.map(function(lvl, i) {
-    if (lvl == null) return 0;
-    var pts = state.asam_dimension_points && state.asam_dimension_points[i];
-    return (pts === 0 || pts) ? pts : Math.floor(lvl);
-  }));
-  var asamBand = state.asam_mh_only
-    ? { label: 'N/A (MH Only)', points: 0 }
-    : sliBandFromTable(asamRaw, [
-        { min: 0, max: 6, label: '0-6 Early/Outpatient', points: 1 },
-        { min: 7, max: 12, label: '7-12 IOP', points: 2 },
-        { min: 13, max: 17, label: '13-17 Residential', points: 3 },
-        { min: 18, max: 9999, label: '18-24 Intensive', points: 4 }
-      ]);
-
-  var escalation = SLI_CSSRS_ESCALATION_KEYS.some(function(k) { return state.cssrs[k] === 1; });
-  var riskExtraRaw = sliSum(SLI_RISK_EXTRA_KEYS.map(function(k) { return state.risk_extra[k]; }));
-  var riskRaw = sliSum(SLI_CSSRS_KEYS.map(function(k) { return state.cssrs[k]; })) + riskExtraRaw;
-  var riskBand;
-  // FIX (BUG-13, 9/4): standardized on the "High/Low-Moderate/No Risk" label text already
-  // used by 2 of the 3 tools -- sliassessment_1.html previously saved a differently-formatted
-  // label ("2 High Risk") to the SAME shared sli_assessments.risk_band column, which meant
-  // that one text field could read two different ways depending on which tool wrote the row.
-  if (escalation || riskRaw >= 4) riskBand = { label: 'High Risk', points: 2 };
-  else if (riskRaw >= 1) riskBand = { label: 'Low-Moderate Risk', points: 1 };
-  else riskBand = { label: 'No Risk', points: 0 };
-
-  var sdohScore = sdoh ? sliSum(SLI_SDOH_KEYS.map(function(k) { return sdoh[k]; })) : 0;
-
-  var clinicalScore = phq9Band.points + gad7Band.points + bamBand.points + asamBand.points + riskBand.points;
-  var adjustedSli = clinicalScore + sdohScore;
-
-  var lowClinicalFlag = clinicalScore <= 4;
-  var highSdohFlag = sdohScore >= 3;
-  var cap = lowClinicalFlag && highSdohFlag;
-
-  var calculatedLevel = cap ? SLI_LEVEL_TABLE[0] : sliBandFromTable(adjustedSli, SLI_LEVEL_TABLE);
-  var directorReviewRequired = calculatedLevel.level === 5 && !cap;
-
-  return {
-    phq9Raw: phq9Raw, phq9Band: phq9Band,
-    gad7Raw: gad7Raw, gad7Band: gad7Band,
-    bamRaw: bamRaw, bamBand: bamBand,
-    asamRaw: asamRaw, asamBand: asamBand,
-    escalation: escalation, riskRaw: riskRaw, riskBand: riskBand,
-    sdohScore: sdohScore,
-    clinicalScore: clinicalScore, adjustedSli: adjustedSli,
-    lowClinicalFlag: lowClinicalFlag, highSdohFlag: highSdohFlag, cap: cap,
-    calculatedLevel: calculatedLevel, directorReviewRequired: directorReviewRequired
-  };
+  return '<div class="opt-row" data-group="' + groupKey + '">' + items.map(function(label, idx) {
+    var val = opts.values ? opts.values[idx] : idx;
+    var isSelected = selectedVal === val;
+    return '<button type="button" class="opt-btn' + (isSelected ? ' selected' + (opts.riskStyle ? ' risk' : '') : '') + '" data-group="' + groupKey + '" data-val="' + val + '">' + escapeHtml(label) + '</button>';
+  }).join('') + '</div>';
 }
 
-// Node's `require()` isn't available in a plain browser <script> include, and this same
-// file is also loaded directly by the regression harness (sli-scoring.test.js) under
-// Node -- this makes both work from one file without a build step either way.
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    SLI_ASAM_DIMENSIONS: SLI_ASAM_DIMENSIONS,
-    SLI_ASAM_DIMENSION_OPTIONS: SLI_ASAM_DIMENSION_OPTIONS,
-    SLI_ASAM_DIMENSIONS_PLACEHOLDER: SLI_ASAM_DIMENSIONS_PLACEHOLDER,
-    SLI_ASAM_PLACEHOLDER_OPTIONS: SLI_ASAM_PLACEHOLDER_OPTIONS,
-    SLI_BAM_SCORED_KEYS: SLI_BAM_SCORED_KEYS,
-    SLI_CSSRS_KEYS: SLI_CSSRS_KEYS,
-    SLI_CSSRS_ESCALATION_KEYS: SLI_CSSRS_ESCALATION_KEYS,
-    SLI_RISK_EXTRA_KEYS: SLI_RISK_EXTRA_KEYS,
-    SLI_SDOH_KEYS: SLI_SDOH_KEYS,
-    SLI_LEVEL_TABLE: SLI_LEVEL_TABLE,
-    sliSum: sliSum,
-    sliBandFromTable: sliBandFromTable,
-    sliComputeScores: sliComputeScores
-  };
+function yesNoRow(groupKey, selectedVal) {
+  return optionRow(['No', 'Yes'], selectedVal, groupKey, { values: [0, 1], riskStyle: true });
 }
+
+function buildHtml() {
+  var scores = computeScores();
+  var phq9Item9 = state.phq9[8];
+  var showItem9Note = phq9Item9 !== null && phq9Item9 > 0;
+
+  var html = '<div class="topbar"><span class="badge">Thrive<span class="sub">SLI 2.0 Assessment</span></span></div>';
+  html += '<div class="content">';
+
+  // Client info
+  html += '<div class="section"><div class="section-head"><h2>Client &amp; Assessment Info</h2></div><div class="section-body">';
+  html += '<div class="row2">';
+  html += '<div><label class="field-label">Client Number</label><input type="text" id="clientNumber" value="' + escapeHtml(state.client_number) + '" placeholder="e.g. 10234"></div>';
+  html += '<div><label class="field-label">Assessment Date</label><input type="date" id="assessmentDate" value="' + escapeHtml(state.assessment_date) + '"></div>';
+  html += '</div>';
+  html += '<label class="field-label">Assessment Type</label><select id="assessmentType">' +
+    ['Initial','30-day','90-day','Ad-hoc'].map(function(t){ return '<option value="' + t + '"' + (state.assessment_type === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') +
+    '</select>';
+  html += '</div></div>';
+
+  // PHQ-9
+  html += '<div class="section"><div class="section-head"><h2>PHQ-9 — Depression</h2><div class="sub">Rate each over the past two weeks.</div></div><div class="section-body">';
+  PHQ9_ITEMS.forEach(function(q, i) {
+    html += '<div class="item"><div class="q">' + (i+1) + '. ' + escapeHtml(q) + '</div>' + optionRow(FREQ_OPTIONS, state.phq9[i], 'phq9_' + i) + '</div>';
+  });
+  if (showItem9Note) {
+    html += '<div class="banner warn"><strong>Item 9 endorsed</strong>Per protocol: stay with the client, acknowledge with empathy, don\'t minimize or react with alarm. This will be revisited in the Brief Risk Assessment section below.</div>';
+  }
+  html += '<div class="item"><div class="q">How many times were you hospitalized for your MH in the last 90 days? <span style="color:var(--muted)">(not scored)</span></div>' + optionRow(['0','1','2','3','4+'], state.phq9_hosp, 'phq9_hosp') + '</div>';
+  html += '</div></div>';
+
+  // GAD-7
+  html += '<div class="section"><div class="section-head"><h2>GAD-7 — Anxiety</h2><div class="sub">Rate each over the past two weeks.</div></div><div class="section-body">';
+  GAD7_ITEMS.forEach(function(q, i) {
+    html += '<div class="item"><div class="q">' + (i+1) + '. ' + escapeHtml(q) + '</div>' + optionRow(FREQ_OPTIONS, state.gad7[i], 'gad7_' + i) + '</div>';
+  });
+  html += '<div class="item"><div class="q">If you checked any problems, how difficult have they made daily life? <span style="color:var(--muted)">(not scored)</span></div>' + optionRow(['Not difficult at all','Somewhat difficult','Very difficult','Extremely difficult'], state.gad7_impact, 'gad7_impact') + '</div>';
+  html += '</div></div>';
+
+  // BAM
+  html += '<div class="section"><div class="section-head"><h2>BAM — Brief Addiction Monitor</h2><div class="sub">Recovery monitoring across substance use, supports, and life functioning.</div></div><div class="section-body">';
+  html += '<div class="item"><div class="q">Has the client used any substances within the last 30 days? <span style="color:var(--muted)">(not scored — gates items below)</span></div>' + yesNoRow('bam_substance_use_30d', state.bam_substance_use_30d) + '</div>';
+  BAM_SCORED_ITEMS.forEach(function(it) {
+    html += '<div class="item"><div class="q">' + escapeHtml(it.label) + '</div>' + optionRow(it.options, state.bam[it.key], 'bam_' + it.key) + '</div>';
+  });
+  html += '<div class="item"><div class="q">How many overdoses in the last 90 days? <span style="color:var(--muted)">(not scored)</span></div>' + optionRow(['0','1','2','3','4+'], state.bam_overdoses, 'bam_overdoses') + '</div>';
+  html += '<div class="item"><div class="q">How many arrests in the last 90 days? <span style="color:var(--muted)">(not scored)</span></div>' + optionRow(['0','1','2','3','4+'], state.bam_arrests, 'bam_arrests') + '</div>';
+  html += '<div class="item"><div class="q">Seen a dentist in the last 12 months? <span style="color:var(--muted)">(not scored)</span></div>' + yesNoRow('bam_dentist', state.bam_dentist) + '</div>';
+  html += '<div class="item"><div class="q">Seen a doctor in the last 12 months? <span style="color:var(--muted)">(not scored)</span></div>' + yesNoRow('bam_doctor', state.bam_doctor) + '</div>';
+  html += '</div></div>';
+
+  // ASAM
+  html += '<div class="section"><div class="section-head"><h2>ASAM Level of Care</h2><div class="sub">Six dimensions — clinical staff with ASAM training only.</div></div><div class="section-body">';
+  html += '<div class="item"><div class="q">Is client MH Only? (If yes, skip all six dimensions)</div>' + yesNoRow('asam_mh_only', state.asam_mh_only) + '</div>';
+  if (!state.asam_mh_only) {
+    // FIX (SCORING-REVIEW-3, 9/18/26): previously stored each dimension's bare
+    // level as the selected value, so two options sharing a level (e.g. the
+    // "Level 1-WM" and OTP-Level 1 choices in dimension 1) highlighted
+    // identically and couldn't be told apart -- and Pimsy's real ASAM Score
+    // scores those two differently (see sli-scoring.js). Now stores the
+    // OPTION INDEX as the selected/compared value, so each option is tracked
+    // individually regardless of shared level; state.asam_dims[i] (the bare
+    // level, used for display and for the asam_dimensions field every
+    // existing consumer expects) is still set from the chosen option, in
+    // setGroupValue below.
+    ASAM_DIMENSIONS.forEach(function(dim, i) {
+      var opts = ASAM_DIMENSION_OPTIONS[i];
+      var labels = opts.map(function(o){ return o.label + ' (' + (o.otp ? 'OTP-' : '') + 'Level ' + o.level + ')'; });
+      var idxValues = opts.map(function(o, idx){ return idx; });
+      html += '<div class="item"><div class="q">' + (i+1) + '. ' + escapeHtml(dim) + '</div>' + optionRow(labels, state.asam_option_idx[i], 'asam_' + i, { values: idxValues }) + '</div>';
+    });
+    html += '<label class="field-label">ASAM Level of Care Recommendation (clinician overall placement)</label><input type="text" id="asamLoc" value="' + escapeHtml(state.asam_loc_recommendation) + '" placeholder="e.g. 3.5">';
+    html += '<div style="margin-top:12px;"><label class="field-label">If score-suggested level differs from clinician-assigned level, explain</label><textarea id="asamOverride">' + escapeHtml(state.asam_override_rationale) + '</textarea></div>';
+  }
+  html += '</div></div>';
+
+  // Risk
+  html += '<div class="section"><div class="section-head"><h2>Brief Risk Assessment</h2><div class="sub">C-SSRS suicide risk screen + additional risk items. Handle with care.</div></div><div class="section-body">';
+  CSSRS_ITEMS.forEach(function(it) {
+    html += '<div class="item"><div class="q">' + escapeHtml(it.label) + '</div>' + yesNoRow('cssrs_' + it.key, state.cssrs[it.key]) + '</div>';
+  });
+  if (scores.escalation) {
+    html += '<div class="banner crisis"><strong>ESCALATION PROTOCOL — STOP</strong>A "Yes" was recorded on 1c, 1d, 1e, or 1f. The full C-SSRS must be administered immediately by qualified clinical staff. Do not leave the client alone. Document who was notified and the disposition below before continuing.</div>';
+    html += '<div><label class="field-label">Clinical staff notified (name)</label><input type="text" id="riskNotifiedBy" value="' + escapeHtml(state.risk_notified_by) + '"></div>';
+    html += '<div style="margin-top:10px;"><div class="q">Based on the client\'s response, is a Full Columbia Assessment needed?</div>' + yesNoRow('risk_full_columbia', state.risk_full_columbia_needed) + '</div>';
+  }
+  RISK_EXTRA_ITEMS.forEach(function(it) {
+    html += '<div class="item"><div class="q">' + escapeHtml(it.label) + '</div>' + yesNoRow('risk_extra_' + it.key, state.risk_extra[it.key]) + '</div>';
+  });
+  html += '</div></div>';
+
+  // SDOH
+  html += '<div class="section"><div class="section-head"><h2>SDOH Critical Barriers</h2><div class="sub">Current-situation barriers, not lifetime history.</div></div><div class="section-body">';
+  SDOH_ITEMS.forEach(function(it) {
+    html += '<div class="item"><div class="q">' + escapeHtml(it.label) + '</div>' + yesNoRow('sdoh_' + it.key, state.sdoh[it.key]) + '</div>';
+  });
+  html += '</div></div>';
+
+  // Results
+  html += buildResultsHtml(scores);
+
+  html += '</div>';
+  return html;
+}
+
+function buildResultsHtml(s) {
+  var levelClass = s.cap ? 'capped' : (s.calculatedLevel.level === 5 ? 'level5' : '');
+  var levelTitle = s.cap ? 'Level 1 — Capped' : s.calculatedLevel.label;
+  var levelHours = s.cap ? '1-2 hours/week — Service Intensity Cap applied' : s.calculatedLevel.hours;
+
+  var html = '<div class="results">';
+  html += '<h2>Results</h2>';
+
+  html += '<div class="score-grid">';
+  html += scoreTile('PHQ-9', s.phq9Raw, s.phq9Band.label);
+  html += scoreTile('GAD-7', s.gad7Raw, s.gad7Band.label);
+  html += scoreTile('BAM', s.bamRaw, s.bamBand.label);
+  html += scoreTile('ASAM', s.asamRaw, s.asamBand.label);
+  html += scoreTile('Risk', s.riskRaw, s.riskBand.label);
+  html += scoreTile('SDOH Barriers', s.sdohScore, s.sdohScore + ' of 6 endorsed');
+  html += '</div>';
+
+  html += '<div class="score-grid" style="grid-template-columns:1fr 1fr;">';
+  html += scoreTile('Clinical Score', s.clinicalScore, null);
+  html += scoreTile('Adjusted SLI', s.adjustedSli, 'Clinical + SDOH');
+  html += '</div>';
+
+  if (s.cap) {
+    html += '<div class="banner warn"><strong>Service Intensity Cap Applied</strong>Clinical Score is 4 or less AND SDOH Barrier Score is 3 or more &mdash; capped at Level 1 regardless of Adjusted SLI. This does not mean less support: focus peer time on active barrier resolution (housing, benefits, healthcare linkage), not symptom-focused work.</div>';
+  }
+
+  html += '<div class="level-banner ' + levelClass + '">';
+  html += '<div class="level-title">' + escapeHtml(levelTitle) + '</div>';
+  html += '<div class="level-desc">' + escapeHtml(levelHours) + '</div>';
+  html += '</div>';
+
+  if (s.directorReviewRequired && !s.cap) {
+    html += '<div class="banner crisis"><strong>Director Review Required</strong>Level 5 requires director approval before services begin at this intensity. Notify the clinical director or designee now and document the date/time of notification. Do not initiate Level 5 services without documented approval.</div>';
+  }
+
+  html += '<div class="override-box">';
+  html += '<label class="field-label">Final Support Level (defaults to calculated — change only with documented clinical rationale)</label>';
+  html += '<select id="levelOverride">' + [1,2,3,4,5].map(function(lv){
+    var calcLevel = s.cap ? 1 : s.calculatedLevel.level;
+    return '<option value="' + lv + '"' + ((state.level_override !== null ? state.level_override : calcLevel) === lv ? ' selected' : '') + '>Level ' + lv + '</option>';
+  }).join('') + '</select>';
+  html += '<div style="margin-top:10px;"><label class="field-label">Override rationale (required if different from calculated level)</label><textarea id="levelOverrideRationale">' + escapeHtml(state.level_override_rationale) + '</textarea></div>';
+  html += '</div>';
+
+  html += '<label class="field-label" style="margin-top:16px;display:block;">Assessed By</label><input type="text" id="assessedBy" placeholder="Your name">';
+
+  html += '<button class="save-btn" id="saveBtn">Save Assessment</button>';
+  html += '<div class="save-status" id="saveStatus"></div>';
+  html += '</div>';
+  return html;
+}
+
+function scoreTile(label, val, sub) {
+  return '<div class="score-tile"><div class="lbl">' + escapeHtml(label) + '</div><div class="val">' + val + '</div>' + (sub ? '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + escapeHtml(sub) + '</div>' : '') + '</div>';
+}
+
+// ── EVENTS ──
+
+function wireEvents() {
+  document.getElementById('clientNumber').oninput = function(e){ state.client_number = e.target.value; };
+  document.getElementById('assessmentDate').oninput = function(e){ state.assessment_date = e.target.value; };
+  document.getElementById('assessmentType').onchange = function(e){ state.assessment_type = e.target.value; };
+
+  document.querySelectorAll('.opt-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      var group = btn.getAttribute('data-group');
+      // FIX (9/15/26): was parseInt, which silently truncates the real ASAM level
+      // values (2.1, 2.5, 3.7, etc.) down to their integer floor -- every other
+      // group here uses whole-number values (0-3 frequency scales, 0/1 yes-no) so
+      // this never showed up before the real ASAM picklist introduced decimals.
+      var val = parseFloat(btn.getAttribute('data-val'));
+      setGroupValue(group, val);
+      render();
+    };
+  });
+
+  var asamLoc = document.getElementById('asamLoc');
+  if (asamLoc) asamLoc.oninput = function(e){ state.asam_loc_recommendation = e.target.value; };
+  var asamOverride = document.getElementById('asamOverride');
+  if (asamOverride) asamOverride.oninput = function(e){ state.asam_override_rationale = e.target.value; };
+  var riskNotifiedBy = document.getElementById('riskNotifiedBy');
+  if (riskNotifiedBy) riskNotifiedBy.oninput = function(e){ state.risk_notified_by = e.target.value; };
+
+  var levelOverride = document.getElementById('levelOverride');
+  if (levelOverride) levelOverride.onchange = function(e){ state.level_override = parseInt(e.target.value, 10); };
+  var levelOverrideRationale = document.getElementById('levelOverrideRationale');
+  if (levelOverrideRationale) levelOverrideRationale.oninput = function(e){ state.level_override_rationale = e.target.value; };
+
+  var assessedBy = document.getElementById('assessedBy');
+  if (assessedBy && currentReviewer) assessedBy.value = currentReviewer.name || '';
+  if (assessedBy) assessedBy.oninput = function(e){ state._assessedBy = e.target.value; };
+
+  document.getElementById('saveBtn').onclick = saveAssessment;
+}
+
+function setGroupValue(group, val) {
+  if (group.indexOf('phq9_hosp') === 0) { state.phq9_hosp = val; return; }
+  if (group.indexOf('phq9_') === 0) { state.phq9[parseInt(group.slice(5), 10)] = val; return; }
+  if (group.indexOf('gad7_impact') === 0) { state.gad7_impact = val; return; }
+  if (group.indexOf('gad7_') === 0) { state.gad7[parseInt(group.slice(5), 10)] = val; return; }
+  if (group === 'bam_substance_use_30d') { state.bam_substance_use_30d = val; return; }
+  if (group === 'bam_overdoses') { state.bam_overdoses = val; return; }
+  if (group === 'bam_arrests') { state.bam_arrests = val; return; }
+  if (group === 'bam_dentist') { state.bam_dentist = val; return; }
+  if (group === 'bam_doctor') { state.bam_doctor = val; return; }
+  if (group.indexOf('bam_') === 0) { state.bam[group.slice(4)] = val; return; }
+  if (group === 'asam_mh_only') { state.asam_mh_only = val === 1; if (state.asam_mh_only) { state.asam_dims = new Array(6).fill(null); state.asam_option_idx = new Array(6).fill(null); state.asam_dimension_points = new Array(6).fill(null); } return; }
+  if (group.indexOf('asam_') === 0) {
+    var asamDim = parseInt(group.slice(5), 10);
+    var asamOpt = ASAM_DIMENSION_OPTIONS[asamDim][val];
+    state.asam_option_idx[asamDim] = val;
+    state.asam_dims[asamDim] = asamOpt ? asamOpt.level : null;
+    state.asam_dimension_points[asamDim] = asamOpt ? asamOpt.points : null;
+    return;
+  }
+  if (group.indexOf('cssrs_') === 0) { state.cssrs[group.slice(6)] = val; return; }
+  if (group === 'risk_full_columbia') { state.risk_full_columbia_needed = val === 1; return; }
+  if (group.indexOf('risk_extra_') === 0) { state.risk_extra[group.slice(11)] = val; return; }
+  if (group.indexOf('sdoh_') === 0) { state.sdoh[group.slice(5)] = val; return; }
+}
+
+async function saveAssessment() {
+  var btn = document.getElementById('saveBtn');
+  var statusEl = document.getElementById('saveStatus');
+  if (!state.client_number) { statusEl.textContent = 'Enter a client number before saving.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  var s = computeScores();
+  var finalLevel = state.level_override !== null ? state.level_override : (s.cap ? 1 : s.calculatedLevel.level);
+
+  var payload = {
+    client_number: state.client_number,
+    assessed_by: state._assessedBy || (currentReviewer ? currentReviewer.name : null),
+    assessment_date: state.assessment_date,
+    assessment_type: state.assessment_type,
+    phq9_items: state.phq9, phq9_hospitalizations: state.phq9_hosp, phq9_raw: s.phq9Raw, phq9_band: s.phq9Band.label, phq9_points: s.phq9Band.points,
+    gad7_items: state.gad7, gad7_functional_impact: state.gad7_impact, gad7_raw: s.gad7Raw, gad7_band: s.gad7Band.label, gad7_points: s.gad7Band.points,
+    bam_items: state.bam, bam_raw: s.bamRaw, bam_band: s.bamBand.label, bam_points: s.bamBand.points,
+    bam_substance_use_30d: state.bam_substance_use_30d === 1, bam_overdoses_90d: state.bam_overdoses, bam_arrests_90d: state.bam_arrests,
+    bam_seen_dentist_12mo: state.bam_dentist === 1, bam_seen_doctor_12mo: state.bam_doctor === 1,
+    asam_mh_only: !!state.asam_mh_only, asam_dimensions: state.asam_dims,
+    // FIX (SCORING-REVIEW-3, 9/18/26): the exact points sli-scoring.js should use per
+    // dimension (from the specific option picked, not just its bare level -- see the
+    // rendering/setGroupValue comments above). asam_dimensions is unchanged/still the
+    // bare level array, since other consumers (SQL trend queries, band display) already
+    // expect that shape.
+    asam_dimension_points: state.asam_dimension_points,
+    asam_raw: s.asamRaw, asam_band: s.asamBand.label, asam_points: s.asamBand.points,
+    asam_loc_recommendation: state.asam_loc_recommendation || null, asam_override_rationale: state.asam_override_rationale || null,
+    risk_cssrs: state.cssrs, risk_harm_others: state.risk_extra.harm_others, risk_abuse: state.risk_extra.abuse, risk_psychosis: state.risk_extra.psychosis,
+    risk_raw: s.riskRaw, risk_band: s.riskBand.label, risk_points: s.riskBand.points,
+    risk_escalation_triggered: s.escalation, risk_escalation_notified_by: state.risk_notified_by || null,
+    risk_escalation_notified_at: s.escalation ? new Date().toISOString() : null,
+    risk_full_columbia_needed: state.risk_full_columbia_needed,
+    sdoh_items: state.sdoh, sdoh_barrier_score: s.sdohScore,
+    clinical_score: s.clinicalScore, adjusted_sli: s.adjustedSli,
+    low_clinical_flag: s.lowClinicalFlag, high_sdoh_flag: s.highSdohFlag, service_intensity_cap: s.cap,
+    calculated_support_level: s.cap ? 1 : s.calculatedLevel.level, final_support_level: finalLevel,
+    level_override_rationale: state.level_override_rationale || null,
+    director_review_required: s.directorReviewRequired && !s.cap,
+    is_current: true
+  };
+
+  try {
+    // Supersede any prior "current" assessment for this client before
+    // inserting the new one, so is_current always points at exactly one
+    // row per client -- what the tracker's utilization view will join on.
+    var { data: prior, error: priorErr } = await sb.from(TABLE).select('id').eq('client_number', state.client_number).eq('is_current', true);
+    if (priorErr) throw priorErr;
+
+    var { data: inserted, error: insertErr } = await sb.from(TABLE).insert(payload).select('id').single();
+    if (insertErr) throw insertErr;
+
+    if (prior && prior.length) {
+      for (var i = 0; i < prior.length; i++) {
+        await sb.from(TABLE).update({ is_current: false, superseded_by: inserted.id }).eq('id', prior[i].id);
+      }
+    }
+
+    statusEl.textContent = 'Saved. Final Support Level ' + finalLevel + ' recorded for client ' + state.client_number + '.';
+    btn.textContent = 'Save Assessment';
+    btn.disabled = false;
+  } catch (e) {
+    statusEl.textContent = 'Save failed: ' + e.message;
+    btn.textContent = 'Save Assessment';
+    btn.disabled = false;
+  }
+}
+
+// ── LOGIN (reuses the same reviewers table as the Flagged Notes Tracker) ──
+
+function renderLogin() {
+  app.innerHTML = '<div class="login-wrap"><h2>SLI 2.0 Assessment</h2>' +
+    '<label class="field-label">Email</label><input type="text" id="loginEmail">' +
+    '<label class="field-label" style="margin-top:12px;">Password</label><input type="text" id="loginPassword">' +
+    '<button class="login-btn" id="loginBtn">Sign In</button>' +
+    '<div class="login-error" id="loginError"></div></div>';
+  document.getElementById('loginBtn').onclick = handleLogin;
+}
+
+async function handleLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
+  if (error) { document.getElementById('loginError').textContent = error.message; return; }
+  var reviewerLookup = await sb.from('reviewers').select('name, role, divisions, email').eq('id', data.user.id).single();
+  if (!reviewerLookup.error && reviewerLookup.data) currentReviewer = reviewerLookup.data;
+  render();
+}
+
+(async function init() {
+  var { data } = await sb.auth.getSession();
+  if (data && data.session) {
+    var reviewerLookup = await sb.from('reviewers').select('name, role, divisions, email').eq('id', data.session.user.id).single();
+    if (!reviewerLookup.error && reviewerLookup.data) currentReviewer = reviewerLookup.data;
+    render();
+    return;
+  }
+  renderLogin();
+})();
+</script>
+</body>
+</html>
