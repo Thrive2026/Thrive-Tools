@@ -113,7 +113,7 @@ select{cursor:pointer;}
         <div class="field">
           <label class="field-label">Your Email <span class="required-star">*</span></label>
           <div class="field-hint">Never sent to the AI or included in the generated note.</div>
-          <input type="text" id="providerEmail" placeholder="e.g. jsmith@thrivepeerrecoveryservices.com"/>
+          <input type="email" id="providerEmail" placeholder="e.g. jsmith@thrivepeersupport.com" autocomplete="email" onblur="normalizeProviderEmailField()"/>
         </div>
       </div>
       <div class="two-col">
@@ -1005,6 +1005,44 @@ async function logNoteAnalytics(payload) {
   }
 }
 
+// ── PROVIDER EMAIL CHECK ──
+// Notes are routed to supervisors by this email, so it must be the provider's Thrive work
+// address. Blocks blanks, personal emails, domain typos, and client numbers typed into the field.
+var PROVIDER_EMAIL_DOMAIN = 'thrivepeersupport.com';
+var PROVIDER_EMAIL_KEY = 'thrive_dap_provider_email';
+function getProviderEmail() {
+  var el = document.getElementById('providerEmail');
+  return el ? el.value.replace(/\s+/g, '').toLowerCase() : '';
+}
+function normalizeProviderEmailField() {
+  var el = document.getElementById('providerEmail');
+  if (el) el.value = getProviderEmail();
+}
+function providerEmailProblem() {
+  var v = getProviderEmail();
+  if (!v) return 'Your Email';
+  var at = v.indexOf('@');
+  var local = at > -1 ? v.slice(0, at) : v;
+  var domain = at > -1 ? v.slice(at + 1) : '';
+  if (/\d{3,}/.test(local) && /-|^cc/.test(local)) return 'Your Email (this looks like a client number \u2014 enter your own work email)';
+  if (at < 0) return 'Your Email (enter your full work email, ending in @' + PROVIDER_EMAIL_DOMAIN + ')';
+  if (domain !== PROVIDER_EMAIL_DOMAIN) {
+    if (/^(gmail|yahoo|hotmail|outlook|aol|icloud|live)\./.test(domain)) return 'Your Email (use your Thrive work email, not a personal email)';
+    return 'Your Email (check the spelling \u2014 it must end in @' + PROVIDER_EMAIL_DOMAIN + ')';
+  }
+  if (!/^[a-z][a-z0-9._-]*$/.test(local)) return 'Your Email (check the part before the @)';
+  return '';
+}
+function rememberProviderEmail() {
+  if (providerEmailProblem()) return;
+  try { localStorage.setItem(PROVIDER_EMAIL_KEY, getProviderEmail()); } catch(e) {}
+}
+function restoreProviderEmail() {
+  var el = document.getElementById('providerEmail');
+  if (!el || el.value) return;
+  try { var saved = localStorage.getItem(PROVIDER_EMAIL_KEY); if (saved) el.value = saved; } catch(e) {}
+}
+
 // ── NOTE SECTION PARSING ──
 // Splits a raw Claude completion into Description / Assessment / Plan text.
 // Written to tolerate the header-formatting variance a model can produce
@@ -1662,7 +1700,7 @@ function buildLinkageNarrative(code) {
   var missing = [];
   var narrative = '';
 
-  if (!document.getElementById('providerEmail').value.trim()) missing.push('Your Email');
+  var providerEmailIssue = providerEmailProblem(); if (providerEmailIssue) missing.push(providerEmailIssue);
   if (CODES_NO_CLIENT_NUMBER.indexOf(code) === -1 && !document.getElementById('clientNumber').value.trim()) missing.push('Client Number');
 
   if (code === 'U1') {
@@ -1994,9 +2032,10 @@ async function runGenerateLinkageNote(code) {
       console.warn('[DAP analytics] parsed note sections are all blank -- raw model output:', fullText);
     }
 
+    rememberProviderEmail();
     logNoteAnalytics({
       client_number: document.getElementById('clientNumber').value.trim(),
-      provider_email: document.getElementById('providerEmail').value.trim(),
+      provider_email: getProviderEmail(),
       description_text: descText,
       assessment_text: assessText,
       plan_text: planText,
@@ -2421,7 +2460,8 @@ function copyAll() {
 
 function resetForm() {
   if (!confirm('Start a new note? This will clear all current entries.')) return;
-  document.querySelectorAll('input[type=text], textarea, input[type=date]').forEach(function(el){ el.value = ''; });
+  document.querySelectorAll('input[type=text], input[type=email], textarea, input[type=date]').forEach(function(el){ el.value = ''; });
+  restoreProviderEmail();
   document.querySelectorAll('select').forEach(function(el){ el.value = ''; });
   document.querySelectorAll('.chip.selected').forEach(function(el){ el.classList.remove('selected'); });
   document.querySelectorAll('input[name="telehealthModality"]').forEach(function(r){ r.checked = false; });
@@ -2582,7 +2622,7 @@ async function runGenerateNote() {
   var MIN_GOAL = 30;
 
   var missing = [];
-  if (!document.getElementById('providerEmail').value.trim()) missing.push('Your Email');
+  var providerEmailIssue = providerEmailProblem(); if (providerEmailIssue) missing.push(providerEmailIssue);
   var clientNumberOptional = (CODES_NO_CLIENT_NUMBER.indexOf(getLinkageCode()) > -1) || (!getLinkageCode() && PROGRAMS_NO_CLIENT_NUMBER.indexOf(program) > -1);
   if (!clientNumberOptional && !document.getElementById('clientNumber').value.trim()) missing.push('Client Number');
   if (!sessionDate) missing.push('Session Date');
@@ -2762,9 +2802,10 @@ async function runGenerateNote() {
       console.warn('[DAP analytics] parsed note sections are all blank -- raw model output:', fullText);
     }
 
+    rememberProviderEmail();
     logNoteAnalytics({
       client_number: document.getElementById('clientNumber').value.trim(),
-      provider_email: document.getElementById('providerEmail').value.trim(),
+      provider_email: getProviderEmail(),
       description_text: descText,
       assessment_text: assessText,
       plan_text: planText,
@@ -2814,6 +2855,7 @@ updateCharCounter('providerResponse', 'providerResponseCounter', 30);
 updateCharCounter('itpModDetail', 'itpModDetailCounter', 20);
 updateCharCounter('goalProgressDetail', 'goalProgressDetailCounter', 0);
 
+restoreProviderEmail();
 </script>
 </body>
 </html>
