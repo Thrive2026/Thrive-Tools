@@ -13,6 +13,10 @@
   property names as index_21.html's Director Tools page) -- this was the 5th distinct landing
   page with its own teal (#00707A) palette and Segoe UI font, a copy-paste-from-a-different-brief
   origin rather than an intentional design choice.
+  ARCHIVED (10/23/26): Treatment Plan Builder and SLI 2.0 Assessment cards removed.
+  Pimsy's update moved treatment plans and SLI 2.0 into the EHR, so neither tool is in use.
+  Their code is kept, unserved, under archive/2026-10-sli-and-treatment-plan/ (see its
+  README). server.js returns 404 for anything under /archive/.
   CORRECTION (9/4, later same day): the link-filename portion of the BUG-36 fix above was
   reverted. It had assumed the non-hyphenated names used when these files were uploaded for
   review (dapnote.html, treatmentplan_2.html, etc.) were the real deployed filenames -- that
@@ -69,23 +73,11 @@ body{
       <p>Generate CARF, ODBH, and Medicaid-compliant progress notes from structured session input. Formats directly for Pimsy copy-paste.</p>
       <span class="tool-badge">Peer Support Staff</span>
     </a>
-    <a class="tool-card" href="treatment-plan.html">
-      <div class="tool-icon">📋</div>
-      <h2>Treatment Plan Builder</h2>
-      <p>Create individualized SMART goal treatment plans with SLI 2.0 integration, clinical justification, and per-need block output for CARF review.</p>
-      <span class="tool-badge">Care Coordinators &amp; Clinical Staff</span>
-    </a>
     <a class="tool-card" href="psychotherapy-note.html">
       <div class="tool-icon">🧠</div>
       <h2>Psychotherapy Note</h2>
       <p>Generate individualized psychotherapy session notes with QA review flags, banned-phrase checks, and compliant session-focus branching.</p>
       <span class="tool-badge">Clinical Staff</span>
-    </a>
-    <a class="tool-card" href="sli-assessment.html">
-      <div class="tool-icon">📊</div>
-      <h2>SLI 2.0 Assessment</h2>
-      <p>Digital Service Level Indicator screener covering PHQ-9, GAD-7, BAM, ASAM Level of Care, Brief Risk (C-SSRS), and SDOH. Auto-scores and assigns a support level.</p>
-      <span class="tool-badge">Clinical &amp; Peer Support Staff</span>
     </a>
     <a class="tool-card" href="case-review-hub.html">
       <div class="tool-icon">👥</div>
