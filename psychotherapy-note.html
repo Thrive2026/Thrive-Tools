@@ -554,7 +554,12 @@ select{cursor:pointer;}
         </select>
       </div>
 
-      <div class="field" style="margin-top:24px;padding-top:20px;border-top:1.5px solid #eee;">
+      <!-- RETIRED (10/29/26): the optional SLI 2.0 re-score is hidden. SLI 2.0 now lives in Pimsy
+           (same reason Treatment Plan Builder and SLI Assessment were archived 10/23), so a second
+           score saved here could disagree with Pimsy's. The markup and code are left in place but
+           unreachable; isSliIncluded() always returns false, so nothing is scored, saved to
+           sli_assessments, added to the note, or logged as sli_* fields. -->
+      <div class="field" id="sliOptInRow" style="display:none;margin-top:24px;padding-top:20px;border-top:1.5px solid #eee;">
         <div style="display:flex;align-items:flex-start;gap:10px;">
           <input type="checkbox" id="sliIncluded" onchange="onSliIncludedChange()" style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:#4B5EA6;flex-shrink:0;"/>
           <label for="sliIncluded" style="font-size:13px;font-weight:600;color:#2d2d4e;cursor:pointer;">Include an SLI 2.0 re-score in this note<br/><span style="font-size:11.5px;font-weight:400;color:#888;">Optional. Use this for a periodic re-assessment session (e.g. an Assessment or Treatment Plan update) where the Support Level Indicator needs to be recalculated — not every session.</span></label>
@@ -1602,8 +1607,8 @@ function onSliStateChange(){
 }
 
 function isSliIncluded(){
-  var el = document.getElementById('sliIncluded');
-  return !!(el && el.checked);
+  // RETIRED 10/29/26 -- SLI 2.0 re-scoring now happens in Pimsy. See the note above #sliOptInRow.
+  return false;
 }
 
 function onSliIncludedChange(){
